@@ -21,7 +21,7 @@ const CreateLeads = async (req, res) => {
   if (!email.includes("@")) {
     return res.status(400).json({
       status: 400,
-      message: "heeeeeyyyyyyyyy Invalid email format. Email must contain '@'.",
+      message: "That is Invalid email format. Email must contain '@'.",
     });
   }
   
