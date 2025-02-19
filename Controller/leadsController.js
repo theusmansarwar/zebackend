@@ -15,7 +15,16 @@ const CreateLeads = async (req, res) => {
       status: 400,
       message: `The following fields are required: ${missingFields.join(", ")}`,
     });
-  }  
+  }
+  
+  // Check if email is valid
+  if (!email.includes("@")) {
+    return res.status(400).json({
+      status: 400,
+      message: "Invalid email format. Email must contain '@'.",
+    });
+  }
+  
 
   try {
     const LeadsCreated = await Leads.create({

@@ -9,7 +9,7 @@ const  userRouter  = require('./Routes/userRoutes');
 const path = require('path')
 const port=5000;
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors());
 
 app.use("/api", userRouter)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Serve static files
