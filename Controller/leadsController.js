@@ -5,7 +5,8 @@ const CreateLeads = async (req, res) => {
   const missingFields = [];
 
   if (!name) missingFields.push({ name: "name", message: "Name field is required" });
-  if (!email) missingFields.push({ name: "email", message: "Email field is required" });
+  if (!email ) missingFields.push({ name: "email", message: "Email field is required" });
+  if (!email.includes("@") ) missingFields.push({ name: "email", message: "Email must contain @" });
   if (!phone) missingFields.push({ name: "phone", message: "Phone field is required" });
   if (!subject) missingFields.push({ name: "subject", message: "Subject field is required" });
   if (!query) missingFields.push({ name: "query", message: "Query field is required" });
@@ -20,12 +21,6 @@ const CreateLeads = async (req, res) => {
   
   
 
-  if (!email.includes("@")) {
-    return res.status(400).json({
-      status: 400,
-      message: "That is Invalid email format. Email must contain '@'.",
-    });
-  }
   
 
   try {
