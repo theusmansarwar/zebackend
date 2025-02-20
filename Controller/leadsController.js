@@ -13,7 +13,7 @@ const CreateLeads = async (req, res) => {
   if (missingFields.length > 0) {
     return res.status(400).json({
       status: 400,
-      message: "The following fields are required",
+      message: "Some feilds are missing!",
       missingFields,
     });
   }
