@@ -5,8 +5,12 @@ const CreateLeads = async (req, res) => {
   const missingFields = [];
 
   if (!name) missingFields.push({ name: "name", message: "Name field is required" });
-  if (!email ) missingFields.push({ name: "email", message: "Email field is required" });
-  if (!email.includes("@") ) missingFields.push({ name: "email", message: "Email must contain @" });
+  if (!email) {
+    missingFields.push({ name: "email", message: "Email field is required" });
+  } else if (!email.includes("@")) {
+    missingFields.push({ name: "email", message: "Email must contain @" });
+  }
+  
   if (!phone) missingFields.push({ name: "phone", message: "Phone field is required" });
   if (!subject) missingFields.push({ name: "subject", message: "Subject field is required" });
   if (!query) missingFields.push({ name: "query", message: "Query field is required" });
