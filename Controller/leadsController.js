@@ -12,6 +12,9 @@ const CreateLeads = async (req, res) => {
   }
   
   if (!phone) missingFields.push({ name: "phone", message: "Phone field is required" });
+  else if (!phone.length>6){
+    missingFields.push({ name: "phone", message: "Phone is incomplete" });
+  }
   if (!subject) missingFields.push({ name: "subject", message: "Subject field is required" });
   if (!query) missingFields.push({ name: "query", message: "Query field is required" });
   
