@@ -1,6 +1,6 @@
 const mongoose=require('mongoose');
 const URI=process.env.MONGODB_URI;
-
+console.log("API URL IS", URI )
 const connectDB=async()=>{
 try {
   const response=  await mongoose.connect(URI);
