@@ -9,15 +9,16 @@ const CreateLeads = async (req, res) => {
   if (!phone) missingFields.push("phone");
   if (!subject) missingFields.push("subject");
   if (!query) missingFields.push("query");
-
+  
   if (missingFields.length > 0) {
     return res.status(400).json({
       status: 400,
-      message: `The following fields are required: ${missingFields.join(", ")}`,
+      message: "The following fields are required",
+      missingFields,
     });
   }
   
-  // Check if email is valid
+
   if (!email.includes("@")) {
     return res.status(400).json({
       status: 400,
@@ -45,7 +46,7 @@ const CreateLeads = async (req, res) => {
 
     return res.status(201).json({
       status: 201,
-      message: "Lead Created Successfully",
+      message: "Request Sent Successfully",
     });
   } catch (err) {
     console.error(err);
