@@ -1,12 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const upload= require("../Middleware/Multer")
+
 const { 
     createblog,
     updateblog,
     deleteblog,
     listblog,
-    viewblog 
+    viewblog, 
+
 } = require("../Controller/blogController");
 
 
@@ -14,8 +15,10 @@ const {
 router.post('/create', createblog);
 router.post('/update', updateblog);
 router.post('/delete', deleteblog);
-router.post('/view', listblog);
-router.post('/list', viewblog);
+router.get('/view/:slug', viewblog);
+router.get('/list', listblog);
+
+
 
 
 module.exports = router;
