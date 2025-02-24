@@ -50,54 +50,59 @@ const createblog = async (req, res) => {
 
     const missingFields = [];
 
-    if (!title)
-      missingFields.push({ name: "title", message: "Title is required" });
-    if (!description)
-      missingFields.push({
-        name: "description",
-        message: "Description is required",
-      });
-    if (!detail)
-      missingFields.push({ name: "detail", message: "Detail is required" });
-    if (!author)
-      missingFields.push({ name: "author", message: "Author is required" });
-    if (!tags)
-      missingFields.push({ name: "tags", message: "Tags are required" });
-    if (!metaDescription)
-      missingFields.push({
-        name: "metaDescription",
-        message: "Meta description is required",
-      });
-    if (!slug)
-      missingFields.push({ name: "slug", message: "Slug is required" });
-    if (!thumbnail)
-      missingFields.push({
-        name: "thumbnail",
-        message: "Thumbnail (image) is required",
-      });
-    if (!category)
-      missingFields.push({ name: "category", message: "Category is required" });
+    if (published === "true" || published === true) {
+      if (!title)
+        missingFields.push({ name: "title", message: "Title is required" });
+      if (!description)
+        missingFields.push({
+          name: "description",
+          message: "Description is required",
+        });
+      if (!detail)
+        missingFields.push({ name: "detail", message: "Detail is required" });
+      if (!author)
+        missingFields.push({ name: "author", message: "Author is required" });
+      if (!tags)
+        missingFields.push({ name: "tags", message: "Tags are required" });
+      if (!metaDescription)
+        missingFields.push({
+          name: "metaDescription",
+          message: "Meta description is required",
+        });
+      if (!slug)
+        missingFields.push({ name: "slug", message: "Slug is required" });
+      if (!thumbnail)
+        missingFields.push({
+          name: "thumbnail",
+          message: "Thumbnail (image) is required",
+        });
+      if (!category)
+        missingFields.push({
+          name: "category",
+          message: "Category is required",
+        });
 
-    if (missingFields.length > 0) {
-      return res.status(400).json({
-        status: 400,
-        message: "Some fields are missing!",
-        missingFields,
-      });
-    }
+      if (missingFields.length > 0) {
+        return res.status(400).json({
+          status: 400,
+          message: "Some fields are missing!",
+          missingFields,
+        });
+      }
 
-    const categoryExists = await Category.findById(category);
-    if (!categoryExists) {
-      return res.status(400).json({ message: "Invalid category ID" });
-    }
-    const existingTitle = await Blogs.findOne({ title });
-    if (existingTitle) {
-      return res.status(400).json({ message: "Blog Title already exists" });
-    }
+      const categoryExists = await Category.findById(category);
+      if (!categoryExists) {
+        return res.status(400).json({ message: "Invalid category ID" });
+      }
+      const existingTitle = await Blogs.findOne({ title });
+      if (existingTitle) {
+        return res.status(400).json({ message: "Blog Title already exists" });
+      }
 
-    const existingSlug = await Blogs.findOne({ slug });
-    if (existingSlug) {
-      return res.status(400).json({ message: "Blog Slug already exists" });
+      const existingSlug = await Blogs.findOne({ slug });
+      if (existingSlug) {
+        return res.status(400).json({ message: "Blog Slug already exists" });
+      }
     }
 
     const tagsArray = Array.isArray(tags)
@@ -106,7 +111,6 @@ const createblog = async (req, res) => {
       ? tags.split(",").map((tag) => tag.trim())
       : [];
 
-    // ✅ Create new blog with category name
     const newBlog = await Blogs.create({
       title,
       description,
@@ -117,7 +121,7 @@ const createblog = async (req, res) => {
       tags: tagsArray,
       metaDescription,
       published,
-      category: { _id: categoryExists._id, name: categoryExists.name },
+      category: category ? { _id: categoryExists?._id, name: categoryExists?.name } : null,
     });
 
     res
@@ -132,6 +136,7 @@ const createblog = async (req, res) => {
     });
   }
 };
+
 
 const updateblog = async (req, res) => {
   try {
