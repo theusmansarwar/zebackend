@@ -69,11 +69,60 @@ const approveComment = async (req, res) => {
     });
 }
 }
+const viewComments = async (req, res) => {
+    
+    try{
+    const comment = await Comment.find();
+  
+    if (!comment) {
+        return res.status(404).json({ message: "Comment not found" });
+    }
+ 
+
+    res.status(200).json({ message: "Comment fetched successfully", comment });
+} catch (error) {
+    console.error("Error while approving comment:", error);
+    res.status(500).json({
+        status: 500,
+        message: "Internal server error",
+        error: error.message
+    });
+}
+}
+const deleteComment = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        
+        const comment = await Comment.findById(id);
+        if (!comment) {
+            return res.status(404).json({ message: "Comment not found" });
+        }
+
+        // ✅ Remove comment from the Blog's comments array
+        await Blogs.findByIdAndUpdate(comment.blogId, { 
+            $pull: { comments: id } 
+        });
+
+        // ✅ Delete the comment
+        await Comment.findByIdAndDelete(id);
+
+        res.status(200).json({ message: "Comment deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting comment:", error);
+        res.status(500).json({ 
+            status: 500, 
+            message: "Internal server error", 
+            error: error.message 
+        });
+    }
+};
 
 
 
 module.exports = {
- 
+    viewComments,
     addComment,
-    approveComment
+    approveComment,
+    deleteComment
 };

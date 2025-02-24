@@ -7,14 +7,15 @@ const {
     deleteblog,
     listblog,
     viewblog, 
-
+    deletemultiblog
 } = require("../Controller/blogController");
 
 
 
 router.post('/create', createblog);
-router.post('/update', updateblog);
-router.post('/delete', deleteblog);
+router.put('/update/:id', updateblog);
+router.delete('/delete/:id', deleteblog);
+router.delete('/deleteMultiple', deletemultiblog);
 router.get('/view/:slug', viewblog);
 router.get('/list', listblog);
 
