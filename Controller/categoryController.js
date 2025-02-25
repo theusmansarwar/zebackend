@@ -88,8 +88,6 @@ const deleteCategory = async (req, res) => {
       if (!ids || !Array.isArray(ids) || ids.length === 0) {
         return res.status(400).json({ message: "Invalid request. Provide category IDs." });
       }
-  
-      // ✅ Find all blogs linked to any of these categories
       const linkedBlogs = await Blogs.find({ category: { $in: ids } }).select("title _id category");
   
       // ✅ Extract category IDs that have linked blogs
@@ -120,26 +118,52 @@ const deleteCategory = async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   };
-  
-  
-// ✅ View All Categories
-const viewCategory = async (req, res) => {
-  try {
-    const categories = await Category.find().sort({ createdAt: -1 });
-    res.status(200).json({ categories });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
 
-// ✅ View Only Published Categories
-const liveCategory = async (req, res) => {
-  try {
-    const categories = await Category.find({ published: true }).sort({ createdAt: -1 });
-    res.status(200).json({ categories });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+  const viewCategory = async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1; // Default page = 1
+      const limit = parseInt(req.query.limit) || 10; // Default limit = 10
+  
+      const totalCategories = await Category.countDocuments();
+      const categories = await Category.find()
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .skip((page - 1) * limit);
+  
+      res.status(200).json({
+        totalCategories,
+        totalPages: Math.ceil(totalCategories / limit),
+        currentPage: page,
+        limit,
+        categories,
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+  
+  // ✅ View Only Published Categories with Pagination
+  const liveCategory = async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+  
+      const totalCategories = await Category.countDocuments({ published: true });
+      const categories = await Category.find({ published: true })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .skip((page - 1) * limit);
+  
+      res.status(200).json({
+        totalCategories,
+        totalPages: Math.ceil(totalCategories / limit),
+        currentPage: page,
+        limit,
+        categories,
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
 
 module.exports = { addCategory, updateCategory, deleteCategory, viewCategory, liveCategory,deleteAllCategories };
