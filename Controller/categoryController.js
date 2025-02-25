@@ -20,7 +20,7 @@ const addCategory = async (req, res) => {
     const category = new Category({ name, published });
     await category.save();
     
-    res.status(201).json({ message: "Category added successfully", category });
+    res.status(201).json({ status: 201, message: "Category added successfully", category });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -51,7 +51,7 @@ const updateCategory = async (req, res) => {
 
     if (!category) return res.status(404).json({ message: "Category not found" });
 
-    res.status(200).json({ message: "Category updated successfully", category });
+    res.status(200).json({  status: 200,message: "Category updated successfully", category });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -51,15 +51,15 @@ const approveComment = async (req, res) => {
     const comment = await Comment.findById(commentId);
   
     if (!comment) {
-        return res.status(404).json({ message: "Comment not found" });
+        return res.status(404).json({  status: 400, message: "Comment not found" });
     }
     if(!status){
-        return res.status(400).json({ message: "status is required" });
+        return res.status(400).json({  status: 400, message: "status is required" });
     }
     comment.published = true; 
     await comment.save();
 
-    res.status(200).json({ message: "Comment approved successfully", comment });
+    res.status(200).json({ status: 200, message: "Comment approved successfully", comment });
 } catch (error) {
     console.error("Error while approving comment:", error);
     res.status(500).json({

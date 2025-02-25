@@ -128,7 +128,7 @@ const createblog = async (req, res) => {
 
     res
       .status(201)
-      .json({ message: "Blog created successfully", blog: newBlog });
+      .json({ status: 201, message: "Blog created successfully", blog: newBlog });
   } catch (error) {
     console.error("Error creating blog:", error);
     res.status(500).json({
@@ -218,7 +218,7 @@ const updateblog = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Blog updated successfully", blog: existingBlog });
+      .json({ status: 200, message: "Blog updated successfully", blog: existingBlog });
   } catch (error) {
     console.error("Error updating blog:", error);
     res.status(500).json({
