@@ -109,7 +109,8 @@ const deleteCategory = async (req, res) => {
       await Category.deleteMany({ _id: { $in: categoriesToDelete } });
   
       res.status(200).json({
-        message: "Categories processed successfully.",
+        status:200,
+        message: "Categories Delete successfully.",
         deletedCategories: categoriesToDelete,
         failedToDelete: categoriesWithBlogs,
         linkedBlogs

@@ -146,6 +146,7 @@ const deleteAllComment = async (req, res) => {
       await Comment.deleteMany({ _id: { $in: ids } });
   
       res.status(200).json({
+        status:200,
         message: "Comments deleted successfully.",
         deletedComments: ids
       });
