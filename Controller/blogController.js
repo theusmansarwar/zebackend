@@ -1,5 +1,5 @@
 const Blogs = require("../Models/blogModel");
-const Comment = require("../Models/commentModel")
+const Comment = require("../Models/commentModel");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -90,10 +90,6 @@ const createblog = async (req, res) => {
         });
       }
 
-      const categoryExists = await Category.findById(category);
-      if (!categoryExists) {
-        return res.status(400).json({ message: "Invalid category ID" });
-      }
       const existingTitle = await Blogs.findOne({ title });
       if (existingTitle) {
         return res.status(400).json({ message: "Blog Title already exists" });
@@ -111,6 +107,11 @@ const createblog = async (req, res) => {
       ? tags.split(",").map((tag) => tag.trim())
       : [];
 
+    const categoryExists = await Category.findById(category);
+    console.log("Category Exists:", categoryExists);
+    if (!categoryExists) {
+      return res.status(400).json({ message: "Invalid category ID" });
+    }
     const newBlog = await Blogs.create({
       title,
       description,
@@ -121,7 +122,8 @@ const createblog = async (req, res) => {
       tags: tagsArray,
       metaDescription,
       published,
-      category: category ? { _id: categoryExists?._id, name: categoryExists?.name } : null,
+
+      category: { _id: categoryExists._id, name: categoryExists.name },
     });
 
     res
@@ -136,7 +138,6 @@ const createblog = async (req, res) => {
     });
   }
 };
-
 
 const updateblog = async (req, res) => {
   try {
@@ -363,50 +364,50 @@ const listblogAdmin = async (req, res) => {
   }
 };
 const viewblog = async (req, res) => {
-    try {
-      const { slug } = req.params;
-      const userIp = req.ip || req.headers["x-forwarded-for"] || req.connection.remoteAddress; // ✅ Get User's IP
-  
-      // ✅ Find the blog but do NOT modify it directly
-      let blog = await Blogs.findOne({ slug })
-        .populate("comments") // ✅ Populate comments
-        .populate("category"); // ✅ Populate category
-  
-      if (!blog) {
-        return res.status(404).json({ message: "Blog not found" });
-      }
-  
-      // ✅ Check if the IP exists in viewedBy array
-      if (!blog.viewedBy.includes(userIp)) {
-        blog = await Blogs.findOneAndUpdate(
-          { slug },
-          { 
-            $inc: { views: 1 },  // ✅ Increment views
-            $push: { viewedBy: userIp } // ✅ Add new IP to viewedBy array
-          },
-          { new: true } // ✅ Return updated document
-        ).populate("comments").populate("category"); // ✅ Repopulate fields after update
-      }
-  
-      const commentsCount = blog.comments.length || 0;
-  
-      return res.status(200).json({
-        message: "Blog fetched successfully",
-        blog,
-        commentsCount,
-    
-      });
-  
-    } catch (error) {
-      console.error("Error viewing blog:", error);
-      res.status(500).json({
-        status: 500,
-        message: "Internal server error",
-        error: error.message,
-      });
+  try {
+    const { slug } = req.params;
+    const userIp =
+      req.ip || req.headers["x-forwarded-for"] || req.connection.remoteAddress; // ✅ Get User's IP
+
+    // ✅ Find the blog but do NOT modify it directly
+    let blog = await Blogs.findOne({ slug })
+      .populate("comments") // ✅ Populate comments
+      .populate("category"); // ✅ Populate category
+
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
     }
-  };
-  
+
+    // ✅ Check if the IP exists in viewedBy array
+    if (!blog.viewedBy.includes(userIp)) {
+      blog = await Blogs.findOneAndUpdate(
+        { slug },
+        {
+          $inc: { views: 1 }, // ✅ Increment views
+          $push: { viewedBy: userIp }, // ✅ Add new IP to viewedBy array
+        },
+        { new: true } // ✅ Return updated document
+      )
+        .populate("comments")
+        .populate("category"); // ✅ Repopulate fields after update
+    }
+
+    const commentsCount = blog.comments.length || 0;
+
+    return res.status(200).json({
+      message: "Blog fetched successfully",
+      blog,
+      commentsCount,
+    });
+  } catch (error) {
+    console.error("Error viewing blog:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   createblog: [upload.single("thumbnail"), createblog],
@@ -415,5 +416,5 @@ module.exports = {
   listblog,
   viewblog,
   deletemultiblog,
-  listblogAdmin
+  listblogAdmin,
 };
