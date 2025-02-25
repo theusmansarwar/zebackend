@@ -72,7 +72,7 @@ const approveComment = async (req, res) => {
 const viewComments = async (req, res) => {
     
     try{
-    const comment = await Comment.find();
+    const comment = await Comment.find().populate("blogId", "title");
   
     if (!comment) {
         return res.status(404).json({ message: "Comment not found" });
