@@ -248,7 +248,7 @@ const deleteblog = async (req, res) => {
     // ✅ Delete the blog
     await Blogs.findByIdAndDelete(id);
 
-    res.status(200).json({ message: "Blog deleted successfully" });
+    res.status(200).json({ status:200, message: "Blog deleted successfully" });
   } catch (error) {
     console.error("Error deleting blog:", error);
     res.status(500).json({
@@ -290,7 +290,7 @@ const deletemultiblog = async (req, res) => {
     // ✅ Delete blogs in one go
     await Blogs.deleteMany({ _id: { $in: ids } });
 
-    res.status(200).json({ message: "Blogs deleted successfully" });
+    res.status(200).json({ status: 200, message: "Blogs deleted successfully" });
   } catch (error) {
     console.error("Error deleting blogs:", error);
     res.status(500).json({
