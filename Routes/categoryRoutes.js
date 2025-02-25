@@ -6,12 +6,14 @@ const {
   deleteCategory,
   updateCategory,
   viewCategory,
-  liveCategory
+  liveCategory,
+  deleteAllCategories
 } = require("../Controller/categoryController");
 
 router.post("/add", addCategory);
 router.put("/update/:id", updateCategory);
 router.delete("/delete/:id", deleteCategory);
+router.delete("/delete", deleteAllCategories);
 router.get("/view", viewCategory);
 router.get("/live", liveCategory);
 

@@ -81,6 +81,45 @@ const deleteCategory = async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   };
+  const deleteAllCategories = async (req, res) => {
+    try {
+      const { ids } = req.body; // Expecting { ids: ["id1", "id2", ...] }
+  
+      if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "Invalid request. Provide category IDs." });
+      }
+  
+      // ✅ Find all blogs linked to any of these categories
+      const linkedBlogs = await Blogs.find({ category: { $in: ids } }).select("title _id category");
+  
+      // ✅ Extract category IDs that have linked blogs
+      const categoriesWithBlogs = [...new Set(linkedBlogs.map(blog => blog.category.toString()))];
+  
+      // ✅ Filter out categories that can be deleted
+      const categoriesToDelete = ids.filter(id => !categoriesWithBlogs.includes(id));
+  
+      if (categoriesToDelete.length === 0) {
+        return res.status(400).json({ 
+          message: "Cannot delete categories. All are linked to blogs.", 
+          linkedBlogs
+        });
+      }
+  
+      // ✅ Delete categories that are not linked to any blogs
+      await Category.deleteMany({ _id: { $in: categoriesToDelete } });
+  
+      res.status(200).json({
+        message: "Categories processed successfully.",
+        deletedCategories: categoriesToDelete,
+        failedToDelete: categoriesWithBlogs,
+        linkedBlogs
+      });
+  
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+  
   
 // ✅ View All Categories
 const viewCategory = async (req, res) => {
@@ -102,4 +141,4 @@ const liveCategory = async (req, res) => {
   }
 };
 
-module.exports = { addCategory, updateCategory, deleteCategory, viewCategory, liveCategory };
+module.exports = { addCategory, updateCategory, deleteCategory, viewCategory, liveCategory,deleteAllCategories };

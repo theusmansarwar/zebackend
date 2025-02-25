@@ -118,11 +118,52 @@ const deleteComment = async (req, res) => {
     }
 };
 
-
+const deleteAllComment = async (req, res) => {
+    try {
+      const { ids } = req.body; // Expecting { ids: ["id1", "id2", ...] }
+  
+      if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "Invalid request. Provide comment IDs." });
+      }
+  
+      // ✅ Find all comments that need to be deleted
+      const comments = await Comment.find({ _id: { $in: ids } });
+  
+      if (comments.length === 0) {
+        return res.status(404).json({ message: "No comments found with the given IDs." });
+      }
+  
+      // ✅ Extract the blog IDs related to these comments
+      const blogIds = [...new Set(comments.map(comment => comment.blogId.toString()))];
+  
+      // ✅ Remove comments from their respective blogs
+      await Blogs.updateMany(
+        { _id: { $in: blogIds } },
+        { $pull: { comments: { $in: ids } } }
+      );
+  
+      // ✅ Delete comments from the database
+      await Comment.deleteMany({ _id: { $in: ids } });
+  
+      res.status(200).json({
+        message: "Comments deleted successfully.",
+        deletedComments: ids
+      });
+  
+    } catch (error) {
+      console.error("Error deleting comments:", error);
+      res.status(500).json({ 
+        message: "Internal server error", 
+        error: error.message 
+      });
+    }
+  };
+  
 
 module.exports = {
     viewComments,
     addComment,
     approveComment,
-    deleteComment
+    deleteComment,
+    deleteAllComment
 };
