@@ -408,7 +408,37 @@ const viewblog = async (req, res) => {
     });
   }
 };
+const viewblogbyid = async (req, res) => {
+  try {
+    const { id } = req.params;
+   
+    let blog = await Blogs.findById({ id })
+      .populate("comments") 
+      .populate("category"); 
 
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+   
+
+    const commentsCount = blog.comments.length || 0;
+
+    return res.status(200).json({
+      message: "Blog fetched successfully",
+      blog,
+      status:200,
+      commentsCount,
+    });
+  } catch (error) {
+    console.error("Error viewing blog:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
 module.exports = {
   createblog: [upload.single("thumbnail"), createblog],
   updateblog: [upload.single("thumbnail"), updateblog],
@@ -417,4 +447,5 @@ module.exports = {
   viewblog,
   deletemultiblog,
   listblogAdmin,
+  viewblogbyid
 };
