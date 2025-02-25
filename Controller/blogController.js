@@ -329,7 +329,39 @@ const listblog = async (req, res) => {
     });
   }
 };
+const listblogAdmin = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1; // Get page from query, default to 1
+    const limit = parseInt(req.query.limit) || 10; // Get limit from query, default to 10
 
+    const blogslist = await Blogs.find()
+      .select("-comments -detail ")
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "category",
+        model: "Category", // Explicitly specifying model
+      })
+      .limit(limit)
+      .skip((page - 1) * limit);
+
+    const totalBlogs = await Blogs.countDocuments();
+
+    res.status(200).json({
+      totalBlogs,
+      totalPages: Math.ceil(totalBlogs / limit),
+      currentPage: page,
+      limit: limit,
+      blogs: blogslist,
+    });
+  } catch (error) {
+    console.error("Error fetching blogs:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
 const viewblog = async (req, res) => {
     try {
       const { slug } = req.params;
@@ -383,4 +415,5 @@ module.exports = {
   listblog,
   viewblog,
   deletemultiblog,
+  listblogAdmin
 };

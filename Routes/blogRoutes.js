@@ -7,7 +7,8 @@ const {
     deleteblog,
     listblog,
     viewblog, 
-    deletemultiblog
+    deletemultiblog,
+    listblogAdmin
 } = require("../Controller/blogController");
 
 
@@ -18,6 +19,7 @@ router.delete('/delete/:id', deleteblog);
 router.delete('/deleteMultiple', deletemultiblog);
 router.get('/view/:slug', viewblog);
 router.get('/list', listblog);
+router.get('/adminlist', listblogAdmin);
 
 
 
