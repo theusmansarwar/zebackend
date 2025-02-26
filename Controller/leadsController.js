@@ -60,7 +60,66 @@ const CreateLeads = async (req, res) => {
     });
   }
 };
+const LeadsList = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const totalLeads = await Leads.countDocuments();
+
+    const leads = await Leads.find()
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip((page - 1) * limit);
+
+    return res.status(200).json({
+      status: 200,
+      message: "Leads fetched successfully",
+      leads,
+      totalLeads,
+      totalPages: Math.ceil(totalLeads / limit), // Fixed typo
+      currentPage: page,
+      limit,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+    });
+  }
+};
+
+const GetLeadById = async (req, res) => {
+  try {
+    const { id } = req.params; // Get lead ID from request parameters
+
+    const lead = await Leads.findById(id);
+
+    if (!lead) {
+      return res.status(404).json({
+        status: 404,
+        message: "Lead not found",
+      });
+    }
+
+    return res.status(200).json({
+      status: 200,
+      message: "Lead fetched successfully",
+      lead,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+    });
+  }
+};
+
 
 module.exports = {
   CreateLeads,
+  LeadsList,
+  GetLeadById
 };
