@@ -306,7 +306,7 @@ const listblog = async (req, res) => {
     const page = parseInt(req.query.page) || 1; // Get page from query, default to 1
     const limit = parseInt(req.query.limit) || 10; // Get limit from query, default to 10
 
-    const blogslist = await Blogs.find()
+    const blogslist = await Blogs.find({published: true})
       .select("-comments -detail -published")
       .sort({ createdAt: -1 })
       .limit(limit)
