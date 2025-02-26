@@ -370,7 +370,7 @@ const viewblog = async (req, res) => {
       req.ip || req.headers["x-forwarded-for"] || req.connection.remoteAddress; // ✅ Get User's IP
 
     // ✅ Find the blog but do NOT modify it directly
-    let blog = await Blogs.findOne({ slug })
+    let blog = await Blogs.findOne({ slug , published: true })
       .populate("comments") // ✅ Populate comments
       .populate("category"); // ✅ Populate category
 
