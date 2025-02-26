@@ -6,12 +6,14 @@ const {
   approveComment,
   viewComments,
   deleteComment,
-  deleteAllComment
+  deleteAllComment,
+  approvedComments
 } = require("../Controller/commentController");
 
 router.post("/add", addComment);
 router.post("/approve", approveComment);
 router.get("/view", viewComments);
+router.get("/approved-comment", approvedComments);
 router.delete("/delete/:id", deleteComment);
 router.delete("/delete", deleteAllComment);
 

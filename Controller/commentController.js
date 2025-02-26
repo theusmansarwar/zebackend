@@ -89,6 +89,26 @@ const viewComments = async (req, res) => {
     });
 }
 }
+const approvedComments = async (req, res) => {
+    
+    try{
+    const comment = await Comment.find({published:true}).populate("blogId", "title");
+  
+    if (!comment) {
+        return res.status(404).json({ message: "Comment not found" });
+    }
+ 
+
+    res.status(200).json({ message: "Comment fetched successfully", comment });
+} catch (error) {
+    console.error("Error while approving comment:", error);
+    res.status(500).json({
+        status: 500,
+        message: "Internal server error",
+        error: error.message
+    });
+}
+}
 const deleteComment = async (req, res) => {
     try {
         const { id } = req.params;
@@ -136,7 +156,6 @@ const deleteAllComment = async (req, res) => {
       // ✅ Extract the blog IDs related to these comments
       const blogIds = [...new Set(comments.map(comment => comment.blogId.toString()))];
   
-      // ✅ Remove comments from their respective blogs
       await Blogs.updateMany(
         { _id: { $in: blogIds } },
         { $pull: { comments: { $in: ids } } }
@@ -166,5 +185,6 @@ module.exports = {
     addComment,
     approveComment,
     deleteComment,
-    deleteAllComment
+    deleteAllComment,
+    approvedComments
 };
