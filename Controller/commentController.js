@@ -92,14 +92,14 @@ const viewComments = async (req, res) => {
 const approvedComments = async (req, res) => {
     
     try{
-    const comment = await Comment.find({published:true}).populate("blogId", "title");
+    const comment = await Comment.find({published:true});
   
     if (!comment) {
         return res.status(404).json({ message: "Comment not found" });
     }
  
 
-    res.status(200).json({ message: "Comment fetched successfully", comment });
+    res.status(200).json({ status:200, message: "Comment fetched successfully", comment });
 } catch (error) {
     console.error("Error while approving comment:", error);
     res.status(500).json({
