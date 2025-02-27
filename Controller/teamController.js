@@ -1,4 +1,5 @@
 const Team = require("../Models/teamsModel");
+const TeamCategory =require("../Models/teamCategoryModel")
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -33,30 +34,46 @@ const upload = multer({ storage: storage, fileFilter: fileFilter });
 
 // Create a new team member
 const createTeamMember = async (req, res) => {
-  try {
-    const { name, role, description, category, socialLinks, published } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : null;
-
-    if (!name || !role || !description || !category) {
-      return res.status(400).json({ message: "Missing required fields" });
+    try {
+      const { name, role, description, category, socialLinks, published } = req.body;
+      const image = req.file ? `/uploads/${req.file.filename}` : null;
+  
+      // Validate required fields
+      if (!name || !role || !category) {
+        return res.status(400).json({ message: "Missing required fields (name, role, category)" });
+      }
+  
+      // Fetch category by ID
+      const categoryExists = await TeamCategory.findById(category);
+      if (!categoryExists) {
+        return res.status(400).json({ message: "Invalid category ID" });
+      }
+  
+      // Parse social links (handle JSON parsing safely)
+      let parsedSocialLinks = {};
+      try {
+        parsedSocialLinks = socialLinks ? JSON.parse(socialLinks) : {};
+      } catch (error) {
+        return res.status(400).json({ message: "Invalid socialLinks format" });
+      }
+  
+      // Create new team member
+      const newMember = await Team.create({
+        name,
+        role,
+        description: description || "", // Optional field
+        category: { _id: categoryExists._id, name: categoryExists.name }, // Store full category info
+        image,
+        socialLinks: parsedSocialLinks,
+        published: published === "true" || published === true, // Ensure boolean conversion
+      });
+  
+      res.status(201).json({ message: "Team member created successfully", member: newMember });
+    } catch (error) {
+      console.error("Error creating team member:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
     }
-
-    const newMember = await Team.create({
-      name,
-      role,
-      description,
-      category: JSON.parse(category),
-      image,
-      socialLinks: socialLinks,
-      published: published === "true" || published === true,
-    });
-
-    res.status(201).json({ message: "Team member created successfully", member: newMember });
-  } catch (error) {
-    console.error("Error creating team member:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
-  }
-};
+  };
 
 // Update a team member
 const updateTeamMember = async (req, res) => {
