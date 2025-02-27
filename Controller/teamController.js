@@ -136,7 +136,15 @@ const getAllTeamMembers = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
-
+const getTeamLiveMember = async (req, res) => {
+    try {
+      const members = await Team.find({published:true}).sort({ createdAt: -1 });
+      res.status(200).json({ members });
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  };
 // Fetch a single team member by ID
 const getTeamMemberById = async (req, res) => {
   try {
@@ -158,4 +166,5 @@ module.exports = {
   deleteTeamMember,
   getAllTeamMembers,
   getTeamMemberById,
+  getTeamLiveMember
 };
