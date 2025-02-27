@@ -5,7 +5,11 @@ const TeamSchema = new mongoose.Schema(
     name: { type: String, required: true },
     role: { type: String, required: true },
     description: { type: String, required: true },
-    image: { type: String, required: true }, // Store image URL
+    category: {
+         _id: { type: mongoose.Schema.Types.ObjectId,  ref: "TeamCategory" },
+         name: { type: String,  }
+       },
+    image: { type: String, required: true }, 
     socialLinks: {
       linkedin: { type: String, default: "" },
       instagram: { type: String, default: "" },
