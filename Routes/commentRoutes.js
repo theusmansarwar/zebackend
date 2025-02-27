@@ -11,7 +11,7 @@ const {
 } = require("../Controller/commentController");
 
 router.post("/add", addComment);
-router.post("/approve", approveComment);
+router.put("/approve", approveComment);
 router.get("/view", viewComments);
 router.get("/approved-comment", approvedComments);
 router.delete("/delete/:id", deleteComment);
