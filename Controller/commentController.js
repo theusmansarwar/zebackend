@@ -56,7 +56,7 @@ const approveComment = async (req, res) => {
     if(!status){
         return res.status(400).json({  status: 400, message: "status is required" });
     }
-    comment.published = true; 
+    comment.published = status; 
     await comment.save();
 
     res.status(200).json({ status: 200, message: "Comment approved successfully", comment });
