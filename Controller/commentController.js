@@ -72,7 +72,7 @@ const approveComment = async (req, res) => {
 const viewComments = async (req, res) => {
     
     try{
-    const comment = await Comment.find().populate("blogId", "title");
+    const comment = await Comment.find().populate("blogId", "title").sort({ createdAt: -1 });
   
     if (!comment) {
         return res.status(404).json({ message: "Comment not found" });
@@ -92,7 +92,7 @@ const viewComments = async (req, res) => {
 const approvedComments = async (req, res) => {
     
     try{
-    const comment = await Comment.find({published:true});
+    const comment = await Comment.find({published:true}).sort({ createdAt: -1 });
   
     if (!comment) {
         return res.status(404).json({ message: "Comment not found" });
