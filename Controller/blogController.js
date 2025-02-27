@@ -371,8 +371,11 @@ const viewblog = async (req, res) => {
 
     // ✅ Find the blog but do NOT modify it directly
     let blog = await Blogs.findOne({ slug , published: true })
-      .populate("comments")
-      .sort({ createdAt: -1 })
+    .populate({
+      path: "comments",
+      match: { published: true }, // ✅ Only fetch published comments
+      options: { sort: { createdAt: -1 } }, // ✅ Sort newest first
+    })
       .populate("category"); // ✅ Populate category
 
     if (!blog) {
