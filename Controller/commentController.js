@@ -46,29 +46,34 @@ try {
 }
 };
 const approveComment = async (req, res) => {
-    const {status,commentId } = req.body;
-    try{
-    const comment = await Comment.findById(commentId);
-  
-    if (!comment) {
-        return res.status(404).json({  status: 400, message: "Comment not found" });
-    }
-    if(!status){
-        return res.status(400).json({  status: 400, message: "status is required" });
-    }
-    comment.published = status; 
-    await comment.save();
+    const { status, commentId } = req.body;
 
-    res.status(200).json({ status: 200, message: "Comment approved successfully", comment });
-} catch (error) {
-    console.error("Error while approving comment:", error);
-    res.status(500).json({
-        status: 500,
-        message: "Internal server error",
-        error: error.message
-    });
-}
-}
+    try {
+        const comment = await Comment.findById(commentId);
+
+        if (!comment) {
+            return res.status(404).json({ status: 400, message: "Comment not found" });
+        }
+
+        // Ensure status is explicitly true or false
+        if (typeof status !== "boolean") {
+            return res.status(400).json({ status: 400, message: "Status is required and must be true or false" });
+        }
+
+        comment.published = status;
+        await comment.save();
+
+        return res.status(200).json({ status: 200, message: "Comment status updated successfully", comment });
+    } catch (error) {
+        console.error("Error while approving comment:", error);
+        return res.status(500).json({
+            status: 500,
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+};
+
 const viewComments = async (req, res) => {
     
     try{
