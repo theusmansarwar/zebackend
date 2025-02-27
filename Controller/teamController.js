@@ -47,7 +47,7 @@ const createTeamMember = async (req, res) => {
       description,
       category: JSON.parse(category),
       image,
-      socialLinks: socialLinks ? JSON.parse(socialLinks) : {},
+      socialLinks: socialLinks,
       published: published === "true" || published === true,
     });
 
