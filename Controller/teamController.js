@@ -77,46 +77,72 @@ const createTeamMember = async (req, res) => {
 
 // Update a team member
 const updateTeamMember = async (req, res) => {
-  try {
-    const { id } = req.params;
-    let { name, role, description, category, socialLinks, published } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : null;
-
-    const existingMember = await Team.findById(id);
-    if (!existingMember) {
-      return res.status(404).json({ message: "Team member not found" });
-    }
-
-    if (category) category = JSON.parse(category);
-    if (socialLinks) socialLinks = JSON.parse(socialLinks);
-
-    existingMember.name = name || existingMember.name;
-    existingMember.role = role || existingMember.role;
-    existingMember.description = description || existingMember.description;
-    existingMember.category = category || existingMember.category;
-    existingMember.socialLinks = socialLinks || existingMember.socialLinks;
-    existingMember.published = published !== undefined ? published === "true" || published === true : existingMember.published;
-
-    if (image) {
-      // Remove old image if it exists
-      if (existingMember.image) {
-        const oldImagePath = path.join(__dirname, "..", existingMember.image);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
+    try {
+      const { id } = req.params;
+      let { name, role, description, category, socialLinks, published } = req.body;
+      const image = req.file ? `/uploads/${req.file.filename}` : null;
+  
+      const existingMember = await Team.findById(id);
+      if (!existingMember) {
+        return res.status(404).json({ message: "Team member not found" });
+      }
+  
+      // Ensure category is a valid object
+      if (typeof category === "string") {
+        try {
+          category = JSON.parse(category);
+        } catch (error) {
+          return res.status(400).json({ message: "Invalid category format" });
         }
       }
-      existingMember.image = image;
+  
+      // Fetch category if ID is provided
+      if (category?._id) {
+        const categoryExists = await TeamCategory.findById(category._id);
+        if (!categoryExists) {
+          return res.status(400).json({ message: "Invalid category ID" });
+        }
+        category = { _id: categoryExists._id, name: categoryExists.name };
+      }
+  
+      // Ensure socialLinks is a valid object
+      if (typeof socialLinks === "string") {
+        try {
+          socialLinks = JSON.parse(socialLinks);
+        } catch (error) {
+          return res.status(400).json({ message: "Invalid socialLinks format" });
+        }
+      }
+  
+      // Update fields only if provided
+      existingMember.name = name || existingMember.name;
+      existingMember.role = role || existingMember.role;
+      existingMember.description = description || existingMember.description;
+      existingMember.category = category || existingMember.category;
+      existingMember.socialLinks = socialLinks || existingMember.socialLinks;
+      existingMember.published = published !== undefined ? published === "true" || published === true : existingMember.published;
+  
+      // Handle image update
+      if (image) {
+        // Remove old image if it exists
+        if (existingMember.image) {
+          const oldImagePath = path.join(__dirname, "..", "public", existingMember.image); // Ensure correct path
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
+        }
+        existingMember.image = image;
+      }
+  
+      await existingMember.save();
+  
+      res.status(200).json({ status: 200, message: "Team member updated successfully", member: existingMember });
+    } catch (error) {
+      console.error("Error updating team member:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
     }
-
-    await existingMember.save();
-
-    res.status(200).json({status:200, message: "Team member updated successfully", member: existingMember });
-  } catch (error) {
-    console.error("Error updating team member:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
-  }
-};
-
+  };
+  
 // Delete a team member
 const deleteTeamMember = async (req, res) => {
   try {
