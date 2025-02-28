@@ -231,11 +231,15 @@ const getAllTeamMembers = async (req, res) => {
 
         // Fetch only active team members who are also published
         const teams = await Promise.all(categories.map(async (category) => {
-            const members = await Team.find({ category: category._id, published: true }).sort({ createdAt: -1 });
+            const members = await Team.find({ 
+                "category._id": category._id,  // Ensure category ID matches
+                published: true, 
+                status: "active" // Ensure status is active
+            }).sort({ createdAt: -1 });
 
             return {
                 categoryName: category.name,
-                members: members
+                members: members.length > 0 ? members : [] // Ensure empty array if no members found
             };
         }));
 
@@ -245,6 +249,7 @@ const getAllTeamMembers = async (req, res) => {
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
+
 
 // Fetch a single team member by ID
 const getTeamMemberById = async (req, res) => {
