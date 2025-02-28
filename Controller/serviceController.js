@@ -47,7 +47,7 @@ const createService = async (req, res) => {
       const missingFields = [];
       if (!name) missingFields.push({ name: "name", message: "Name is required" });
       if (!introduction) missingFields.push({ name: "introduction", message: "Introduction is required" });
-      if (!slug) missingFields.push({ name: "category", message: "Category is required" });
+      if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
       if (!image) missingFields.push({ name: "image", message: "Image is required" });
       if (missingFields.length > 0) {
         return res.status(400).json({
