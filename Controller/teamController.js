@@ -234,7 +234,7 @@ const getAllTeamMembers = async (req, res) => {
             const members = await Team.find({ 
                 "category._id": category._id,  // Ensure category ID matches
           
-            }).sort({ createdAt: -1 });
+            });
 
             return {
                 categoryName: category.name,

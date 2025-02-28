@@ -1,7 +1,6 @@
-const Testimonial = require("../Models/testimonialModel");
+const Testimonials = require("../Models/testimonialModel");
 
-
-
+// ✅ Add Testimonial
 const addTestimonial = async (req, res) => {
   try {
     let { name, service, location, description, date, rating, published } = req.body;
@@ -15,148 +14,139 @@ const addTestimonial = async (req, res) => {
     if (!date) missingFields.push({ name: "date", message: "Date is required" });
     if (!rating) missingFields.push({ name: "rating", message: "Rating is required" });
 
-    // ✅ Return error if fields are missing
     if (missingFields.length > 0) {
-      return res.status(400).json({
-        status: 400,
-        message: "Some fields are missing!",
-        missingFields,
-      });
+      return res.status(400).json({ status: 400, message: "Some fields are missing!", missingFields });
     }
 
-    const testimonial = new Testimonials({
-      name,
-      service,
-      location,
-      description,
-      date,
-      rating,
-      published,
-      
-    });
-
+    const testimonial = new Testimonials({ name, service, location, description, date, rating, published });
     await testimonial.save();
 
-    res.status(201).json({
-      status:201,
-      message: "Testimonial added successfully",
-      testimonial,
-    });
+    res.status(201).json({ status: 201, message: "Testimonial added successfully", testimonial });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to add testimonial",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to add testimonial", error: error.message });
   }
 };
 
-
+// ✅ Update Testimonial
 const updateTestimonial = async (req, res) => {
   try {
     const { id } = req.params;
-    let { name, published } = req.body;
+    let { name, service, location, description, date, rating, published } = req.body;
 
-    if (!name) return res.status(400).json({ message: "Category name is required" });
-
-    name = name.trim();
-    const existingCategory = await Testimonial.findOne({ name: new RegExp(`^${name}$`, "i") });
-
-    if (existingCategory && existingCategory._id.toString() !== id) {
-      return res.status(400).json({ message: "Category name already exists" });
+    const existingTestimonial = await Testimonials.findById(id);
+    if (!existingTestimonial) {
+      return res.status(404).json({ message: "Testimonial not found" });
     }
 
-    const category = await Testimonial.findByIdAndUpdate(
+    const missingFields = [];
+    if (!name) missingFields.push({ name: "name", message: "Name is required" });
+    if (!service) missingFields.push({ name: "service", message: "Service is required" });
+    if (!location) missingFields.push({ name: "location", message: "Location is required" });
+    if (!description) missingFields.push({ name: "description", message: "Description is required" });
+    if (!date) missingFields.push({ name: "date", message: "Date is required" });
+    if (!rating) missingFields.push({ name: "rating", message: "Rating is required" });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({ status: 400, message: "Some fields are missing!", missingFields });
+    }
+
+    // ✅ Check for duplicate name (excluding the current testimonial)
+    const duplicateTestimonial = await Testimonials.findOne({ name: new RegExp(`^${name}$`, "i") });
+    if (duplicateTestimonial && duplicateTestimonial._id.toString() !== id) {
+      return res.status(400).json({ message: "Testimonial with this name already exists" });
+    }
+
+    // ✅ Handle Image Update
+    let imagePath = existingTestimonial.image;
+    if (req.file) {
+      imagePath = `/uploads/${req.file.filename}`;
+    }
+
+    const updatedTestimonial = await Testimonials.findByIdAndUpdate(
       id,
-      { name, published },
+      { name, service, location, description, date, rating, published, image: imagePath },
       { new: true, runValidators: true }
     );
 
-    if (!category) return res.status(404).json({ message: "Category not found" });
-
-    res.status(200).json({ status: 200, message: "Category updated successfully", category });
+    res.status(200).json({ success: true, message: "Testimonial updated successfully", updatedTestimonial });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, message: "Failed to update testimonial", error: error.message });
   }
 };
 
-
+// ✅ Delete Testimonial
 const deleteTestimonial = async (req, res) => {
   try {
     const { id } = req.params;
-    const category = await Testimonial.findByIdAndDelete(id);
+    const testimonial = await Testimonials.findByIdAndDelete(id);
 
-    if (!category) return res.status(404).json({ message: "Category not found" });
+    if (!testimonial) return res.status(404).json({ message: "Testimonial not found" });
 
-    res.status(200).json({ message: "Team Category deleted successfully" });
+    res.status(200).json({ message: "Testimonial deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-
+// ✅ Delete Multiple Testimonials
 const deleteAllTestimonial = async (req, res) => {
   try {
     const { ids } = req.body; // Expecting { ids: ["id1", "id2", ...] }
 
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ message: "Invalid request. Provide category IDs." });
+      return res.status(400).json({ message: "Invalid request. Provide testimonial IDs." });
     }
 
-    await Testimonial.deleteMany({ _id: { $in: ids } });
+    await Testimonials.deleteMany({ _id: { $in: ids } });
 
-    res.status(200).json({
-      status: 200,
-      message: "Team Categories deleted successfully.",
-      deletedCategories: ids
-    });
+    res.status(200).json({ status: 200, message: "Testimonials deleted successfully.", deletedTestimonials: ids });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ View All Team Categories with Pagination
+// ✅ View All Testimonials (with Pagination)
 const viewTestimonial = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; // Default page = 1
-    const limit = parseInt(req.query.limit) || 10; // Default limit = 10
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
 
-    const totalCategories = await Testimonial.countDocuments();
-    const categories = await Testimonial.find()
+    const totalTestimonials = await Testimonials.countDocuments();
+    const testimonials = await Testimonials.find()
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
     res.status(200).json({
-      totalCategories,
-      totalPages: Math.ceil(totalCategories / limit),
+      totalTestimonials,
+      totalPages: Math.ceil(totalTestimonials / limit),
       currentPage: page,
       limit,
-      categories
+      testimonials,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ View Only Published Team Categories with Pagination
+// ✅ View Only Published Testimonials (with Pagination)
 const liveTestimonial = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const totalCategories = await Testimonial.countDocuments({ published: true });
-    const categories = await Testimonial.find({ published: true })
+    const totalTestimonials = await Testimonials.countDocuments({ published: true });
+    const testimonials = await Testimonials.find({ published: true })
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
     res.status(200).json({
-      totalCategories,
-      totalPages: Math.ceil(totalCategories / limit),
+      totalTestimonials,
+      totalPages: Math.ceil(totalTestimonials / limit),
       currentPage: page,
       limit,
-      categories
+      testimonials,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -169,5 +159,5 @@ module.exports = {
   deleteTestimonial,
   deleteAllTestimonial,
   viewTestimonial,
-  liveTestimonial
+  liveTestimonial,
 };

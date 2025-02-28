@@ -12,6 +12,7 @@ const  categoryRouter  = require('./Routes/categoryRoutes');
 const  teamRouter  = require('./Routes/teamRoutes');
 const TeamCategoryRouter = require('./Routes/teamCategoryRoutes');
 const roleRouter = require('./Routes/roleRoutes');
+const testimonialRouter = require('./Routes/testimonialRoutes');
 const serviceRouter = require('./Routes/serviceRoutes');
 const path = require('path');
 
@@ -27,6 +28,7 @@ app.use("/category", categoryRouter)
 app.use("/teamcategory", TeamCategoryRouter)
 app.use("/team", teamRouter)
 app.use("/service", serviceRouter)
+app.use("/testimonial", testimonialRouter)
 app.use("/role", roleRouter)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
