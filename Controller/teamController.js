@@ -224,15 +224,28 @@ const getAllTeamMembers = async (req, res) => {
     }
   };
   
-const getTeamLiveMember = async (req, res) => {
+  const getTeamLiveMember = async (req, res) => {
     try {
-      const members = await Team.find({published:true}).sort({ createdAt: -1 });
-      res.status(200).json({ members });
+        // Fetch only published categories
+        const categories = await TeamCategory.find({ published: true });
+
+        // Fetch only active team members who are also published
+        const teams = await Promise.all(categories.map(async (category) => {
+            const members = await Team.find({ category: category._id, published: true }).sort({ createdAt: -1 });
+
+            return {
+                categoryName: category.name,
+                members: members
+            };
+        }));
+
+        res.status(200).json({ teams });
     } catch (error) {
-      console.error("Error fetching team members:", error);
-      res.status(500).json({ message: "Internal server error", error: error.message });
+        console.error("Error fetching team members:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
-  };
+};
+
 // Fetch a single team member by ID
 const getTeamMemberById = async (req, res) => {
   try {
