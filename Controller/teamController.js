@@ -178,6 +178,25 @@ const deleteTeamMember = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+const deleteAllTeamMembers = async (req, res) => {
+    try {
+        const { ids } = req.body; // Expecting { ids: ["id1", "id2", ...] }
+    
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+          return res.status(400).json({ message: "Invalid request. Provide Team IDs." });
+        }
+    
+        await Team.deleteMany({ _id: { $in: ids } });
+    
+        res.status(200).json({
+          status: 200,
+          message: "Team deleted successfully.",
+          deletedCategories: ids
+        });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+  };
 
 // Fetch all team members (No Pagination)
 const getAllTeamMembers = async (req, res) => {
@@ -234,6 +253,7 @@ module.exports = {
   updateTeamMember: [upload.single("image"), updateTeamMember],
   deleteTeamMember,
   getAllTeamMembers,
+  deleteAllTeamMembers,
   getTeamMemberById,
   getTeamLiveMember
 };
