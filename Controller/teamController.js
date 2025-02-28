@@ -36,14 +36,14 @@ const upload = multer({ storage: storage, fileFilter: fileFilter });
 // Create a new team member
 const createTeamMember = async (req, res) => {
     try {
-      const { name, role, description, category, socialLinks, published } = req.body;
+      const { name, role,  category, socialLinks, published } = req.body;
       const image = req.file ? `/uploads/${req.file.filename}` : null;
   
       const missingFields = [];
       if (!name) missingFields.push({ name: "name", message: "Name is required" });
       if (!role) missingFields.push({ name: "role", message: "Role is required" });
       if (!category) missingFields.push({ name: "category", message: "Category is required" });
-  
+      if (!image) missingFields.push({ name: "image", message: "Image is required" });
       if (missingFields.length > 0) {
         return res.status(400).json({
           status: 400,
@@ -73,7 +73,7 @@ const createTeamMember = async (req, res) => {
       const newMember = await Team.create({
         name,
         role: { _id: roleExists._id, name: roleExists.name },
-        description: description || "", // Optional field
+       
         category: { _id: categoryExists._id, name: categoryExists.name }, // Store full category info
         image,
         socialLinks: parsedSocialLinks,

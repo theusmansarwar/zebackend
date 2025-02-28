@@ -7,7 +7,7 @@ const TeamSchema = new mongoose.Schema(
         _id: { type: mongoose.Schema.Types.ObjectId,  ref: "Role" },
         name: { type: String,  }
       },
-    description: { type: String, required: true },
+   
     category: {
          _id: { type: mongoose.Schema.Types.ObjectId,  ref: "TeamCategory" },
          name: { type: String,  }
