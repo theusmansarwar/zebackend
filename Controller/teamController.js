@@ -181,14 +181,30 @@ const deleteTeamMember = async (req, res) => {
 
 // Fetch all team members (No Pagination)
 const getAllTeamMembers = async (req, res) => {
-  try {
-    const members = await Team.find().sort({ createdAt: -1 });
-    res.status(200).json({ members });
-  } catch (error) {
-    console.error("Error fetching team members:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
-  }
-};
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+  
+      const totalMembers = await Team.countDocuments();
+      const members = await Team.find()
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .skip(skip);
+  
+      res.status(200).json({
+        totalMembers,
+        totalPages: Math.ceil(totalMembers / limit),
+        currentPage: page,
+        limit,
+        members,
+      });
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  };
+  
 const getTeamLiveMember = async (req, res) => {
     try {
       const members = await Team.find({published:true}).sort({ createdAt: -1 });
