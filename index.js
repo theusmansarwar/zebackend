@@ -11,6 +11,7 @@ const  commentRouter  = require('./Routes/commentRoutes');
 const  categoryRouter  = require('./Routes/categoryRoutes');
 const  teamRouter  = require('./Routes/teamRoutes');
 const TeamCategoryRoutes = require('./Routes/teamCategoryRoutes');
+const roleRoutes = require('./Routes/roleRoutes');
 const path = require('path');
 
 const port=process.env.PORT || 4000;
@@ -24,6 +25,7 @@ app.use("/comment", commentRouter)
 app.use("/category", categoryRouter)
 app.use("/teamcategory", TeamCategoryRoutes)
 app.use("/team", teamRouter)
+app.use("/role", roleRoutes)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
