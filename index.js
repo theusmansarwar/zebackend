@@ -10,8 +10,9 @@ const  blogRouter  = require('./Routes/blogRoutes');
 const  commentRouter  = require('./Routes/commentRoutes');
 const  categoryRouter  = require('./Routes/categoryRoutes');
 const  teamRouter  = require('./Routes/teamRoutes');
-const TeamCategoryRoutes = require('./Routes/teamCategoryRoutes');
-const roleRoutes = require('./Routes/roleRoutes');
+const TeamCategoryRouter = require('./Routes/teamCategoryRoutes');
+const roleRouter = require('./Routes/roleRoutes');
+const serviceRouter = require('./Routes/serviceRoutes');
 const path = require('path');
 
 const port=process.env.PORT || 4000;
@@ -23,9 +24,10 @@ app.use("/", userRouter)
 app.use("/blog", blogRouter)
 app.use("/comment", commentRouter)
 app.use("/category", categoryRouter)
-app.use("/teamcategory", TeamCategoryRoutes)
+app.use("/teamcategory", TeamCategoryRouter)
 app.use("/team", teamRouter)
-app.use("/role", roleRoutes)
+app.use("/service", serviceRouter)
+app.use("/role", roleRouter)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
