@@ -87,22 +87,13 @@ const updateTeamMember = async (req, res) => {
         return res.status(404).json({ message: "Team member not found" });
       }
   
-      // Ensure category is a valid object
-      if (typeof category === "string") {
-        try {
-          category = JSON.parse(category);
-        } catch (error) {
-          return res.status(400).json({ message: "Invalid category format" });
-        }
-      }
-  
-      // Fetch category if ID is provided
-      if (category?._id) {
-        const categoryExists = await TeamCategory.findById(category._id);
+      // Fetch category details using only the category ID
+      if (category) {
+        const categoryExists = await TeamCategory.findById(category);
         if (!categoryExists) {
           return res.status(400).json({ message: "Invalid category ID" });
         }
-        category = { _id: categoryExists._id, name: categoryExists.name };
+        category = { _id: categoryExists._id, name: categoryExists.name }; // Store full category object
       }
   
       // Ensure socialLinks is a valid object
@@ -126,7 +117,7 @@ const updateTeamMember = async (req, res) => {
       if (image) {
         // Remove old image if it exists
         if (existingMember.image) {
-          const oldImagePath = path.join(__dirname, "..", "public", existingMember.image); // Ensure correct path
+          const oldImagePath = path.join(__dirname, "..", "public", existingMember.image);
           if (fs.existsSync(oldImagePath)) {
             fs.unlinkSync(oldImagePath);
           }
