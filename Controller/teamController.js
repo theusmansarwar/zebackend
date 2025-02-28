@@ -3,6 +3,7 @@ const TeamCategory =require("../Models/teamCategoryModel")
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const Role = require("../Models/roleModel");
 
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, "../uploads");
@@ -38,9 +39,17 @@ const createTeamMember = async (req, res) => {
       const { name, role, description, category, socialLinks, published } = req.body;
       const image = req.file ? `/uploads/${req.file.filename}` : null;
   
-      // Validate required fields
-      if (!name || !role || !category) {
-        return res.status(400).json({ message: "Missing required fields (name, role, category)" });
+      const missingFields = [];
+      if (!name) missingFields.push({ name: "name", message: "Name is required" });
+      if (!role) missingFields.push({ name: "role", message: "Role is required" });
+      if (!category) missingFields.push({ name: "category", message: "Category is required" });
+  
+      if (missingFields.length > 0) {
+        return res.status(400).json({
+          status: 400,
+          message: "Some fields are missing!",
+          missingFields,
+        });
       }
   
       // Fetch category by ID
@@ -48,7 +57,10 @@ const createTeamMember = async (req, res) => {
       if (!categoryExists) {
         return res.status(400).json({ message: "Invalid category ID" });
       }
-  
+      const roleExists = await Role.findById(role);
+      if (!roleExists) {
+        return res.status(400).json({ message: "Invalid role ID" });
+      }
       // Parse social links (handle JSON parsing safely)
       let parsedSocialLinks = {};
       try {
@@ -60,7 +72,7 @@ const createTeamMember = async (req, res) => {
       // Create new team member
       const newMember = await Team.create({
         name,
-        role,
+        role: { _id: roleExists._id, name: roleExists.name },
         description: description || "", // Optional field
         category: { _id: categoryExists._id, name: categoryExists.name }, // Store full category info
         image,
@@ -94,6 +106,13 @@ const updateTeamMember = async (req, res) => {
           return res.status(400).json({ message: "Invalid category ID" });
         }
         category = { _id: categoryExists._id, name: categoryExists.name }; // Store full category object
+      }
+      if (role) {
+        const roleExists = await Role.findById(role);
+        if (!roleExists) {
+          return res.status(400).json({ message: "Invalid role ID" });
+        }
+        category = { _id: roleExists._id, name: roleExists.name }; // Store full category object
       }
   
       // Ensure socialLinks is a valid object

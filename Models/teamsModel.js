@@ -3,7 +3,10 @@ const mongoose = require("mongoose");
 const TeamSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    role: { type: String, required: true },
+    role: {
+        _id: { type: mongoose.Schema.Types.ObjectId,  ref: "Role" },
+        name: { type: String,  }
+      },
     description: { type: String, required: true },
     category: {
          _id: { type: mongoose.Schema.Types.ObjectId,  ref: "TeamCategory" },

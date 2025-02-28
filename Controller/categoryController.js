@@ -145,25 +145,16 @@ const deleteCategory = async (req, res) => {
   // ✅ View Only Published Categories with Pagination
   const liveCategory = async (req, res) => {
     try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-  
-      const totalCategories = await Category.countDocuments({ published: true });
-      const categories = await Category.find({ published: true })
-        .sort({ createdAt: -1 })
-        .limit(limit)
-        .skip((page - 1) * limit);
+      const categories = await Category.find({ published: true }).sort({ createdAt: -1 });
   
       res.status(200).json({
-        totalCategories,
-        totalPages: Math.ceil(totalCategories / limit),
-        currentPage: page,
-        limit,
+        totalCategories: categories.length,
         categories,
       });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   };
+  
 
 module.exports = { addCategory, updateCategory, deleteCategory, viewCategory, liveCategory,deleteAllCategories };
