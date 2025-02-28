@@ -68,7 +68,7 @@ const createTeamMember = async (req, res) => {
         published: published === "true" || published === true, // Ensure boolean conversion
       });
   
-      res.status(201).json({ message: "Team member created successfully", member: newMember });
+      res.status(201).json({status:200, message: "Team member created successfully", member: newMember });
     } catch (error) {
       console.error("Error creating team member:", error);
       res.status(500).json({ message: "Internal server error", error: error.message });
@@ -110,7 +110,7 @@ const updateTeamMember = async (req, res) => {
 
     await existingMember.save();
 
-    res.status(200).json({ message: "Team member updated successfully", member: existingMember });
+    res.status(200).json({status:200, message: "Team member updated successfully", member: existingMember });
   } catch (error) {
     console.error("Error updating team member:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
