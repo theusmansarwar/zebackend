@@ -119,6 +119,7 @@ const liveTeamCategory = async (req, res) => {
 
     const totalCategories = await TeamCategory.countDocuments({ published: true });
     const categories = await TeamCategory.find({ published: true })
+    .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
