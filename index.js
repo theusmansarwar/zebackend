@@ -14,6 +14,7 @@ const TeamCategoryRouter = require('./Routes/teamCategoryRoutes');
 const roleRouter = require('./Routes/roleRoutes');
 const testimonialRouter = require('./Routes/testimonialRoutes');
 const serviceRouter = require('./Routes/serviceRoutes');
+const adminRoutes = require('./Routes/adminRoutes');
 const path = require('path');
 
 const port=process.env.PORT || 4000;
@@ -21,7 +22,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/", userRouter)
-
+app.use("/admin", adminRoutes)
 app.use("/blog", blogRouter)
 app.use("/comment", commentRouter)
 app.use("/category", categoryRouter)
