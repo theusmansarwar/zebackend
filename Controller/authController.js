@@ -86,6 +86,7 @@ const login = async (req, res) => {
   }
   const user = await User.findOne({ email });
   if (!user) {
+    
     return res.status(404).json({
       message: "Email not found",
     });
@@ -98,6 +99,7 @@ const login = async (req, res) => {
 
 
       res.status(200).json({
+        status:200,
         message: "LoggedIn Successfully",
         data:user,
         token: await user.generateToken(),
