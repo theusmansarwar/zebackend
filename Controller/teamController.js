@@ -207,7 +207,7 @@ const getAllTeamMembers = async (req, res) => {
   
       const totalMembers = await Team.countDocuments();
       const members = await Team.find()
-        .sort({ createdAt: -1 })
+        
         .limit(limit)
         .skip(skip);
   
