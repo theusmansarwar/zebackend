@@ -262,14 +262,14 @@ const getAllTeamMembers = async (req, res) => {
 const getTeamLiveMember = async (req, res) => {
   try {
     // Fetch only published categories
-    const categories = await TeamCategory.find({ published: true });
+    const categories = await TeamCategory.find({ published: true }).sort({ createdAt: 1 });
 
     // Fetch only active team members who are also published
     const teams = await Promise.all(
       categories.map(async (category) => {
         const members = await Team.find({
           "category._id": category._id, // Ensure category ID matches
-        });
+        }).sort({ createdAt: 1 });
 
         return {
           categoryName: category.name,
