@@ -8,7 +8,7 @@ const BlogsSchema = new mongoose.Schema(
       name: { type: String,  }
     },
     description: { type: String,  },
-    metaDescription: { type: String,  maxlength: 160 },
+    metaDescription: { type: String,  maxlength: 160 , trim: true},
     slug: { type: String,  },
     detail: { type: String,  },
     author: { type: String,  },
