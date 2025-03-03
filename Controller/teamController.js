@@ -108,7 +108,7 @@ const updateTeamMember = async (req, res) => {
         category = { _id: categoryExists._id, name: categoryExists.name }; // Store full category object
       }
       if (role) {
-        const roleExists = await Role.findById(role);
+        const roleExists = await Role.findById(new mongoose.Types.ObjectId(role));
         if (!roleExists) {
           return res.status(400).json({ message: "Invalid role ID" });
         }
