@@ -92,25 +92,44 @@ const approveComment = async (req, res) => {
 };
 
 const viewComments = async (req, res) => {
-  try {
-    const comment = await Comment.find()
-      .populate("blogId", "title")
-      .sort({ createdAt: -1 });
-
-    if (!comment) {
-      return res.status(404).json({ message: "Comment not found" });
+    try {
+      // Get page and limit from query parameters, with default values
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+  
+      // Fetch total count for pagination
+      const totalComments = await Comment.countDocuments();
+  
+      const comments = await Comment.find()
+        .populate("blogId", "title")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+  
+      if (!comments.length) {
+        return res.status(404).json({ message: "No comments found" });
+      }
+  
+      res.status(200).json({
+        message: "Comments fetched successfully",
+        comments,
+        pagination: {
+          totalComments,
+          totalPages: Math.ceil(totalComments / limit),
+          currentPage: page,
+        },
+      });
+    } catch (error) {
+      console.error("Error while fetching comments:", error);
+      res.status(500).json({
+        status: 500,
+        message: "Internal server error",
+        error: error.message,
+      });
     }
-
-    res.status(200).json({ message: "Comment fetched successfully", comment });
-  } catch (error) {
-    console.error("Error while approving comment:", error);
-    res.status(500).json({
-      status: 500,
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
+  };
+  
 const approvedComments = async (req, res) => {
   try {
     const comment = await Comment.find({ published: true }).sort({
