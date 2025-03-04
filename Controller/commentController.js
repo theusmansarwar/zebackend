@@ -114,11 +114,11 @@ const viewComments = async (req, res) => {
       res.status(200).json({
         message: "Comments fetched successfully",
         comments,
-        pagination: {
+
           totalComments,
           totalPages: Math.ceil(totalComments / limit),
           currentPage: page,
-        },
+      
       });
     } catch (error) {
       console.error("Error while fetching comments:", error);
