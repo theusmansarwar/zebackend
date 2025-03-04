@@ -93,11 +93,6 @@ const login = async (req, res) => {
   } else {
     const matchPassword = await bcrypt.compare(password, user.password);
     if (matchPassword) {
-
-
-
-
-
       res.status(200).json({
         status:200,
         message: "LoggedIn Successfully",

@@ -312,7 +312,7 @@ const listblog = async (req, res) => {
       .limit(limit)
       .skip((page - 1) * limit);
 
-    const totalBlogs = await Blogs.countDocuments();
+    const totalBlogs = await Blogs.countDocuments({ published: true });
 
     res.status(200).json({
       totalBlogs,
