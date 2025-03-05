@@ -98,6 +98,7 @@ const getAllLiveServices = async (req, res) => {
 
     const total = await Service.countDocuments({ published: true }); // Count only live services
     const services = await Service.find({ published: true })
+    .select("-pricing -process -benefits services -published")
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
@@ -121,6 +122,17 @@ const getAllLiveServices = async (req, res) => {
 const getServiceById = async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
+    if (!service) return res.status(404).json({ status: 404, message: "Service not found" });
+
+    res.status(200).json({ status: 200, service });
+  } catch (error) {
+    console.error("Error fetching service:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+const getServiceBySlug = async (req, res) => {
+  try {
+    const service = await Service.findOne({slug:req.params.slug});
     if (!service) return res.status(404).json({ status: 404, message: "Service not found" });
 
     res.status(200).json({ status: 200, service });
