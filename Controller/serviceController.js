@@ -98,7 +98,7 @@ const getAllLiveServices = async (req, res) => {
 
     const total = await Service.countDocuments({ published: true }); // Count only live services
     const services = await Service.find({ published: true })
-    .select("-pricing -process -benefits services -published")
+      .select("-pricing -process -benefits -services -published")
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
