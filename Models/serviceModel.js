@@ -16,6 +16,7 @@ const ServiceSchema = new mongoose.Schema({
   slug: {
     type: String,
     required: true,
+    unique: true,
   },
   services: [
     {
@@ -33,13 +34,35 @@ const ServiceSchema = new mongoose.Schema({
   ],
   process: [
     {
-      icon: { type: String, required: true }, // Store icon name as a string
+      icon: { type: String, required: true },
       title: { type: String, required: true },
       description: { type: String, required: true },
     },
   ],
+  pricing: [
+    {
+      name: { type: String, required: true }, 
+      price: { type: String, required: true },
+      title: { type: String, required: true },
+      services: [
+        {
+          name: { type: String, required: true },
+        },
+      ],
+    },
+  ],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
+ServiceSchema.pre("save", function (next) {
+  if (!this.pricing || !Array.isArray(this.pricing)) {
+    this.pricing = [];
+  }
+  next();
+});
 
 const Service = mongoose.model("Service", ServiceSchema);
 module.exports = Service;
