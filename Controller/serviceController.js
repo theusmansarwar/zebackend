@@ -228,6 +228,7 @@ module.exports = {
   createService: [upload.single("image"), createService],
   getAllServices,
   getServiceById,
+  getServiceBySlug,
   updateService: [upload.single("image"), updateService],
   deleteService,
   deleteMultipleServices,
