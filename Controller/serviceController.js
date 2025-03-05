@@ -28,66 +28,46 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Multer Upload Middleware
-const upload = multer({ storage: storage, fileFilter: fileFilter });
+
+
+const upload = multer({ 
+  storage: storage, 
+  fileFilter: fileFilter 
+}).fields([
+  { name: "image", maxCount: 1 },       // Main image
+  { name: "icons", maxCount: 10 },      // Icons for services/process
+  { name: "images", maxCount: 10 }      // Images for benefits
+]);
 
 const createService = async (req, res) => {
   try {
     const { name, introduction, slug, services, benefits, process, pricing, pricingPublished } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : null;
 
-    // Convert JSON strings (if sent from frontend)
+    // File uploads
+    const image = req.files.image ? `/uploads/${req.files.image[0].filename}` : null;
+    
+    // Map file names to respective JSON objects
+    const icons = req.files.icons ? req.files.icons.map(file => `/uploads/${file.filename}`) : [];
+    const images = req.files.images ? req.files.images.map(file => `/uploads/${file.filename}`) : [];
+
+    // Convert JSON strings from frontend
     const parsedServices = services ? JSON.parse(services) : [];
     const parsedBenefits = benefits ? JSON.parse(benefits) : [];
     const parsedProcess = process ? JSON.parse(process) : [];
     const parsedPricing = pricingPublished === "true" && pricing ? JSON.parse(pricing) : [];
 
-    const missingFields = [];
-    if (!name) missingFields.push({ name: "name", message: "Name is required" });
-    if (!introduction) missingFields.push({ name: "introduction", message: "Introduction is required" });
-    if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
-    if (!image) missingFields.push({ name: "image", message: "Image is required" });
-
+    // Assign uploaded file names to service/process/benefit objects
     parsedServices.forEach((service, index) => {
-      if (!service.icon) missingFields.push({ name: `services[${index}].icon`, message: "Icon is required" });
-      if (!service.name) missingFields.push({ name: `services[${index}].name`, message: "Service name is required" });
-      if (!service.description) missingFields.push({ name: `services[${index}].description`, message: "Description is required" });
+      service.icon = icons[index] || null;
     });
 
     parsedBenefits.forEach((benefit, index) => {
-      if (!benefit.name) missingFields.push({ name: `benefits[${index}].name`, message: "Benefit name is required" });
-      if (!benefit.img) missingFields.push({ name: `benefits[${index}].img`, message: "Benefit image is required" });
-      if (!benefit.description) missingFields.push({ name: `benefits[${index}].description`, message: "Description is required" });
+      benefit.img = images[index] || null;
     });
 
     parsedProcess.forEach((step, index) => {
-      if (!step.icon) missingFields.push({ name: `process[${index}].icon`, message: "Process icon is required" });
-      if (!step.title) missingFields.push({ name: `process[${index}].title`, message: "Process title is required" });
-      if (!step.description) missingFields.push({ name: `process[${index}].description`, message: "Description is required" });
+      step.icon = icons[index] || null;
     });
-
-    if (pricingPublished === "true") {
-      parsedPricing.forEach((plan, index) => {
-        if (!plan.name) missingFields.push({ name: `pricing[${index}].name`, message: "Pricing name is required" });
-        if (!plan.price) missingFields.push({ name: `pricing[${index}].price`, message: "Price is required" });
-        if (!plan.title) missingFields.push({ name: `pricing[${index}].title`, message: "Pricing title is required" });
-
-        plan.services.forEach((service, sIndex) => {
-          if (!service.name) missingFields.push({
-            name: `pricing[${index}].services[${sIndex}].name`,
-            message: "Service name is required in pricing"
-          });
-        });
-      });
-    }
-
-    if (missingFields.length > 0) {
-      return res.status(400).json({
-        status: 400,
-        message: "Some fields are missing!",
-        missingFields,
-      });
-    }
 
     const newService = new Service({
       name,
@@ -114,5 +94,5 @@ const createService = async (req, res) => {
 };
 
 module.exports = {
-  createService: [upload.single("image"), createService],
+  createService: [upload, createService], // Use upload.fields()
 };
