@@ -46,16 +46,14 @@ const createService = async (req, res) => {
     if (missingFields.length > 0) {
       return res.status(400).json({ status: 400, message: "Some fields are missing!", missingFields });
     }
-    if (typeof published === "string") {
-      published = published === "true";
-    }
+
     // Create new service
     const newService = await Service.create({
       name,
       slug,
       introduction,
       image,
-      published
+      published: published === "true" || published === true,
     });
 
     res.status(201).json({ status: 201, message: "Service created successfully", service: newService });
