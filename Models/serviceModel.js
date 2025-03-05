@@ -18,6 +18,7 @@ const ServiceSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  published: { type: Boolean, default: false },
   services: [
     {
       icon: { type: String, required: true }, 
@@ -51,11 +52,9 @@ const ServiceSchema = new mongoose.Schema({
       ],
     },
   ],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+
+} ,
+{ timestamps: true });
 
 ServiceSchema.pre("save", function (next) {
   if (!this.pricing || !Array.isArray(this.pricing)) {
