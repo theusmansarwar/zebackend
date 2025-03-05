@@ -1,4 +1,4 @@
-const Team = require("../Models/teamsModel");
+const Service = require("../Models/serviceModel");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -48,7 +48,7 @@ const createService = async (req, res) => {
     }
 
     // Create new service
-    const newService = await Team.create({
+    const newService = await Service.create({
       name,
       slug,
       introduction,
@@ -70,8 +70,8 @@ const getAllServices = async (req, res) => {
     page = parseInt(page);
     limit = parseInt(limit);
 
-    const total = await Team.countDocuments(); // Total count
-    const services = await Team.find()
+    const total = await Service.countDocuments(); // Total count
+    const services = await Service.find()
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
@@ -96,8 +96,8 @@ const getAllLiveServices = async (req, res) => {
     page = parseInt(page);
     limit = parseInt(limit);
 
-    const total = await Team.countDocuments({ published: true }); // Count only live services
-    const services = await Team.find({ published: true })
+    const total = await Service.countDocuments({ published: true }); // Count only live services
+    const services = await Service.find({ published: true })
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
@@ -120,7 +120,7 @@ const getAllLiveServices = async (req, res) => {
 // 🟢 Get a Single Service by ID
 const getServiceById = async (req, res) => {
   try {
-    const service = await Team.findById(req.params.id);
+    const service = await Service.findById(req.params.id);
     if (!service) return res.status(404).json({ status: 404, message: "Service not found" });
 
     res.status(200).json({ status: 200, service });
@@ -138,7 +138,7 @@ const updateService = async (req, res) => {
 
     // Check if a new image is uploaded
     if (req.file) {
-      const service = await Team.findById(req.params.id);
+      const service = await Service.findById(req.params.id);
       if (!service) return res.status(404).json({ status: 404, message: "Service not found" });
 
       // Remove old image from server
@@ -151,7 +151,7 @@ const updateService = async (req, res) => {
       updatedData.image = `/uploads/${req.file.filename}`;
     }
 
-    const updatedService = await Team.findByIdAndUpdate(req.params.id, updatedData, { new: true });
+    const updatedService = await Service.findByIdAndUpdate(req.params.id, updatedData, { new: true });
     res.status(200).json({ status: 200, message: "Service updated successfully", service: updatedService });
   } catch (error) {
     console.error("Error updating service:", error);
@@ -162,7 +162,7 @@ const updateService = async (req, res) => {
 // 🟢 Delete a Service
 const deleteService = async (req, res) => {
   try {
-    const service = await Team.findById(req.params.id);
+    const service = await Service.findById(req.params.id);
     if (!service) return res.status(404).json({ status: 404, message: "Service not found" });
 
     // Remove image from server
@@ -171,7 +171,7 @@ const deleteService = async (req, res) => {
       if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
     }
 
-    await Team.findByIdAndDelete(req.params.id);
+    await Service.findByIdAndDelete(req.params.id);
     res.status(200).json({ status: 200, message: "Service deleted successfully" });
   } catch (error) {
     console.error("Error deleting service:", error);
@@ -187,7 +187,7 @@ const deleteMultipleServices = async (req, res) => {
     }
 
     // Fetch all services to delete
-    const services = await Team.find({ _id: { $in: ids } });
+    const services = await Service.find({ _id: { $in: ids } });
 
     if (!services.length) {
       return res.status(404).json({ status: 404, message: "No matching services found to delete." });
@@ -202,7 +202,7 @@ const deleteMultipleServices = async (req, res) => {
     });
 
     // Delete services from database
-    await Team.deleteMany({ _id: { $in: ids } });
+    await Service.deleteMany({ _id: { $in: ids } });
 
     res.status(200).json({ status: 200, message: "Selected services deleted successfully." });
   } catch (error) {
