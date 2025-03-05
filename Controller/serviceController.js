@@ -55,22 +55,7 @@ const createService = async (req, res) => {
       });
     }
 
-    // Fetch category by ID
-    const categoryExists = await TeamCategory.findById(category);
-    if (!categoryExists) {
-      return res.status(400).json({ message: "Invalid category ID" });
-    }
-    const roleExists = await Role.findById(role);
-    if (!roleExists) {
-      return res.status(400).json({ message: "Invalid role ID" });
-    }
-    // Parse social links (handle JSON parsing safely)
-    let parsedSocialLinks = {};
-    try {
-      parsedSocialLinks = socialLinks ? JSON.parse(socialLinks) : {};
-    } catch (error) {
-      return res.status(400).json({ message: "Invalid socialLinks format" });
-    }
+  
 
     // Create new team member
     const newMember = await Team.create({
