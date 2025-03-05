@@ -1,7 +1,9 @@
-const Service = require("../Models/serviceModel");
+const Team = require("../Models/teamsModel");
+const TeamCategory = require("../Models/teamCategoryModel");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const Role = require("../Models/roleModel");
 
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, "../uploads");
@@ -28,71 +30,76 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-
-
-const upload = multer({ 
-  storage: storage, 
-  fileFilter: fileFilter 
-}).fields([
-  { name: "image", maxCount: 1 },       // Main image
-  { name: "icons", maxCount: 10 },      // Icons for services/process
-  { name: "images", maxCount: 10 }      // Images for benefits
-]);
+// Multer Upload Middleware
+const upload = multer({ storage: storage, fileFilter: fileFilter });
 
 const createService = async (req, res) => {
   try {
-    const { name, introduction, slug, services, benefits, process, pricing, pricingPublished } = req.body;
+    const { name, introduction, slug, published } = req.body;
+    const image = req.file ? `/uploads/${req.file.filename}` : null;
 
-    // File uploads
-    const image = req.files.image ? `/uploads/${req.files.image[0].filename}` : null;
-    
-    // Map file names to respective JSON objects
-    const icons = req.files.icons ? req.files.icons.map(file => `/uploads/${file.filename}`) : [];
-    const images = req.files.images ? req.files.images.map(file => `/uploads/${file.filename}`) : [];
+    const missingFields = [];
+    if (!name)
+      missingFields.push({ name: "name", message: "Name is required" });
+    if (!introduction)
+      missingFields.push({ name: "introduction", message: "Introduction is required" });
+    if (!slug)
+      missingFields.push({ name: "slug", message: "Slug is required" });
+    if (!image)
+      missingFields.push({ name: "image", message: "Image is required" });
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Some fields are missing!",
+        missingFields,
+      });
+    }
 
-    // Convert JSON strings from frontend
-    const parsedServices = services ? JSON.parse(services) : [];
-    const parsedBenefits = benefits ? JSON.parse(benefits) : [];
-    const parsedProcess = process ? JSON.parse(process) : [];
-    const parsedPricing = pricingPublished === "true" && pricing ? JSON.parse(pricing) : [];
+    // Fetch category by ID
+    const categoryExists = await TeamCategory.findById(category);
+    if (!categoryExists) {
+      return res.status(400).json({ message: "Invalid category ID" });
+    }
+    const roleExists = await Role.findById(role);
+    if (!roleExists) {
+      return res.status(400).json({ message: "Invalid role ID" });
+    }
+    // Parse social links (handle JSON parsing safely)
+    let parsedSocialLinks = {};
+    try {
+      parsedSocialLinks = socialLinks ? JSON.parse(socialLinks) : {};
+    } catch (error) {
+      return res.status(400).json({ message: "Invalid socialLinks format" });
+    }
 
-    // Assign uploaded file names to service/process/benefit objects
-    parsedServices.forEach((service, index) => {
-      service.icon = icons[index] || null;
-    });
-
-    parsedBenefits.forEach((benefit, index) => {
-      benefit.img = images[index] || null;
-    });
-
-    parsedProcess.forEach((step, index) => {
-      step.icon = icons[index] || null;
-    });
-
-    const newService = new Service({
+    // Create new team member
+    const newMember = await Team.create({
       name,
-      introduction,
       slug,
+      introduction,
       image,
-      services: parsedServices,
-      benefits: parsedBenefits,
-      process: parsedProcess,
-      pricing: parsedPricing, 
+      
+      published: published === "true" || published === true, // Ensure boolean conversion
     });
 
-    await newService.save();
-
-    res.status(201).json({
-      status: 201,
-      message: "Service created successfully!",
-      service: newService,
-    });
+    res
+      .status(201)
+      .json({
+        status: 200,
+        message: "Team member created successfully",
+        member: newMember,
+      });
   } catch (error) {
-    console.error("Error creating service:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    console.error("Error creating team member:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 };
 
+
+
 module.exports = {
-  createService: [upload, createService], // Use upload.fields()
+  createService: [upload.single("image"), createService],
+ 
 };
