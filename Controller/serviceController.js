@@ -77,18 +77,18 @@ const addservice = async (req, res) => {
       return res.status(400).json({ status: 400, message: "Some fields are missing!", missingFields });
     }
     const service = await Service.findById(id); 
-   
+   console.log(service)
     service.services.push({
+      image,
       title,
       description,
-      image,
       published: published === "true" || published === true,
     });
     
     await service.save();
     
 
-    res.status(201).json({ status: 201, message: "Service created successfully", service: newService });
+    res.status(201).json({ status: 201, message: "Service created successfully", service });
   } catch (error) {
     console.error("Error creating service:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
