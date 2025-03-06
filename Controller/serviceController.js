@@ -99,6 +99,36 @@ const addservice = async (req, res) => {
 
 
 
+const updateSubService = async (req, res) => {
+  try {
+    const { serviceId, subServiceId, title, description, published } = req.body;
+    const image = req.file ? `/uploads/${req.file.filename}` : null;
+
+    const service = await Service.findById(serviceId);
+    if (!service) {
+      return res.status(404).json({ status: 404, message: "Service not found" });
+    }
+
+    const subService = service.services.id(subServiceId);
+    if (!subService) {
+      return res.status(404).json({ status: 404, message: "Sub-service not found" });
+    }
+
+    // Update fields if provided
+    if (title) subService.title = title;
+    if (description) subService.description = description;
+    if (image) subService.image = image;
+    if (published !== undefined) {
+      subService.published = published === "true" || published === true;
+    }
+
+    await service.save();
+    res.status(200).json({ status: 200, message: "Sub-service updated successfully", service });
+  } catch (error) {
+    console.error("Error updating sub-service:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
 
 
 
@@ -283,6 +313,7 @@ module.exports = {
   deleteService,
   deleteMultipleServices,
   getAllLiveServices,
-  addservice: [upload.single("image"), addservice]
+  addservice: [upload.single("image"), addservice],
+  updateSubService: [upload.single("image"), updateSubService],
 
 };
