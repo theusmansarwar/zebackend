@@ -63,6 +63,59 @@ const createService = async (req, res) => {
   }
 };
 
+const addservice = async (req, res) => {
+  try {
+    const { title, description, published,id } = req.body;
+    const image = req.file ? `/uploads/${req.file.filename}` : null;
+
+    const missingFields = [];
+    if (!title) missingFields.push({ name: "title", message: "Title is required" });
+    if (!description) missingFields.push({ name: "description", message: "Description is required" });
+    if (!image) missingFields.push({ name: "image", message: "Image is required" });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({ status: 400, message: "Some fields are missing!", missingFields });
+    }
+    const service = await Service.findById(id); 
+   
+    service.services.push({
+      title,
+      description,
+      image,
+      published: published === "true" || published === true,
+    });
+    
+    await service.save();
+    
+
+    res.status(201).json({ status: 201, message: "Service created successfully", service: newService });
+  } catch (error) {
+    console.error("Error creating service:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // 🟢 Get All Services
 const getAllServices = async (req, res) => {
   try {
@@ -70,7 +123,7 @@ const getAllServices = async (req, res) => {
     page = parseInt(page);
     limit = parseInt(limit);
 
-    const total = await Service.countDocuments(); // Total count
+    const total = await Service.countDocuments(); 
     const services = await Service.find()
       .skip((page - 1) * limit)
       .limit(limit)
@@ -159,7 +212,6 @@ const updateService = async (req, res) => {
         if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
       }
 
-      // Add new image path
       updatedData.image = `/uploads/${req.file.filename}`;
     }
 
@@ -171,13 +223,11 @@ const updateService = async (req, res) => {
   }
 };
 
-// 🟢 Delete a Service
 const deleteService = async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
     if (!service) return res.status(404).json({ status: 404, message: "Service not found" });
 
-    // Remove image from server
     if (service.image) {
       const imagePath = path.join(__dirname, "..", service.image);
       if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
@@ -232,5 +282,7 @@ module.exports = {
   updateService: [upload.single("image"), updateService],
   deleteService,
   deleteMultipleServices,
-  getAllLiveServices
+  getAllLiveServices,
+  addservice: [upload.single("image"), addservice]
+
 };
