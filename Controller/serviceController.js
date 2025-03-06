@@ -65,7 +65,7 @@ const createService = async (req, res) => {
 
 const addservice = async (req, res) => {
   try {
-    const { title, description, published,id } = req.body;
+    const { title, description, published, id } = req.body;
     const image = req.file ? `/uploads/${req.file.filename}` : null;
 
     const missingFields = [];

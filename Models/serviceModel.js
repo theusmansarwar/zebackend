@@ -22,14 +22,14 @@ const ServiceSchema = new mongoose.Schema({
   services: [
     {
       image: { type: String, required: true }, 
-      name: { type: String, required: true },
+      title: { type: String, required: true },
       description: { type: String, required: true },
       published: { type: Boolean, default: false },
     },
   ],
   benefits: [
     {
-      name: { type: String, required: true },
+      title: { type: String, required: true },
       img: { type: String, required: true }, 
       description: { type: String, required: true },
       published: { type: Boolean, default: false },
