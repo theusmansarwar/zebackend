@@ -19,7 +19,7 @@ const ServiceSchema = new mongoose.Schema({
     unique: true,
   },
   published: { type: Boolean, default: false },
-  services: [
+  subservices: [
     {
       _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
       image: { type: String, required: true }, 

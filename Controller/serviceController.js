@@ -78,7 +78,7 @@ const addservice = async (req, res) => {
     }
     const service = await Service.findById(id); 
    console.log(service)
-    service.services.push({
+    service.subservices.push({
       image,
       title,
       description,
@@ -109,7 +109,7 @@ const updateSubService = async (req, res) => {
       return res.status(404).json({ status: 404, message: "Service not found" });
     }
 
-    const subService = service.services.id(subServiceId);
+    const subService = service.subservices.id(subServiceId);
     if (!subService) {
       return res.status(404).json({ status: 404, message: "Sub-service not found" });
     }
@@ -319,9 +319,12 @@ const deleteMultipleSubServices = async (req, res) => {
     if (!service) {
       return res.status(404).json({ status: 404, message: "Service not found." });
     }
-
+    const subService = service.subservices.id(subServiceId);
+    if (!subService) {
+      return res.status(404).json({ status: 404, message: "Sub-service not found" });
+    }
     // Find subservices to delete
-    const subServicesToDelete = service.services.filter(sub => ids.includes(sub._id.toString()));
+    const subServicesToDelete = service.subservices.filter(sub => ids.includes(sub._id.toString()));
 
     if (subServicesToDelete.length === 0) {
       return res.status(404).json({ status: 404, message: "No matching subservices found to delete." });
@@ -340,7 +343,7 @@ const deleteMultipleSubServices = async (req, res) => {
     // Update the service document to remove the subservices
     const updatedService = await Service.findByIdAndUpdate(
       serviceId,
-      { $pull: { services: { _id: { $in: ids } } } },
+      { $pull: { subservices: { _id: { $in: ids } } } },
       { new: true } // Return updated document
     );
 
