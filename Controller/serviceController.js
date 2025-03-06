@@ -315,35 +315,47 @@ const deleteMultipleSubServices = async (req, res) => {
     }
 
     // Find the parent service
-    const service = await Service.findById(serviceId);
+    let service = await Service.findById(serviceId);
     if (!service) {
       return res.status(404).json({ status: 404, message: "Service not found." });
     }
 
-    // Find and delete images of the subservices being removed
-    service.services.forEach((subservice) => {
-      if (ids.includes(subservice._id.toString()) && subservice.image) {
+    let deletedCount = 0; // Track successful deletions
+
+    for (const subserviceId of ids) {
+      const subserviceIndex = service.subservices.findIndex(
+        (sub) => sub._id.toString() === subserviceId
+      );
+
+      if (subserviceIndex === -1) {
+        continue; // Skip if subservice not found
+      }
+
+      const subservice = service.subservices[subserviceIndex];
+
+      // Remove image if exists
+      if (subservice.image) {
         const imagePath = path.join(__dirname, "..", subservice.image);
         if (fs.existsSync(imagePath)) {
           fs.unlinkSync(imagePath);
         }
       }
-    });
 
-    // Remove subservices from the service's array
-    const updatedService = await Service.findByIdAndUpdate(
-      serviceId,
-      { $pull: { subservices: { _id: { $in: ids } } } },
-      { new: true }
-    );
+      // Remove the subservice from the array
+      service.subservices.splice(subserviceIndex, 1);
+      deletedCount++;
+    }
+
+    // Save the updated service document
+    await service.save();
 
     res.status(200).json({
       status: 200,
-      message: "Selected subservices deleted successfully.",
-      updatedService,
+      message: `${deletedCount} subservices deleted successfully.`,
+      updatedService: service,
     });
   } catch (error) {
-    console.error("Error deleting multiple subservices:", error);
+    console.error("Error deleting subservices:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
