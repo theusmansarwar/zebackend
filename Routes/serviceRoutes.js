@@ -13,5 +13,5 @@ router.put("/update/:id", updateService);    // Update a service
 router.delete("/delete/:id", deleteService); 
 router.delete("/delete", deleteMultipleServices); 
 router.post("/subdata/add", addservice);
-router.post("/subdata/update", updateSubService);
+router.put("/subdata/update", updateSubService);
 module.exports = router;
