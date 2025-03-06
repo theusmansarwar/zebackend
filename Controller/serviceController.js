@@ -304,8 +304,8 @@ const deleteMultipleServices = async (req, res) => {
 };
 const deleteMultipleSubServices = async (req, res) => {
   try {
-    const { serviceId } = req.params; // Get service ID from URL params
-    const { ids } = req.body; // Get subservice IDs from request body
+    const { serviceId } = req.params;
+    const { ids } = req.body;
 
     if (!serviceId) {
       return res.status(400).json({ status: 400, message: "Service ID is required." });
@@ -327,7 +327,7 @@ const deleteMultipleSubServices = async (req, res) => {
       return res.status(404).json({ status: 404, message: "No matching subservices found to delete." });
     }
 
-    // Delete associated images from the server
+    // Delete images from the server
     subServicesToDelete.forEach(sub => {
       if (sub.image) {
         const imagePath = path.join(__dirname, "..", sub.image);
@@ -337,19 +337,25 @@ const deleteMultipleSubServices = async (req, res) => {
       }
     });
 
-    // Remove subservices from the service's `services` array
-    await Service.updateOne(
-      { _id: serviceId },
-      { $pull: { services: { _id: { $in: ids } } } }
+    // Update the service document to remove the subservices
+    const updatedService = await Service.findByIdAndUpdate(
+      serviceId,
+      { $pull: { services: { _id: { $in: ids } } } },
+      { new: true } // Return updated document
     );
 
-    res.status(200).json({ status: 200, message: "Selected subservices deleted successfully." });
+    res.status(200).json({
+      status: 200,
+      message: "Selected subservices deleted successfully.",
+      service: updatedService, // Send back the updated service object
+    });
 
   } catch (error) {
     console.error("Error deleting multiple subservices:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
 
 // Export Controllers
 module.exports = {
