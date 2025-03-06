@@ -21,7 +21,7 @@ const ServiceSchema = new mongoose.Schema({
   published: { type: Boolean, default: false },
   services: [
     {
-      icon: { type: String, required: true }, 
+      image: { type: String, required: true }, 
       name: { type: String, required: true },
       description: { type: String, required: true },
     },
@@ -35,7 +35,7 @@ const ServiceSchema = new mongoose.Schema({
   ],
   process: [
     {
-      icon: { type: String, required: true },
+      image: { type: String, required: true },
       title: { type: String, required: true },
       description: { type: String, required: true },
     },
