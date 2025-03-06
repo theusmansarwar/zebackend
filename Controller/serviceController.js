@@ -304,8 +304,8 @@ const deleteMultipleServices = async (req, res) => {
 };
 const deleteMultipleSubServices = async (req, res) => {
   try {
-    const { serviceId } = req.params;
-    const { ids } = req.body;
+    const { serviceId } = req.params; // Get the parent service ID
+    const { ids } = req.body; // Array of subservice IDs
 
     if (!serviceId) {
       return res.status(400).json({ status: 400, message: "Service ID is required." });
@@ -314,50 +314,40 @@ const deleteMultipleSubServices = async (req, res) => {
       return res.status(400).json({ status: 400, message: "Please provide an array of subservice IDs." });
     }
 
-    // Find the service
+    // Find the parent service
     const service = await Service.findById(serviceId);
     if (!service) {
       return res.status(404).json({ status: 404, message: "Service not found." });
     }
-    const subService = service.subservices.id(subServiceId);
-    if (!subService) {
-      return res.status(404).json({ status: 404, message: "Sub-service not found" });
-    }
-    // Find subservices to delete
-    const subServicesToDelete = service.subservices.filter(sub => ids.includes(sub._id.toString()));
 
-    if (subServicesToDelete.length === 0) {
-      return res.status(404).json({ status: 404, message: "No matching subservices found to delete." });
-    }
-
-    // Delete images from the server
-    subServicesToDelete.forEach(sub => {
-      if (sub.image) {
-        const imagePath = path.join(__dirname, "..", sub.image);
+    // Find and delete images of the subservices being removed
+    service.services.forEach((subservice) => {
+      if (ids.includes(subservice._id.toString()) && subservice.image) {
+        const imagePath = path.join(__dirname, "..", subservice.image);
         if (fs.existsSync(imagePath)) {
           fs.unlinkSync(imagePath);
         }
       }
     });
 
-    // Update the service document to remove the subservices
+    // Remove subservices from the service's array
     const updatedService = await Service.findByIdAndUpdate(
       serviceId,
       { $pull: { subservices: { _id: { $in: ids } } } },
-      { new: true } // Return updated document
+      { new: true }
     );
 
     res.status(200).json({
       status: 200,
       message: "Selected subservices deleted successfully.",
-      service: updatedService, // Send back the updated service object
+      updatedService,
     });
-
   } catch (error) {
     console.error("Error deleting multiple subservices:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
 
 
 // Export Controllers
