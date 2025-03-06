@@ -302,53 +302,55 @@ const deleteMultipleServices = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
-const deleteMultiplesubServices = async (req, res) => {
+const deleteMultipleSubServices = async (req, res) => {
   try {
-    const { serviceId } = req.params; // Get service ID from params
-    const { ids } = req.body; // Get subservice IDs from body
+    const { serviceId } = req.params; // Get service ID from URL params
+    const { ids } = req.body; // Get subservice IDs from request body
 
     if (!serviceId) {
       return res.status(400).json({ status: 400, message: "Service ID is required." });
     }
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ status: 400, message: "Invalid request. Please provide an array of subservice IDs." });
+      return res.status(400).json({ status: 400, message: "Please provide an array of subservice IDs." });
     }
 
-    // Find the service and its subservices
+    // Find the service
     const service = await Service.findById(serviceId);
     if (!service) {
       return res.status(404).json({ status: 404, message: "Service not found." });
     }
 
-    // Find matching subservices in the service
+    // Find subservices to delete
     const subServicesToDelete = service.services.filter(sub => ids.includes(sub._id.toString()));
-    
-    if (!subServicesToDelete.length) {
+
+    if (subServicesToDelete.length === 0) {
       return res.status(404).json({ status: 404, message: "No matching subservices found to delete." });
     }
 
-    // Remove images from the server
+    // Delete associated images from the server
     subServicesToDelete.forEach(sub => {
       if (sub.image) {
         const imagePath = path.join(__dirname, "..", sub.image);
         if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath); // Delete the image
+          fs.unlinkSync(imagePath);
         }
       }
     });
 
-    // Remove subservices from the array
+    // Remove subservices from the service's `services` array
     await Service.updateOne(
       { _id: serviceId },
       { $pull: { services: { _id: { $in: ids } } } }
     );
 
     res.status(200).json({ status: 200, message: "Selected subservices deleted successfully." });
+
   } catch (error) {
     console.error("Error deleting multiple subservices:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
 // Export Controllers
 module.exports = {
   createService: [upload.single("image"), createService],
@@ -361,5 +363,5 @@ module.exports = {
   getAllLiveServices,
   addservice: [upload.single("image"), addservice],
   updateSubService: [upload.single("image"), updateSubService],
-  deleteMultiplesubServices
+  deleteMultipleSubServices
 };
