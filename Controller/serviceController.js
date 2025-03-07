@@ -443,11 +443,10 @@ const addprice = async (req, res) => {
 
 const updatePrice = async (req, res) => {
   try {
-    const { id } = req.params; // Pricing ID
-    const { name, price, validity, features, published } = req.body;
+    const { name, price, validity, features, serviceId, published } = req.body;
 
     // 🔍 Find the pricing entry
-    const pricing = await Pricing.findById(id);
+    const pricing = await Pricing.findById(serviceId);
     if (!pricing) {
       return res.status(404).json({ status: 404, message: "Pricing not found!" });
     }
