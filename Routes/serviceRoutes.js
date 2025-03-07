@@ -25,5 +25,5 @@ router.put("/process/update", updateProcess);
 router.delete("/process/delete/:subid", deleteMultipleProcess); 
 router.post("/pricing/add", addprice); 
 router.put("/pricing/update", updatePrice);
-router.delete("/pricing/delete/:subid", deleteMultiplePrice); 
+router.delete("/pricing/delete", deleteMultiplePrice); 
 module.exports = router;
