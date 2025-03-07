@@ -46,30 +46,13 @@ const ServiceSchema = new mongoose.Schema({
       published: { type: Boolean, default: false },
     },
   ],
-  pricing: [
-    {
-      _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
-      name: { type: String, required: true }, 
-      price: { type: String, required: true },
-      title: { type: String, required: true },
-      published: { type: Boolean, default: false },
-      services: [
-        { 
-          name: { type: String, required: true },
-        },
-      ],
-    },
-  ],
+  isPricing: { type: Boolean, default: false },
+  pricing: [{ type: mongoose.Schema.Types.ObjectId, ref: "Pricing" }],
 
 } ,
 { timestamps: true });
 
-ServiceSchema.pre("save", function (next) {
-  if (!this.pricing || !Array.isArray(this.pricing)) {
-    this.pricing = [];
-  }
-  next();
-});
+
 
 const Service = mongoose.model("Service", ServiceSchema);
 module.exports = Service;

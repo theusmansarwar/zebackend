@@ -34,7 +34,7 @@ const upload = multer({ storage, fileFilter });
 // 🟢 Create a Service
 const createService = async (req, res) => {
   try {
-    const { name, introduction, slug, published } = req.body;
+    const { name, introduction, slug, published,isPricing } = req.body;
     const image = req.file ? `/uploads/${req.file.filename}` : null;
 
     const missingFields = [];
@@ -54,6 +54,7 @@ const createService = async (req, res) => {
       introduction,
       image,
       published: published === "true" || published === true,
+      isPricing: isPricing === "true" || isPricing === true,
     });
 
     res.status(201).json({ status: 201, message: "Service created successfully", service: newService });
@@ -449,7 +450,22 @@ const getAllLiveServices = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+const getAllLiveServicesName = async (req, res) => {
+  try {
+   
+    const services = await Service.find({ published: true })
+      .select("name")
+      
 
+    res.status(200).json({
+      status: 200,
+      services,
+    });
+  } catch (error) {
+    console.error("Error fetching live services:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
 
 // 🟢 Get a Single Service by ID
 const getServiceById = async (req, res) => {
@@ -478,8 +494,8 @@ const getServiceBySlug = async (req, res) => {
 // 🟢 Update a Service
 const updateService = async (req, res) => {
   try {
-    const { name, introduction, slug, published } = req.body;
-    let updatedData = { name, introduction, slug, published: published === "true" || published === true };
+    const { name, introduction, slug, published, isPricing } = req.body;
+    let updatedData = { name, introduction, slug, published: published === "true" || published === true , isPricing: isPricing === "true" || isPricing === true };
 
     // Check if a new image is uploaded
     if (req.file) {
@@ -575,5 +591,6 @@ module.exports = {
   addprocess: [upload.single("image"), addprocess],
   updateProcess: [upload.single("image"), updateProcess],
   deleteMultipleProcess,
+  getAllLiveServicesName
 
 };
