@@ -443,78 +443,57 @@ const addprice = async (req, res) => {
 
 const updatePrice = async (req, res) => {
   try {
-    const { serviceId, subServiceId, title, description, published } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : null;
+    const { id } = req.params; // Pricing ID
+    const { name, price, validity, features, published } = req.body;
 
-    const service = await Service.findById(serviceId);
-    if (!service) {
-      return res.status(404).json({ status: 404, message: "Service not found" });
+    // 🔍 Find the pricing entry
+    const pricing = await Pricing.findById(id);
+    if (!pricing) {
+      return res.status(404).json({ status: 404, message: "Pricing not found!" });
     }
 
-    const process = service.process.id(subServiceId);
-    if (!process) {
-      return res.status(404).json({ status: 404, message: "Sub-service not found" });
-    }
-
-    // Update fields if provided
-    if (title) process.title = title;
-    if (description) process.description = description;
-    if (image) process.image = image;
+    // ✅ Update fields if provided
+    if (name) pricing.name = name;
+    if (price) pricing.price = price;
+    if (validity) pricing.validity = validity;
+    if (features && Array.isArray(features)) pricing.features = features;
     if (published !== undefined) {
-      process.published = published === "true" || published === true;
+      pricing.published = published === "true" || published === true;
     }
 
-    await service.save();
-    res.status(200).json({ status: 200, message: "Sub-service updated successfully", service });
+    await pricing.save();
+    res.status(200).json({ status: 200, message: "Pricing updated successfully!", pricing });
   } catch (error) {
-    console.error("Error updating sub-service:", error);
+    console.error("Error updating pricing:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
 const deleteMultiplePrice = async (req, res) => {
   try {
-    const { subid } = req.params; // Get the parent service ID
-    const { ids } = req.body; // Array of subservice IDs
+    const { ids } = req.body; // Array of Pricing IDs
 
-    if (!subid) {
-      return res.status(400).json({ status: 400, message: "Service ID is required." });
-    }
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ status: 400, message: "Please provide an array of process IDs." });
+      return res.status(400).json({ status: 400, message: "Please provide an array of Pricing IDs." });
     }
 
-    // Find the parent service
-    const service = await Service.findById(subid);
-    if (!service) {
-      return res.status(404).json({ status: 404, message: "Service not found." });
+    // 🔥 Delete Pricing records
+    const deletedPricing = await Pricing.deleteMany({ _id: { $in: ids } });
+
+    if (deletedPricing.deletedCount === 0) {
+      return res.status(404).json({ status: 404, message: "No pricing records found for deletion." });
     }
-
-    // Find and delete images of the subservices being removed
-    service.process.forEach((process) => {
-      if (ids.includes(process._id.toString()) && process.image) {
-        const imagePath = path.join(__dirname, "..", process.image);
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
-        }
-      }
-    });
-
-    // Remove subservices from the service's array
-    const updatedService = await Service.findByIdAndUpdate(
-      subid,
-      { $pull: { process: { _id: { $in: ids } } } },
-      { new: true }
-    );
 
     res.status(200).json({
       status: 200,
-      message: "Selected subservices deleted successfully.",
-      updatedService    });
+      message: `${deletedPricing.deletedCount} pricing records deleted successfully.`,
+    });
   } catch (error) {
-    console.error("Error deleting multiple process:", error);
+    console.error("Error deleting multiple pricing:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
 
 
 
@@ -725,6 +704,8 @@ module.exports = {
   updateProcess: [upload.single("image"), updateProcess],
   deleteMultipleProcess,
   getAllLiveServicesName,
-  addprice
+  addprice,
+  updatePrice,
+  deleteMultiplePrice 
 
 };

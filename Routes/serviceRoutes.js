@@ -1,5 +1,6 @@
 const express = require("express");
-const { deleteService, deleteMultipleServices, updateService, getServiceById, getAllLiveServices, getAllServices, createService, getServiceBySlug, addservice, updateSubService , deleteMultipleSubServices,addprocess,updateProcess,deleteMultipleProcess,addbenifit,updateBenifit,deleteMultipleBenifits, getAllLiveServicesName, addprice} = require("../Controller/serviceController");
+const { deleteService, deleteMultipleServices, updatePrice,
+    deleteMultiplePrice , updateService, getServiceById, getAllLiveServices, getAllServices, createService, getServiceBySlug, addservice, updateSubService , deleteMultipleSubServices,addprocess,updateProcess,deleteMultipleProcess,addbenifit,updateBenifit,deleteMultipleBenifits, getAllLiveServicesName, addprice} = require("../Controller/serviceController");
 const router = express.Router();
 
 
@@ -8,7 +9,7 @@ router.get("/view", getAllServices);
 router.get("/live", getAllLiveServices);  
 router.get("/list", getAllLiveServicesName); 
 router.get("/view/:id", getServiceById);  
-router.post("/pricing/add", addprice);  
+ 
 router.get("/view/:slug", getServiceBySlug);
 router.put("/update/:id", updateService);
 router.delete("/delete/:id", deleteService); 
@@ -22,4 +23,7 @@ router.delete("/benifit/delete/:subid", deleteMultipleBenifits);
 router.post("/process/add", addprocess);
 router.put("/process/update", updateProcess);
 router.delete("/process/delete/:subid", deleteMultipleProcess); 
+router.post("/pricing/add", addprice); 
+router.put("/pricing/update", updatePrice);
+router.delete("/pricing/delete/:subid", deleteMultiplePrice); 
 module.exports = router;
