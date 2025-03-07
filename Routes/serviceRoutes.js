@@ -1,5 +1,5 @@
 const express = require("express");
-const { deleteService, deleteMultipleServices, updateService, getServiceById, getAllLiveServices, getAllServices, createService, getServiceBySlug, addservice, updateSubService , deleteMultipleSubServices,addprocess,updateProcess,deleteMultipleProcess,addbenifit,updateBenifit,deleteMultipleBenifits, getAllLiveServicesName} = require("../Controller/serviceController");
+const { deleteService, deleteMultipleServices, updateService, getServiceById, getAllLiveServices, getAllServices, createService, getServiceBySlug, addservice, updateSubService , deleteMultipleSubServices,addprocess,updateProcess,deleteMultipleProcess,addbenifit,updateBenifit,deleteMultipleBenifits, getAllLiveServicesName, addprice} = require("../Controller/serviceController");
 const router = express.Router();
 
 
@@ -8,7 +8,7 @@ router.get("/view", getAllServices);
 router.get("/live", getAllLiveServices);  
 router.get("/list", getAllLiveServicesName); 
 router.get("/view/:id", getServiceById);  
-
+router.post("/pricing/add", addprice);  
 router.get("/view/:slug", getServiceBySlug);
 router.put("/update/:id", updateService);
 router.delete("/delete/:id", deleteService); 

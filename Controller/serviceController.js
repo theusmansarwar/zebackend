@@ -1,4 +1,5 @@
 const Service = require("../Models/serviceModel");
+const Pricing = require("../Models/pricingModel");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -383,6 +384,138 @@ const deleteMultipleProcess = async (req, res) => {
 };
 
 
+const addprice = async (req, res) => {
+  try {
+    const { name, price, validity, features, serviceId, published } = req.body;
+
+    // 🔍 Validate required fields
+    const missingFields = [];
+    if (!name) missingFields.push({ name: "name", message: "Name is required" });
+    if (!price) missingFields.push({ name: "price", message: "Price is required" });
+    if (!validity) missingFields.push({ name: "validity", message: "Validity is required" });
+    if (!features || !Array.isArray(features)) {
+      missingFields.push({ name: "features", message: "Features must be an array and is required" });
+    }
+    if (!serviceId) missingFields.push({ name: "serviceId", message: "serviceId is required" });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Some fields are missing!",
+        missingFields,
+      });
+    }
+
+    // 🔎 Check if the service exists
+    const service = await Service.findById(serviceId);
+    if (!service) {
+      return res.status(404).json({ status: 404, message: "Service not found!" });
+    }
+
+    // ✅ Create new Pricing
+    const newPricing = new Pricing({
+      name,
+      price,
+      validity,
+      features,
+      published: published || false, // Default to false if not provided
+    });
+
+    const savedPricing = await newPricing.save();
+
+    // ✅ Link pricing ID to service
+    await Service.findByIdAndUpdate(
+      serviceId,
+      { $push: { pricing: savedPricing._id } }, // Add pricing ID to service
+      { new: true }
+    );
+
+    res.status(201).json({
+      status: 201,
+      message: "Pricing added successfully",
+      pricing: savedPricing,
+    });
+  } catch (error) {
+    console.error("Error adding pricing:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+const updatePrice = async (req, res) => {
+  try {
+    const { serviceId, subServiceId, title, description, published } = req.body;
+    const image = req.file ? `/uploads/${req.file.filename}` : null;
+
+    const service = await Service.findById(serviceId);
+    if (!service) {
+      return res.status(404).json({ status: 404, message: "Service not found" });
+    }
+
+    const process = service.process.id(subServiceId);
+    if (!process) {
+      return res.status(404).json({ status: 404, message: "Sub-service not found" });
+    }
+
+    // Update fields if provided
+    if (title) process.title = title;
+    if (description) process.description = description;
+    if (image) process.image = image;
+    if (published !== undefined) {
+      process.published = published === "true" || published === true;
+    }
+
+    await service.save();
+    res.status(200).json({ status: 200, message: "Sub-service updated successfully", service });
+  } catch (error) {
+    console.error("Error updating sub-service:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+const deleteMultiplePrice = async (req, res) => {
+  try {
+    const { subid } = req.params; // Get the parent service ID
+    const { ids } = req.body; // Array of subservice IDs
+
+    if (!subid) {
+      return res.status(400).json({ status: 400, message: "Service ID is required." });
+    }
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ status: 400, message: "Please provide an array of process IDs." });
+    }
+
+    // Find the parent service
+    const service = await Service.findById(subid);
+    if (!service) {
+      return res.status(404).json({ status: 404, message: "Service not found." });
+    }
+
+    // Find and delete images of the subservices being removed
+    service.process.forEach((process) => {
+      if (ids.includes(process._id.toString()) && process.image) {
+        const imagePath = path.join(__dirname, "..", process.image);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      }
+    });
+
+    // Remove subservices from the service's array
+    const updatedService = await Service.findByIdAndUpdate(
+      subid,
+      { $pull: { process: { _id: { $in: ids } } } },
+      { new: true }
+    );
+
+    res.status(200).json({
+      status: 200,
+      message: "Selected subservices deleted successfully.",
+      updatedService    });
+  } catch (error) {
+    console.error("Error deleting multiple process:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
 
 
 
@@ -470,7 +603,7 @@ const getAllLiveServicesName = async (req, res) => {
 // 🟢 Get a Single Service by ID
 const getServiceById = async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id);
+    const service = await Service.findById(req.params.id).populate("Pricing");
     if (!service) return res.status(404).json({ status: 404, message: "Service not found" });
 
     res.status(200).json({ status: 200, service });
@@ -591,6 +724,7 @@ module.exports = {
   addprocess: [upload.single("image"), addprocess],
   updateProcess: [upload.single("image"), updateProcess],
   deleteMultipleProcess,
-  getAllLiveServicesName
+  getAllLiveServicesName,
+  addprice
 
 };
