@@ -603,7 +603,7 @@ const getAllLiveServicesName = async (req, res) => {
 // 🟢 Get a Single Service by ID
 const getServiceById = async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id);
+    const service = await Service.findById(req.params.id).populate("pricing");
     if (!service) return res.status(404).json({ status: 404, message: "Service not found" });
 
     res.status(200).json({ status: 200, service });
