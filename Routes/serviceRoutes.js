@@ -10,7 +10,7 @@ router.get("/live", getAllLiveServices);
 router.get("/list", getAllLiveServicesName); 
 router.get("/view/:id", getServiceById);  
  
-router.get("/view/:slug", getServiceBySlug);
+router.get("/viewbyslug/:slug", getServiceBySlug);
 router.put("/update/:id", updateService);
 router.delete("/delete/:id", deleteService); 
 router.delete("/delete", deleteMultipleServices); 

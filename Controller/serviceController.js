@@ -592,7 +592,10 @@ const getServiceById = async (req, res) => {
 };
 const getServiceBySlug = async (req, res) => {
   try {
-    const service = await Service.findOne({slug:req.params.slug});
+    const service = await Service.findOne({slug:req.params.slug}) .populate({
+      path: "pricing",
+      match: { published: true },
+    });
     if (!service) return res.status(404).json({ status: 404, message: "Service not found" });
 
     res.status(200).json({ status: 200, service });
@@ -608,12 +611,11 @@ const updateService = async (req, res) => {
     const { name, introduction, slug, published, isPricing } = req.body;
     let updatedData = { name, introduction, slug, published: published === "true" || published === true , isPricing: isPricing === "true" || isPricing === true };
 
-    // Check if a new image is uploaded
     if (req.file) {
       const service = await Service.findById(req.params.id);
       if (!service) return res.status(404).json({ status: 404, message: "Service not found" });
 
-      // Remove old image from server
+      
       if (service.image) {
         const oldImagePath = path.join(__dirname, "..", service.image);
         if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
