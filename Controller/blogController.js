@@ -46,41 +46,21 @@ const createblog = async (req, res) => {
       category,
       published,
     } = req.body;
+    
     const thumbnail = req.file ? `/uploads/${req.file.filename}` : null;
-
+    
     const missingFields = [];
-
+    
     if (published === "true" || published === true) {
-      if (!title)
-        missingFields.push({ name: "title", message: "Title is required" });
-      if (!description)
-        missingFields.push({
-          name: "description",
-          message: "Description is required",
-        });
-      if (!detail)
-        missingFields.push({ name: "detail", message: "Detail is required" });
-      if (!author)
-        missingFields.push({ name: "author", message: "Author is required" });
-      if (!tags)
-        missingFields.push({ name: "tags", message: "Tags are required" });
-      if (!metaDescription)
-        missingFields.push({
-          name: "metaDescription",
-          message: "Meta description is required",
-        });
-      if (!slug)
-        missingFields.push({ name: "slug", message: "Slug is required" });
-      if (!thumbnail)
-        missingFields.push({
-          name: "thumbnail",
-          message: "Thumbnail (image) is required",
-        });
-      if (!category)
-        missingFields.push({
-          name: "category",
-          message: "Category is required",
-        });
+      if (!title) missingFields.push({ name: "title", message: "Title is required" });
+      if (!description) missingFields.push({ name: "description", message: "Description is required" });
+      if (!detail) missingFields.push({ name: "detail", message: "Detail is required" });
+      if (!author) missingFields.push({ name: "author", message: "Author is required" });
+      if (!tags) missingFields.push({ name: "tags", message: "Tags are required" });
+      if (!metaDescription) missingFields.push({ name: "metaDescription", message: "Meta description is required" });
+      if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
+      if (!thumbnail) missingFields.push({ name: "thumbnail", message: "Thumbnail (image) is required" });
+      if (!category) missingFields.push({ name: "category", message: "Category is required" });
 
       if (missingFields.length > 0) {
         return res.status(400).json({
@@ -101,17 +81,13 @@ const createblog = async (req, res) => {
       }
     }
 
-    const tagsArray = Array.isArray(tags)
-      ? tags
-      : tags
-      ? tags.split(",").map((tag) => tag.trim())
-      : [];
+    const tagsArray = Array.isArray(tags) ? tags : tags ? tags.split(",").map(tag => tag.trim()) : [];
 
     const categoryExists = await Category.findById(category);
-    console.log("Category Exists:", categoryExists);
     if (!categoryExists) {
       return res.status(400).json({ message: "Invalid category ID" });
     }
+
     const newBlog = await Blogs.create({
       title,
       description,
@@ -121,14 +97,12 @@ const createblog = async (req, res) => {
       thumbnail,
       tags: tagsArray,
       metaDescription,
-      published,
-
+      published: published === "true" || published === true, 
+      publishedDate: published === "true" || published === true ? new Date().toISOString() : null, 
       category: { _id: categoryExists._id, name: categoryExists.name },
     });
 
-    res
-      .status(201)
-      .json({ status: 201, message: "Blog created successfully", blog: newBlog });
+    res.status(201).json({ status: 201, message: "Blog created successfully", blog: newBlog });
   } catch (error) {
     console.error("Error creating blog:", error);
     res.status(500).json({
@@ -153,23 +127,19 @@ const updateblog = async (req, res) => {
       published,
       category,
     } = req.body;
+    
     const thumbnail = req.file ? `/uploads/${req.file.filename}` : null;
 
-    // ✅ Convert `published` to Boolean (Handles "true"/"false" strings from form-data)
     if (typeof published === "string") {
       published = published === "true";
     }
 
-    console.log("values for updates :", req.body);
-
-    // ✅ Find the existing blog
     const existingBlog = await Blogs.findById(id);
     if (!existingBlog) {
       return res.status(404).json({ message: "Blog not found" });
     }
 
-    // ✅ Validate category (ensure it exists)
-    let updatedCategory = existingBlog.category; // Keep current category if not updating
+    let updatedCategory = existingBlog.category;
     if (category) {
       const categoryExists = await Category.findById(category);
       if (!categoryExists) {
@@ -178,34 +148,29 @@ const updateblog = async (req, res) => {
       updatedCategory = { _id: categoryExists._id, name: categoryExists.name };
     }
 
-    // ✅ Convert tags string to array if needed
     if (tags && typeof tags === "string") {
-      tags = tags.split(",").map((tag) => tag.trim());
+      tags = tags.split(",").map(tag => tag.trim());
     }
 
-    // ✅ Updating fields if provided in the request
     existingBlog.title = title || existingBlog.title;
     existingBlog.description = description || existingBlog.description;
     existingBlog.detail = detail || existingBlog.detail;
     existingBlog.author = author || existingBlog.author;
     existingBlog.slug = slug || existingBlog.slug;
     existingBlog.tags = tags || existingBlog.tags;
-    existingBlog.metaDescription =
-      metaDescription || existingBlog.metaDescription;
+    existingBlog.metaDescription = metaDescription || existingBlog.metaDescription;
     existingBlog.category = updatedCategory;
+    
+    // ✅ Set `publishedDate` if blog is being published now
+    if (published && !existingBlog.published) {
+      existingBlog.publishedDate = new Date().toISOString();
+    }
 
-    // ✅ Explicitly set `published` (allows both `true` and `false` values)
     existingBlog.published = published;
 
-    // ✅ Update thumbnail if a new image is uploaded
     if (thumbnail) {
-      // Remove old thumbnail if it exists
       if (existingBlog.thumbnail) {
-        const oldThumbnailPath = path.join(
-          __dirname,
-          "..",
-          existingBlog.thumbnail
-        );
+        const oldThumbnailPath = path.join(__dirname, "..", existingBlog.thumbnail);
         if (fs.existsSync(oldThumbnailPath)) {
           fs.unlinkSync(oldThumbnailPath);
         }
@@ -213,12 +178,9 @@ const updateblog = async (req, res) => {
       existingBlog.thumbnail = thumbnail;
     }
 
-    // ✅ Save updated blog
     await existingBlog.save();
 
-    res
-      .status(200)
-      .json({ status: 200, message: "Blog updated successfully", blog: existingBlog });
+    res.status(200).json({ status: 200, message: "Blog updated successfully", blog: existingBlog });
   } catch (error) {
     console.error("Error updating blog:", error);
     res.status(500).json({
@@ -228,6 +190,7 @@ const updateblog = async (req, res) => {
     });
   }
 };
+
 
 const deleteblog = async (req, res) => {
   try {
