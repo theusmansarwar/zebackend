@@ -15,6 +15,7 @@ const roleRouter = require('./Routes/roleRoutes');
 const testimonialRouter = require('./Routes/testimonialRoutes');
 const serviceRouter = require('./Routes/serviceRoutes');
 const adminRoutes = require('./Routes/adminRoutes');
+const viewsRouter = require('./Routes/viewsRoutes');
 const path = require('path');
 
 const port=process.env.PORT || 4000;
@@ -31,6 +32,7 @@ app.use("/team", teamRouter)
 app.use("/service", serviceRouter)
 app.use("/testimonial", testimonialRouter)
 app.use("/role", roleRouter)
+app.use("/views", viewsRouter)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
