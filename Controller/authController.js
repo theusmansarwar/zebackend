@@ -109,36 +109,44 @@ const stats = async (req, res) => {
     todayStart.setHours(0, 0, 0, 0);
 
     const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59);
+    todayEnd.setHours(23, 59, 59, 999);
 
     // ✅ YESTERDAY
-    const yesterdayStart = new Date();
+    const yesterdayStart = new Date(todayStart);
     yesterdayStart.setDate(yesterdayStart.getDate() - 1);
-    yesterdayStart.setHours(0, 0, 0, 0);
 
-    const yesterdayEnd = new Date();
-    yesterdayEnd.setDate(yesterdayEnd.getDate() - 1);
-    yesterdayEnd.setHours(23, 59, 59);
+    const yesterdayEnd = new Date(yesterdayStart);
+    yesterdayEnd.setHours(23, 59, 59, 999);
 
     // ✅ Counts
     const totalBlogs = await Blogs.countDocuments();
     const totalLeads = await Leads.countDocuments();
 
     // ✅ Leads
-    const todayLeads = await Leads.countDocuments({ createdAt: { $gte: todayStart, $lt: todayEnd } });
-    const yesterdayLeads = await Leads.countDocuments({ createdAt: { $gte: yesterdayStart, $lt: yesterdayEnd } });
+    const todayLeads = await Leads.countDocuments({
+      createdAt: { $gte: todayStart, $lte: todayEnd }
+    });
 
-    // ✅ Views/Impressions
-    const todayImpressionData = await View.findOne({ date: todayStart.toISOString().split("T")[0] });
+    const yesterdayLeads = await Leads.countDocuments({
+      createdAt: { $gte: yesterdayStart, $lte: yesterdayEnd }
+    });
+
+    // ✅ Views/Impressions (Use `$gte` and `$lt` for date range)
+    const todayImpressionData = await View.findOne({
+      date: { $gte: todayStart, $lte: todayEnd }
+    });
+
+    const yesterdayImpressionData = await View.findOne({
+      date: { $gte: yesterdayStart, $lte: yesterdayEnd }
+    });
+
+    // ✅ Set default values
     const todayImpression = todayImpressionData ? todayImpressionData.views : 0;
-   
+    const yesterdayImpression = yesterdayImpressionData ? yesterdayImpressionData.views : 0;
 
-    
     // ✅ Fetch total impressions count
     const totalImpressionRecord = await TotalImpression.findOne().select("totalImpression -_id");
     const totalImpressions = totalImpressionRecord ? totalImpressionRecord.totalImpression : 0;
-    const yesterdayImpressionData = await View.findOne({ date: yesterdayStart.toISOString().split("T")[0] });
-    const yesterdayImpression = yesterdayImpressionData ? yesterdayImpressionData.views : 0;
 
     const totalComments = await Comment.countDocuments();
     const totalUsers = await User.countDocuments();
@@ -149,10 +157,10 @@ const stats = async (req, res) => {
       totalBlogs,
       totalLeads,
       todayLeads,
-      yesterdayLeads, // ✅ Added yesterday's leads
+      yesterdayLeads, // ✅ Fixed yesterday's leads
       todayImpression,
-      yesterdayImpression,
-      totalImpressions, // ✅ Added yesterday's impressions
+      yesterdayImpression, // ✅ Fixed yesterday's impressions
+      totalImpressions, // ✅ All-time impressions count
       totalComments,
       totalUsers,
       totalServices,
@@ -161,6 +169,7 @@ const stats = async (req, res) => {
     return res.status(500).json({ message: "Error fetching data", error });
   }
 };
+
 
 
 module.exports = {
