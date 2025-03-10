@@ -4,6 +4,7 @@ const Service = require("../Models/serviceModel");
 const Comment = require("../Models/commentModel");
 const Blogs = require("../Models/blogModel");
 const Leads = require("../Models/leadsModel");
+const View = require("../Models/viewModel");
 
 const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -103,17 +104,34 @@ const login = async (req, res) => {
 
 const stats = async (req, res) => {
   try {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+    // ✅ TODAY
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
 
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59);
 
+    // ✅ YESTERDAY
+    const yesterdayStart = new Date();
+    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+    yesterdayStart.setHours(0, 0, 0, 0);
+
+    const yesterdayEnd = new Date();
+    yesterdayEnd.setDate(yesterdayEnd.getDate() - 1);
+    yesterdayEnd.setHours(23, 59, 59);
+
+    // ✅ Counts
     const totalBlogs = await Blogs.countDocuments();
     const totalLeads = await Leads.countDocuments();
-    const todayLeads = await Leads.countDocuments({
-      createdAt: { $gte: startOfDay, $lt: endOfDay }
-    });
+
+    // ✅ Leads
+    const todayLeads = await Leads.countDocuments({ createdAt: { $gte: todayStart, $lt: todayEnd } });
+
+    // ✅ Views/Impressions
+    const todayImpressionData = await View.findOne({ date: todayStart.toISOString().split("T")[0] });
+    const todayImpression = todayImpressionData ? todayImpressionData.views : 0;
+
+
     const totalComments = await Comment.countDocuments();
     const totalUsers = await User.countDocuments();
     const totalServices = await Service.countDocuments();
@@ -122,7 +140,9 @@ const stats = async (req, res) => {
       message: "Data fetched successfully",
       totalBlogs,
       totalLeads,
-      todayLeads, // ✅ Added today's leads
+      todayLeads,
+      todayImpression,
+    
       totalComments,
       totalUsers,
       totalServices,
@@ -131,6 +151,7 @@ const stats = async (req, res) => {
     return res.status(500).json({ message: "Error fetching data", error });
   }
 };
+
 
 module.exports = {
   register,
