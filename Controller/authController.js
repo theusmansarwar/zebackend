@@ -126,11 +126,14 @@ const stats = async (req, res) => {
 
     // ✅ Leads
     const todayLeads = await Leads.countDocuments({ createdAt: { $gte: todayStart, $lt: todayEnd } });
+    const yesterdayLeads = await Leads.countDocuments({ createdAt: { $gte: yesterdayStart, $lt: yesterdayEnd } });
 
     // ✅ Views/Impressions
     const todayImpressionData = await View.findOne({ date: todayStart.toISOString().split("T")[0] });
     const todayImpression = todayImpressionData ? todayImpressionData.views : 0;
 
+    const yesterdayImpressionData = await View.findOne({ date: yesterdayStart.toISOString().split("T")[0] });
+    const yesterdayImpression = yesterdayImpressionData ? yesterdayImpressionData.views : 0;
 
     const totalComments = await Comment.countDocuments();
     const totalUsers = await User.countDocuments();
@@ -141,8 +144,9 @@ const stats = async (req, res) => {
       totalBlogs,
       totalLeads,
       todayLeads,
+      yesterdayLeads, // ✅ Added yesterday's leads
       todayImpression,
-    
+      yesterdayImpression, // ✅ Added yesterday's impressions
       totalComments,
       totalUsers,
       totalServices,
