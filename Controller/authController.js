@@ -4,7 +4,7 @@ const Service = require("../Models/serviceModel");
 const Comment = require("../Models/commentModel");
 const Blogs = require("../Models/blogModel");
 const Leads = require("../Models/leadsModel");
-const View = require("../Models/viewModel");
+const { View, TotalImpression } = require("../Models/viewModel");
 
 const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -131,7 +131,12 @@ const stats = async (req, res) => {
     // ✅ Views/Impressions
     const todayImpressionData = await View.findOne({ date: todayStart.toISOString().split("T")[0] });
     const todayImpression = todayImpressionData ? todayImpressionData.views : 0;
+   
 
+    
+    // ✅ Fetch total impressions count
+    const totalImpressionRecord = await TotalImpression.findOne().select("totalImpression -_id");
+    const totalImpressions = totalImpressionRecord ? totalImpressionRecord.totalImpression : 0;
     const yesterdayImpressionData = await View.findOne({ date: yesterdayStart.toISOString().split("T")[0] });
     const yesterdayImpression = yesterdayImpressionData ? yesterdayImpressionData.views : 0;
 
@@ -146,7 +151,8 @@ const stats = async (req, res) => {
       todayLeads,
       yesterdayLeads, // ✅ Added yesterday's leads
       todayImpression,
-      yesterdayImpression, // ✅ Added yesterday's impressions
+      yesterdayImpression,
+      totalImpressions, // ✅ Added yesterday's impressions
       totalComments,
       totalUsers,
       totalServices,
