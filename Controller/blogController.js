@@ -45,6 +45,7 @@ const createblog = async (req, res) => {
       slug,
       category,
       published,
+      publishedDate
     } = req.body;
     
     const thumbnail = req.file ? `/uploads/${req.file.filename}` : null;
@@ -61,6 +62,7 @@ const createblog = async (req, res) => {
       if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
       if (!thumbnail) missingFields.push({ name: "thumbnail", message: "Thumbnail (image) is required" });
       if (!category) missingFields.push({ name: "category", message: "Category is required" });
+      if (!publishedDate) missingFields.push({ name: "publishedDate", message: "Published Date is required" });
 
       if (missingFields.length > 0) {
         return res.status(400).json({
@@ -98,7 +100,7 @@ const createblog = async (req, res) => {
       tags: tagsArray,
       metaDescription,
       published: published === "true" || published === true, 
-      publishedDate: published === "true" || published === true ? new Date().toISOString() : null, 
+      publishedDate,
       category: { _id: categoryExists._id, name: categoryExists.name },
     });
 
@@ -126,6 +128,7 @@ const updateblog = async (req, res) => {
       metaDescription,
       published,
       category,
+      publishedDate
     } = req.body;
     
     const thumbnail = req.file ? `/uploads/${req.file.filename}` : null;
@@ -160,11 +163,8 @@ const updateblog = async (req, res) => {
     existingBlog.tags = tags || existingBlog.tags;
     existingBlog.metaDescription = metaDescription || existingBlog.metaDescription;
     existingBlog.category = updatedCategory;
-    
-    // ✅ Set `publishedDate` if blog is being published now
-    if (published && !existingBlog.published) {
-      existingBlog.publishedDate = new Date().toISOString();
-    }
+    existingBlog.publishedDate = publishedDate;
+   
 
     existingBlog.published = published;
 
