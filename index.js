@@ -18,9 +18,15 @@ const adminRoutes = require('./Routes/adminRoutes');
 const path = require('path');
 
 const port=process.env.PORT || 4000;
-app.use(express.json());
-app.use(cors());
 
+const corsOptions = {
+    origin: ["http://localhost:3000", "http://localhost:3001","https://zemalt.com", "https://www.zemalt.com"], // Allow frontend on these ports
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true, // Allow cookies and auth headers
+  };
+  
+  app.use(cors(corsOptions));
+  app.use(express.json());
 app.use("/", userRouter)
 app.use("/admin", adminRoutes)
 app.use("/blog", blogRouter)
