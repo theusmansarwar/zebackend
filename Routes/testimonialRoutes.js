@@ -9,13 +9,14 @@ const {
   viewTestimonial,
   liveTestimonial,
 } = require("../Controller/testimonialController");
+const authMiddleware = require("../Middleware/authMiddleware");
 
-router.post("/add", addTestimonial);
-router.put("/update/:id", updateTestimonial);
+router.post("/add",authMiddleware, addTestimonial);
+router.put("/update/:id",authMiddleware, updateTestimonial);
 router.get("/live",liveTestimonial)
-router.get("/view",viewTestimonial)
-router.delete("/delete",deleteAllTestimonial)
-router.get("/delete/:id",deleteTestimonial)
+router.get("/view",authMiddleware,viewTestimonial)
+router.delete("/delete",authMiddleware,deleteAllTestimonial)
+router.get("/delete/:id",authMiddleware,deleteTestimonial)
 
 
 module.exports = router;

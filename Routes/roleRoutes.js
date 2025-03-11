@@ -9,12 +9,13 @@ const {
   liveRole,
   deleteAllRole,
 } = require("../Controller/roleController");
+const authMiddleware = require("../Middleware/authMiddleware");
 
-router.post("/add", addRole);
-router.put("/update/:id", updateRole);
-router.delete("/delete/:id", deleteRole);
-router.delete("/delete", deleteAllRole);
-router.get("/view", viewRole);
+router.post("/add",authMiddleware, addRole);
+router.put("/update/:id",authMiddleware, updateRole);
+router.delete("/delete/:id",authMiddleware, deleteRole);
+router.delete("/delete",authMiddleware, deleteAllRole);
+router.get("/view",authMiddleware, viewRole);
 router.get("/live", liveRole);
 
 module.exports = router;
