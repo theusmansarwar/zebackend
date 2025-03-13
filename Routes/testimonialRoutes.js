@@ -8,6 +8,7 @@ const {
   deleteAllTestimonial,
   viewTestimonial,
   liveTestimonial,
+  viewTestimonialbyid,
 } = require("../Controller/testimonialController");
 const authMiddleware = require("../Middleware/authMiddleware");
 
