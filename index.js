@@ -7,31 +7,30 @@ const connectDB = require("./utils/db");
 const app = express();
 const port = process.env.PORT || 4000;
 
-// ✅ Allowed Origins (Local & Live)
+// ✅ Allowed Origins
 const allowedOrigins = [
-  "http://localhost:3000",  // Local frontend
-  "http://localhost:5173",  // Local Vite frontend (if using Vite)
-  "https://admin.zemalt.com", // Admin Panel (Live)
+  "http://localhost:3000",  // Local frontend (React)
+  "http://localhost:5173",  // Local frontend (Vite)
+  "https://admin.zemalt.com", // Admin panel (Live)
   "https://zemalt.com"       // Main Website (Live)
 ];
 
-// ✅ CORS Configuration
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin);
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-    res.header("Access-Control-Allow-Credentials", "true");
-  }
+// ✅ Apply CORS Middleware Before Routes
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed for this origin"));
+    }
+  },
+  credentials: true, // Allow cookies/auth headers
+  methods: "GET, POST, PUT, DELETE, OPTIONS",
+  allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+}));
 
-  // ✅ Handle Preflight Requests
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-
-  next();
-});
+// ✅ Handle Preflight Requests
+app.options("*", cors()); // Allow all OPTIONS requests
 
 // ✅ Middleware
 app.use(express.json());
@@ -49,7 +48,7 @@ const serviceRouter = require("./Routes/serviceRoutes");
 const adminRoutes = require("./Routes/adminRoutes");
 const viewsRouter = require("./Routes/viewsRoutes");
 
-// ✅ Route Usage
+// ✅ Use Routes
 app.use("/", userRouter);
 app.use("/admin", adminRoutes);
 app.use("/blog", blogRouter);
