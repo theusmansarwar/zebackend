@@ -153,6 +153,23 @@ const liveTestimonial = async (req, res) => {
   }
 };
 
+// ✅ View Testimonial by ID
+const viewTestimonialbyid = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const testimonial = await Testimonials.findById(id);
+    if (!testimonial) {
+      return res.status(404).json({ message: "Testimonial not found" });
+    }
+
+    res.status(200).json({ status: 200, testimonial });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 module.exports = {
   addTestimonial,
   updateTestimonial,
@@ -160,4 +177,5 @@ module.exports = {
   deleteAllTestimonial,
   viewTestimonial,
   liveTestimonial,
+  viewTestimonialbyid
 };
