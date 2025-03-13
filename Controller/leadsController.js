@@ -117,9 +117,40 @@ const GetLeadById = async (req, res) => {
   }
 };
 
+const DeleteLeads = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({status: 400, message: "Invalid request. Provide Lead IDs." });
+    }
+
+    // ✅ Check if leads exist before deleting
+    const existingLeads = await Leads.find({ _id: { $in: ids } });
+
+    if (existingLeads.length === 0) {
+      return res.status(404).json({status: 400, message: "No leads found with the given IDs." });
+    }
+
+    // ✅ Delete leads
+    await Leads.deleteMany({ _id: { $in: ids } });
+
+    res.status(200).json({
+      status: 200,
+      message: "Leads deleted successfully.",
+      deletedLeads: ids
+    });
+
+  } catch (error) {
+    console.error("Error deleting leads:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
 
 module.exports = {
   CreateLeads,
   LeadsList,
-  GetLeadById
+  GetLeadById,
+  DeleteLeads
 };
