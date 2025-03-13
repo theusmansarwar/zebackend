@@ -12,7 +12,9 @@ const allowedOrigins = [
   "http://localhost:3000",  // Local frontend (React)
   "http://localhost:5173",  // Local frontend (Vite)
   "https://admin.zemalt.com", // Admin panel (Live)
-  "https://zemalt.com"       // Main Website (Live)
+  "https://zemalt.com",
+  "https://www.zemalt.com" ,
+  "http://localhost:3001",      // Main Website (Live)
 ];
 
 // ✅ Apply CORS Middleware Before Routes
