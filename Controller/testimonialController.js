@@ -68,9 +68,9 @@ const updateTestimonial = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    res.status(200).json({ success: true, message: "Testimonial updated successfully", updatedTestimonial });
+    res.status(200).json({ status:200 , message: "Testimonial updated successfully", updatedTestimonial });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to update testimonial", error: error.message });
+    res.status(500).json({status:500, message: "Failed to update testimonial", error: error.message });
   }
 };
 
