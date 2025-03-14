@@ -128,6 +128,22 @@ const viewTestimonial = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+const viewTestimonialById = async (req, res) => {
+  try {
+    const { id } = req.params; // Extract ID from URL params
+
+    const testimonial = await Testimonials.findById(id);
+
+    if (!testimonial) {
+      return res.status(404).json({ message: "Testimonial not found" });
+    }
+
+    res.status(200).json(testimonial);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 // ✅ View Only Published Testimonials (with Pagination)
 const liveTestimonial = async (req, res) => {
@@ -162,4 +178,5 @@ module.exports = {
   deleteAllTestimonial,
   viewTestimonial,
   liveTestimonial,
+  viewTestimonialById
 };
