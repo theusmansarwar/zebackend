@@ -270,7 +270,7 @@ const listblog = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10; // Get limit from query, default to 10
 
     const blogslist = await Blogs.find({published: true})
-      .select("-comments -detail -published")
+      .select("-comments -detail -published -viewedBy")
       .sort({ publishedDate: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -299,7 +299,7 @@ const listblogAdmin = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10; // Get limit from query, default to 10
 
     const blogslist = await Blogs.find()
-      .select("-comments -detail ")
+      .select("-comments -detail -viewedBy ")
       .sort({ publishedDate: -1 })
       .populate({
         path: "category",
@@ -329,10 +329,7 @@ const listblogAdmin = async (req, res) => {
 const viewblog = async (req, res) => {
   try {
     const { slug } = req.params;
-    const userIp =
-      req.ip || req.headers["x-forwarded-for"] || req.connection.remoteAddress; // ✅ Get User's IP
-
-    // ✅ Find the blog but do NOT modify it directly
+   
     let blog = await Blogs.findOne({ slug , published: true })
     .populate({
       path: "comments",
@@ -346,18 +343,15 @@ const viewblog = async (req, res) => {
     }
 
     // ✅ Check if the IP exists in viewedBy array
-    if (!blog.viewedBy.includes(userIp)) {
-      blog = await Blogs.findOneAndUpdate(
-        { slug },
-        {
-          $inc: { views: 1 }, // ✅ Increment views
-          $push: { viewedBy: userIp }, // ✅ Add new IP to viewedBy array
-        },
-        { new: true } // ✅ Return updated document
-      )
+  
+     blog = await Blogs.findOneAndUpdate(
+      { slug },
+      { $inc: { views: 1 } },  // Increase view count
+      { new: true } // Return updated document
+    )
         .populate("comments")
         .populate("category"); // ✅ Repopulate fields after update
-    }
+    
 
     const commentsCount = blog.comments.length || 0;
 
