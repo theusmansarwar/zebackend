@@ -15,7 +15,9 @@ const allowedOrigins = [
   "https://zemalt.com",
   "https://www.zemalt.com" ,
   "http://localhost:3001",
-  "https://creators-time.blogspot.com "    // Main Website (Live)
+  "https://creators-time.blogspot.com" ,
+  "https://creators-time.blogspot.com/"  
+    // Main Website (Live)
 ];
 
 // ✅ Apply CORS Middleware Before Routes
