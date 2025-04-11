@@ -17,7 +17,9 @@ const allowedOrigins = [
   "http://localhost:3001",
   "https://creators-time.blogspot.com" ,
   "https://creators-time.blogspot.com/"  ,
-  "https://plutosec.ca/"
+  "https://plutosec.ca/",
+  "https://plutosec.ca",,
+  "https://plutosec.ca/*",
     // Main Website (Live)
 ];
 
