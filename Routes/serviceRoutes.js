@@ -1,6 +1,7 @@
 const express = require("express");
 const { deleteService, deleteMultipleServices, updatePrice,
-    deleteMultiplePrice , updateService, getServiceById, getAllLiveServices, getAllServices, createService, getServiceBySlug, addservice, updateSubService , deleteMultipleSubServices,addprocess,updateProcess,deleteMultipleProcess,addbenifit,updateBenifit,deleteMultipleBenifits, getAllLiveServicesName, addprice} = require("../Controller/serviceController");
+    deleteMultiplePrice , updateService, getServiceById, getAllLiveServices, getAllServices, createService, getServiceBySlug, addservice, updateSubService , deleteMultipleSubServices,addprocess,updateProcess,deleteMultipleProcess,addbenifit,updateBenifit,deleteMultipleBenifits, getAllLiveServicesName, addprice,
+    getAllLiveServicesNamehavingprice} = require("../Controller/serviceController");
 const authMiddleware = require("../Middleware/authMiddleware");
 const router = express.Router();
 
@@ -9,6 +10,7 @@ router.post("/create",authMiddleware, createService);
 router.get("/view",authMiddleware, getAllServices); 
 router.get("/live", getAllLiveServices);  
 router.get("/list",authMiddleware, getAllLiveServicesName); 
+router.get("/plist",authMiddleware, getAllLiveServicesNamehavingprice); 
 router.get("/view/:id",authMiddleware, getServiceById);  
  
 router.get("/viewbyslug/:slug", getServiceBySlug);

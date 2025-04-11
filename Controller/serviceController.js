@@ -578,6 +578,22 @@ const getAllLiveServicesName = async (req, res) => {
   }
 };
 
+const getAllLiveServicesNamehavingprice = async (req, res) => {
+  try {
+   
+    const services = await Service.find({ published: true,isPricing: true })
+      .select("name")
+      
+
+    res.status(200).json({
+      status: 200,
+      services,
+    });
+  } catch (error) {
+    console.error("Error fetching live services:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
 // 🟢 Get a Single Service by ID
 const getServiceById = async (req, res) => {
   try {
@@ -705,6 +721,7 @@ module.exports = {
   updateProcess: [upload.single("image"), updateProcess],
   deleteMultipleProcess,
   getAllLiveServicesName,
+  getAllLiveServicesNamehavingprice,
   addprice,
   updatePrice,
   deleteMultiplePrice 
