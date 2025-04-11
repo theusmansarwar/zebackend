@@ -16,7 +16,8 @@ const allowedOrigins = [
   "https://www.zemalt.com" ,
   "http://localhost:3001",
   "https://creators-time.blogspot.com" ,
-  "https://creators-time.blogspot.com/"  
+  "https://creators-time.blogspot.com/"  ,
+  "https://plutosec.ca/"
     // Main Website (Live)
 ];
 
