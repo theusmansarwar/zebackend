@@ -20,6 +20,8 @@ const allowedOrigins = [
   "https://plutosec.ca/",
   "https://plutosec.ca",,
   "https://plutosec.ca/*",
+  "https://next-sable-theta.vercel.app/",
+  
     // Main Website (Live)
 ];
 
