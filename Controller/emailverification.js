@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
   
     // ✅ 1. Email to the Customer
     const customerMailOptions = {
-      from: process.env.EMAIL_USER,
+      from: "noreply@zemalt.com",
       to: email,
       subject: `Thank You for Reaching Out – Zemalt Pvt Ltd`,
       html: `
@@ -66,7 +66,7 @@ const transporter = nodemailer.createTransport({
   
     // ✅ 2. Email to the Admin
     const adminMailOptions = {
-      from: process.env.EMAIL_USER,
+      from: "noreply@zemalt.com",
       to: process.env.ADMIN_EMAIL, // Admin email from .env
       subject: `New Lead from ${name}`,
       html: `
