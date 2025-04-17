@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
   
     // ✅ 1. Email to the Customer
     const customerMailOptions = {
-      from: "noreply@instagram.com",
+      from: "noreply@zemalt.com",
       to: email,
       subject: `Thank You for Reaching Out – Zemalt Pvt Ltd`,
       html: `
