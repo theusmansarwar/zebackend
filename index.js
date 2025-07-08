@@ -57,11 +57,9 @@ const testimonialRouter = require("./Routes/testimonialRoutes");
 const serviceRouter = require("./Routes/serviceRoutes");
 const adminRoutes = require("./Routes/adminRoutes");
 const viewsRouter = require("./Routes/viewsRoutes");
-const polutosecRouter= require("./Routes/polutosecRoutes");
 
 // ✅ Use Routes
 app.use("/", userRouter);
-app.use("/plutosec", polutosecRouter);
 app.use("/admin", adminRoutes);
 app.use("/blog", blogRouter);
 app.use("/comment", commentRouter);

@@ -11,6 +11,7 @@ const BlogsSchema = new mongoose.Schema(
     metaDescription: { type: String,  maxlength: 160 , trim: true},
     slug: { type: String,  },
     detail: { type: String,  },
+     faqSchema: { type: String,  },
     author: { type: String,  },
     thumbnail: { type: String,  },
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],

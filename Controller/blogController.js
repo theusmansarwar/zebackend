@@ -4,8 +4,6 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const Category = require("../Models/categoryModel");
-
-// Ensure uploads directory exists
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -45,14 +43,15 @@ const createblog = async (req, res) => {
       slug,
       category,
       published,
-      publishedDate
+      publishedDate,
+      faqSchema
     } = req.body;
-    
+
     const thumbnail = req.file ? `/uploads/${req.file.filename}` : null;
-    
     const missingFields = [];
-    
-    if (published === "true" || published === true) {
+
+    const isPublished = published === "true" || published === true;
+    if (isPublished) {
       if (!title) missingFields.push({ name: "title", message: "Title is required" });
       if (!description) missingFields.push({ name: "description", message: "Description is required" });
       if (!detail) missingFields.push({ name: "detail", message: "Detail is required" });
@@ -65,30 +64,20 @@ const createblog = async (req, res) => {
       if (!publishedDate) missingFields.push({ name: "publishedDate", message: "Published Date is required" });
 
       if (missingFields.length > 0) {
-        return res.status(400).json({
-          status: 400,
-          message: "Some fields are missing!",
-          missingFields,
-        });
+        return res.status(400).json({ status: 400, message: "Some fields are missing!", missingFields });
       }
 
-      const existingTitle = await Blogs.findOne({ title });
-      if (existingTitle) {
-        return res.status(400).json({ message: "Blog Title already exists" });
-      }
-
-      const existingSlug = await Blogs.findOne({ slug });
-      if (existingSlug) {
-        return res.status(400).json({ message: "Blog Slug already exists" });
-      }
+      const [existingTitle, existingSlug] = await Promise.all([
+        Blogs.findOne({ title }),
+        Blogs.findOne({ slug })
+      ]);
+      if (existingTitle) return res.status(400).json({ message: "Blog Title already exists" });
+      if (existingSlug) return res.status(400).json({ message: "Blog Slug already exists" });
     }
 
-    const tagsArray = Array.isArray(tags) ? tags : tags ? tags.split(",").map(tag => tag.trim()) : [];
-
+    const tagsArray = Array.isArray(tags) ? tags : (tags ? tags.split(",").map(tag => tag.trim()) : []);
     const categoryExists = await Category.findById(category);
-    if (!categoryExists) {
-      return res.status(400).json({ message: "Invalid category ID" });
-    }
+    if (!categoryExists) return res.status(400).json({ message: "Invalid category ID" });
 
     const newBlog = await Blogs.create({
       title,
@@ -99,19 +88,16 @@ const createblog = async (req, res) => {
       thumbnail,
       tags: tagsArray,
       metaDescription,
-      published: published === "true" || published === true, 
+      published: isPublished,
       publishedDate,
       category: { _id: categoryExists._id, name: categoryExists.name },
+      faqSchema
     });
 
     res.status(201).json({ status: 201, message: "Blog created successfully", blog: newBlog });
   } catch (error) {
     console.error("Error creating blog:", error);
-    res.status(500).json({
-      status: 500,
-      message: "Internal server error",
-      error: error.message,
-    });
+    res.status(500).json({ status: 500, message: "Internal server error", error: error.message });
   }
 };
 
@@ -128,69 +114,48 @@ const updateblog = async (req, res) => {
       metaDescription,
       published,
       category,
-      publishedDate
+      publishedDate,
+      faqSchema
     } = req.body;
-    
+
     const thumbnail = req.file ? `/uploads/${req.file.filename}` : null;
+    const isPublished = published === "true" || published === true;
 
-    if (typeof published === "string") {
-      published = published === "true";
-    }
+    const blog = await Blogs.findById(id);
+    if (!blog) return res.status(404).json({ message: "Blog not found" });
 
-    const existingBlog = await Blogs.findById(id);
-    if (!existingBlog) {
-      return res.status(404).json({ message: "Blog not found" });
-    }
-
-    let updatedCategory = existingBlog.category;
     if (category) {
       const categoryExists = await Category.findById(category);
-      if (!categoryExists) {
-        return res.status(400).json({ message: "Invalid category ID" });
-      }
-      updatedCategory = { _id: categoryExists._id, name: categoryExists.name };
+      if (!categoryExists) return res.status(400).json({ message: "Invalid category ID" });
+      blog.category = { _id: categoryExists._id, name: categoryExists.name };
     }
 
-    if (tags && typeof tags === "string") {
-      tags = tags.split(",").map(tag => tag.trim());
-    }
-
-    existingBlog.title = title || existingBlog.title;
-    existingBlog.description = description || existingBlog.description;
-    existingBlog.detail = detail || existingBlog.detail;
-    existingBlog.author = author || existingBlog.author;
-    existingBlog.slug = slug || existingBlog.slug;
-    existingBlog.tags = tags || existingBlog.tags;
-    existingBlog.metaDescription = metaDescription || existingBlog.metaDescription;
-    existingBlog.category = updatedCategory;
-    existingBlog.publishedDate = publishedDate;
-   
-
-    existingBlog.published = published;
+    blog.title = title || blog.title;
+    blog.description = description || blog.description;
+    blog.detail = detail || blog.detail;
+    blog.author = author || blog.author;
+    blog.slug = slug || blog.slug;
+    blog.tags = typeof tags === "string" ? tags.split(",").map(tag => tag.trim()) : tags || blog.tags;
+    blog.metaDescription = metaDescription || blog.metaDescription;
+    blog.published = isPublished;
+    blog.publishedDate = publishedDate;
+    blog.faqSchema = faqSchema;
 
     if (thumbnail) {
-      if (existingBlog.thumbnail) {
-        const oldThumbnailPath = path.join(__dirname, "..", existingBlog.thumbnail);
-        if (fs.existsSync(oldThumbnailPath)) {
-          fs.unlinkSync(oldThumbnailPath);
-        }
+      if (blog.thumbnail) {
+        const oldPath = path.join(__dirname, "..", blog.thumbnail);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
       }
-      existingBlog.thumbnail = thumbnail;
+      blog.thumbnail = thumbnail;
     }
 
-    await existingBlog.save();
-
-    res.status(200).json({ status: 200, message: "Blog updated successfully", blog: existingBlog });
+    await blog.save();
+    res.status(200).json({ status: 200, message: "Blog updated successfully", blog });
   } catch (error) {
     console.error("Error updating blog:", error);
-    res.status(500).json({
-      status: 500,
-      message: "Internal server error",
-      error: error.message,
-    });
+    res.status(500).json({ status: 500, message: "Internal server error", error: error.message });
   }
 };
-
 
 const deleteblog = async (req, res) => {
   try {
@@ -211,7 +176,7 @@ const deleteblog = async (req, res) => {
     // ✅ Delete the blog
     await Blogs.findByIdAndDelete(id);
 
-    res.status(200).json({ status:200, message: "Blog deleted successfully" });
+    res.status(200).json({ status: 200, message: "Blog deleted successfully" });
   } catch (error) {
     console.error("Error deleting blog:", error);
     res.status(500).json({
@@ -253,7 +218,9 @@ const deletemultiblog = async (req, res) => {
     // ✅ Delete blogs in one go
     await Blogs.deleteMany({ _id: { $in: ids } });
 
-    res.status(200).json({ status: 200, message: "Blogs deleted successfully" });
+    res
+      .status(200)
+      .json({ status: 200, message: "Blogs deleted successfully" });
   } catch (error) {
     console.error("Error deleting blogs:", error);
     res.status(500).json({
@@ -269,7 +236,7 @@ const listblog = async (req, res) => {
     const page = parseInt(req.query.page) || 1; // Get page from query, default to 1
     const limit = parseInt(req.query.limit) || 10; // Get limit from query, default to 10
 
-    const blogslist = await Blogs.find({published: true})
+    const blogslist = await Blogs.find({ published: true })
       .select("-comments -detail -published -viewedBy")
       .sort({ publishedDate: -1 })
       .limit(limit)
@@ -326,35 +293,71 @@ const listblogAdmin = async (req, res) => {
     });
   }
 };
+const listblogWritter = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+
+    // Case-insensitive search on author field
+    const filter = search
+      ? { author: { $regex: new RegExp(search, "i") } }
+      : {};
+
+    const blogslist = await Blogs.find(filter)
+      .select("-comments -detail -viewedBy")
+      .sort({ publishedDate: -1 })
+      .populate({
+        path: "category",
+        model: "Category",
+      })
+      .limit(limit)
+      .skip((page - 1) * limit);
+
+    const totalBlogs = await Blogs.countDocuments(filter);
+
+    res.status(200).json({
+      totalBlogs,
+      totalPages: Math.ceil(totalBlogs / limit),
+      currentPage: page,
+      limit: limit,
+      blogs: blogslist,
+    });
+  } catch (error) {
+    console.error("Error fetching blogs:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
 const viewblog = async (req, res) => {
   try {
     const { slug } = req.params;
-   
-    let blog = await Blogs.findOne({ slug , published: true })
-    .populate({
-      path: "comments",
-      match: { published: true }, // ✅ Only fetch published comments
-      options: { sort: { createdAt: -1 } }, // ✅ Sort newest first
-    })
-      .populate("category"); // ✅ Populate category
-
+    let blog = await Blogs.findOne({ slug, published: true })
+      .populate({
+        path: "comments",
+        match: { published: true },
+        options: { sort: { createdAt: -1 } },
+      })
+      .populate("category");
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
-
-    // ✅ Check if the IP exists in viewedBy array
-  
-     blog = await Blogs.findOneAndUpdate(
+    blog = await Blogs.findOneAndUpdate(
       { slug },
-      { $inc: { views: 1 } },  // Increase view count
-      { new: true } // Return updated document
+      { $inc: { views: 1 } },
+      { new: true }
     )
-        .populate("comments")
-        .populate("category"); // ✅ Repopulate fields after update
-    
-
+      .populate({
+        path: "comments",
+        match: { published: true },
+        options: { sort: { createdAt: -1 } },
+      })
+      .populate("category");
     const commentsCount = blog.comments.length || 0;
-
     return res.status(200).json({
       message: "Blog fetched successfully",
       blog,
@@ -372,16 +375,11 @@ const viewblog = async (req, res) => {
 const viewblogbyid = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    // Correct way to find by ID
     let blog = await Blogs.findById(id);
-
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
-
     const commentsCount = blog.comments ? blog.comments.length : 0;
-
     return res.status(200).json({
       message: "Blog fetched successfully",
       blog,
@@ -390,6 +388,27 @@ const viewblogbyid = async (req, res) => {
     });
   } catch (error) {
     console.error("Error viewing blog:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+const getblogSlugs = async (req, res) => {
+  try {
+    const blogslist = await Blogs.find({ published: true })
+      .select("slug _id title")
+      .sort({ publishedDate: -1 });
+
+    const totalBlogs = await Blogs.countDocuments({ published: true });
+
+    res.status(200).json({
+      totalBlogs,
+      slugs: blogslist,
+    });
+  } catch (error) {
+    console.error("Error fetching blog slugs:", error);
     res.status(500).json({
       status: 500,
       message: "Internal server error",
@@ -406,5 +425,7 @@ module.exports = {
   viewblog,
   deletemultiblog,
   listblogAdmin,
-  viewblogbyid
+  listblogWritter,
+  viewblogbyid,
+  getblogSlugs,
 };
