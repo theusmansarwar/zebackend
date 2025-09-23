@@ -7,8 +7,8 @@ const authMiddleware = require("../Middleware/authMiddleware");
 
 
 router.post('/CreateLeads', CreateLeads);
-router.get('/LeadsList',authMiddleware,LeadsList );
-router.delete('/leadsDelete',authMiddleware,DeleteLeads );
-router.get('/Lead/:id',authMiddleware,GetLeadById );
+router.get('/LeadsList',LeadsList );
+router.delete('/leadsDelete',DeleteLeads );
+router.get('/Lead/:id',GetLeadById );
 
 module.exports = router;

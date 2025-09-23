@@ -11,11 +11,11 @@ const {
 } = require("../Controller/teamCategoryController");
 const authMiddleware = require("../Middleware/authMiddleware");
 
-router.post("/add", authMiddleware,addTeamCategory);
-router.put("/update/:id",authMiddleware, updateTeamCategory);
-router.delete("/delete/:id",authMiddleware, deleteTeamCategory);
-router.delete("/delete",authMiddleware, deleteAllTeamCategories);
-router.get("/view", authMiddleware,viewTeamCategory);
-router.get("/live",authMiddleware, liveTeamCategory);
+router.post("/add", addTeamCategory);
+router.put("/update/:id", updateTeamCategory);
+router.delete("/delete/:id", deleteTeamCategory);
+router.delete("/delete", deleteAllTeamCategories);
+router.get("/view", viewTeamCategory);
+router.get("/live", liveTeamCategory);
 
 module.exports = router;

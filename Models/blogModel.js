@@ -17,8 +17,10 @@ const BlogsSchema = new mongoose.Schema(
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
     views: { type: Number, default: 0 },
     published: { type: Boolean, default: false },
-    publishedDate: { type: String,  },
+    featured: { type: Boolean, default: false },
+    
     viewedBy: [{ type: String }],
+
     
   },
   { timestamps: true }

@@ -12,10 +12,10 @@ const {
 const authMiddleware = require("../Middleware/authMiddleware");
 
 router.post("/add", addComment);
-router.put("/approve",authMiddleware, approveComment);
-router.get("/view",authMiddleware, viewComments);
+router.put("/approve", approveComment);
+router.get("/view", viewComments);
 router.get("/approved-comment", approvedComments);
-router.delete("/delete/:id",authMiddleware, deleteComment);
-router.delete("/delete",authMiddleware, deleteAllComment);
+router.delete("/delete/:id", deleteComment);
+router.delete("/delete", deleteAllComment);
 
 module.exports = router;

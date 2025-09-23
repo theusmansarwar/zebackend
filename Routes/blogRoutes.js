@@ -11,7 +11,11 @@ const {
     listblogAdmin,
     viewblogbyid,
     getblogSlugs,
-    listblogWritter
+    listblogWritter,
+    getFeaturedblogs,
+      getFeaturedblogsadmin,
+      changeblogauther,
+    
 } = require("../Controller/blogController");
 
 
@@ -26,6 +30,9 @@ router.get('/list', listblog);
 router.get('/sluglist', getblogSlugs);
 router.get('/adminlist', listblogAdmin);
 router.get('/writerlist', listblogWritter);
+router.get('/featured', getFeaturedblogs);
+router.get('/featuredAdmin', getFeaturedblogsadmin);
+router.get('/changeblogauther', changeblogauther);
 
 
 

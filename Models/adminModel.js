@@ -19,11 +19,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    type: { type: mongoose.Schema.Types.ObjectId, ref: "UserType" },
+    published: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-// ✅ Method to Generate JWT Token
 userSchema.methods.generateToken = function () {
   try {
     return jwt.sign(

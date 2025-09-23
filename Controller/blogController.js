@@ -4,6 +4,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const Category = require("../Models/categoryModel");
+const { default: mongoose } = require("mongoose");
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -38,46 +39,72 @@ const createblog = async (req, res) => {
       description,
       detail,
       author,
-      tags,
+     
       metaDescription,
       slug,
       category,
       published,
-      publishedDate,
-      faqSchema
+   
+      faqSchema,
+      featured,
     } = req.body;
 
     const thumbnail = req.file ? `/uploads/${req.file.filename}` : null;
     const missingFields = [];
 
     const isPublished = published === "true" || published === true;
+    const isFeatured = featured === "true" || featured === true;
     if (isPublished) {
-      if (!title) missingFields.push({ name: "title", message: "Title is required" });
-      if (!description) missingFields.push({ name: "description", message: "Description is required" });
-      if (!detail) missingFields.push({ name: "detail", message: "Detail is required" });
-      if (!author) missingFields.push({ name: "author", message: "Author is required" });
-      if (!tags) missingFields.push({ name: "tags", message: "Tags are required" });
-      if (!metaDescription) missingFields.push({ name: "metaDescription", message: "Meta description is required" });
-      if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
-      if (!thumbnail) missingFields.push({ name: "thumbnail", message: "Thumbnail (image) is required" });
-      if (!category) missingFields.push({ name: "category", message: "Category is required" });
-      if (!publishedDate) missingFields.push({ name: "publishedDate", message: "Published Date is required" });
-
+      if (!title)
+        missingFields.push({ name: "title", message: "Title is required" });
+      if (!description)
+        missingFields.push({
+          name: "description",
+          message: "Description is required",
+        });
+      if (!detail)
+        missingFields.push({ name: "detail", message: "Detail is required" });
+      if (!author)
+        missingFields.push({ name: "author", message: "Author is required" });
+      if (!metaDescription)
+        missingFields.push({
+          name: "metaDescription",
+          message: "Meta description is required",
+        });
+      if (!slug)
+        missingFields.push({ name: "slug", message: "Slug is required" });
+      if (!thumbnail)
+        missingFields.push({
+          name: "thumbnail",
+          message: "Thumbnail (image) is required",
+        });
+      if (!category)
+        missingFields.push({
+          name: "category",
+          message: "Category is required",
+        });
+      
       if (missingFields.length > 0) {
-        return res.status(400).json({ status: 400, message: "Some fields are missing!", missingFields });
+        return res.status(400).json({
+          status: 400,
+          message: "Some fields are missing!",
+          missingFields,
+        });
       }
 
       const [existingTitle, existingSlug] = await Promise.all([
         Blogs.findOne({ title }),
-        Blogs.findOne({ slug })
+        Blogs.findOne({ slug }),
       ]);
-      if (existingTitle) return res.status(400).json({ message: "Blog Title already exists" });
-      if (existingSlug) return res.status(400).json({ message: "Blog Slug already exists" });
+      if (existingTitle)
+        return res.status(400).json({ message: "Blog Title already exists" });
+      if (existingSlug)
+        return res.status(400).json({ message: "Blog Slug already exists" });
     }
 
-    const tagsArray = Array.isArray(tags) ? tags : (tags ? tags.split(",").map(tag => tag.trim()) : []);
     const categoryExists = await Category.findById(category);
-    if (!categoryExists) return res.status(400).json({ message: "Invalid category ID" });
+    if (!categoryExists)
+      return res.status(400).json({ message: "Invalid category ID" });
 
     const newBlog = await Blogs.create({
       title,
@@ -86,18 +113,25 @@ const createblog = async (req, res) => {
       author,
       slug,
       thumbnail,
-      tags: tagsArray,
       metaDescription,
       published: isPublished,
-      publishedDate,
+      featured: isFeatured,
       category: { _id: categoryExists._id, name: categoryExists.name },
-      faqSchema
+      faqSchema,
     });
 
-    res.status(201).json({ status: 201, message: "Blog created successfully", blog: newBlog });
+    res.status(201).json({
+      status: 201,
+      message: "Blog created successfully",
+      blog: newBlog,
+    });
   } catch (error) {
     console.error("Error creating blog:", error);
-    res.status(500).json({ status: 500, message: "Internal server error", error: error.message });
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
@@ -110,23 +144,23 @@ const updateblog = async (req, res) => {
       detail,
       author,
       slug,
-      tags,
       metaDescription,
       published,
       category,
-      publishedDate,
-      faqSchema
+      faqSchema,
+      featured,
     } = req.body;
 
     const thumbnail = req.file ? `/uploads/${req.file.filename}` : null;
     const isPublished = published === "true" || published === true;
-
+    const isFeatured = featured === "true" || featured === true;
     const blog = await Blogs.findById(id);
     if (!blog) return res.status(404).json({ message: "Blog not found" });
 
     if (category) {
       const categoryExists = await Category.findById(category);
-      if (!categoryExists) return res.status(400).json({ message: "Invalid category ID" });
+      if (!categoryExists)
+        return res.status(400).json({ message: "Invalid category ID" });
       blog.category = { _id: categoryExists._id, name: categoryExists.name };
     }
 
@@ -135,10 +169,10 @@ const updateblog = async (req, res) => {
     blog.detail = detail || blog.detail;
     blog.author = author || blog.author;
     blog.slug = slug || blog.slug;
-    blog.tags = typeof tags === "string" ? tags.split(",").map(tag => tag.trim()) : tags || blog.tags;
     blog.metaDescription = metaDescription || blog.metaDescription;
     blog.published = isPublished;
-    blog.publishedDate = publishedDate;
+    blog.featured = isFeatured;
+
     blog.faqSchema = faqSchema;
 
     if (thumbnail) {
@@ -150,10 +184,16 @@ const updateblog = async (req, res) => {
     }
 
     await blog.save();
-    res.status(200).json({ status: 200, message: "Blog updated successfully", blog });
+    res
+      .status(200)
+      .json({ status: 200, message: "Blog updated successfully", blog });
   } catch (error) {
     console.error("Error updating blog:", error);
-    res.status(500).json({ status: 500, message: "Internal server error", error: error.message });
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
@@ -169,11 +209,10 @@ const deleteblog = async (req, res) => {
     if (blog.thumbnail) {
       const filePath = path.join(__dirname, "..", blog.thumbnail);
       if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath); // Delete the image file
+        fs.unlinkSync(filePath);
       }
     }
 
-    // ✅ Delete the blog
     await Blogs.findByIdAndDelete(id);
 
     res.status(200).json({ status: 200, message: "Blog deleted successfully" });
@@ -233,22 +272,43 @@ const deletemultiblog = async (req, res) => {
 
 const listblog = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; // Get page from query, default to 1
-    const limit = parseInt(req.query.limit) || 10; // Get limit from query, default to 10
+    const page = parseInt(req.query.page) || 1; 
+    const limit = parseInt(req.query.limit) || 10; 
+  const { categoryId, search } = req.query; 
 
-    const blogslist = await Blogs.find({ published: true })
+
+    // base filter
+    let filter = { published: true };
+if (categoryId && categoryId !== "all" && categoryId.trim() !== "") {
+  filter["category._id"] = new mongoose.Types.ObjectId(categoryId);
+}
+
+
+    // ✅ Search filter (applied only if non-empty)
+    if (search && search.trim() !== "") {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { "category.name": { $regex: search, $options: "i" } }, // allows searching by category name
+        { author: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    // fetch blogs
+    const blogslist = await Blogs.find(filter)
       .select("-comments -detail -published -viewedBy")
-      .sort({ publishedDate: -1 })
+      .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
-    const totalBlogs = await Blogs.countDocuments({ published: true });
+    // total count
+    const totalBlogs = await Blogs.countDocuments(filter);
 
     res.status(200).json({
       totalBlogs,
       totalPages: Math.ceil(totalBlogs / limit),
       currentPage: page,
-      limit: limit,
+      limit,
       blogs: blogslist,
     });
   } catch (error) {
@@ -260,53 +320,90 @@ const listblog = async (req, res) => {
     });
   }
 };
+
+const getFeaturedblogs = async (req, res) => {
+  try {
+    const allFeaturedBlogs = await Blogs.find({
+      published: true,
+      featured: true,
+    }).select("-comments -detail -published -viewedBy -featured");
+
+    const shuffled = allFeaturedBlogs.sort(() => 0.5 - Math.random());
+    const blogslist = shuffled.slice(0, 4);
+res.status(200).json({
+      blogs: blogslist,
+    });
+  } catch (error) {
+    console.error("Error fetching blogs:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+const getFeaturedblogsadmin = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1; // page number
+    const limit = parseInt(req.query.limit) || 10; // per-page limit
+    const { title } = req.query;
+
+    // Build filter
+    let filter = { featured: true }; 
+    function escapeRegex(text) {
+      return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+    }
+    if (title) {
+      const escapedTitle = escapeRegex(title);
+      filter.title = { $regex: escapedTitle, $options: "i" };
+    }
+
+    // Fetch paginated blogs
+    const allFeaturedBlogs = await Blogs.find(filter)
+      .select(
+        "-comments -detail -viewedBy -metaDescription -description -thumbnail -faqSchema -slug"
+      )
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip((page - 1) * limit);
+    const totalBlogs = await Blogs.countDocuments(filter);
+    res.status(200).json({
+      blogs: allFeaturedBlogs,
+      currentPage: page,
+      limit,
+      totalBlogs,
+      totalPages: Math.ceil(totalBlogs / limit),
+    });
+  } catch (error) {
+    console.error("Error fetching blogs:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
 const listblogAdmin = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; // Get page from query, default to 1
-    const limit = parseInt(req.query.limit) || 10; // Get limit from query, default to 10
-
-    const blogslist = await Blogs.find()
-      .select("-comments -detail -viewedBy ")
-      .sort({ publishedDate: -1 })
-      .populate({
-        path: "category",
-        model: "Category", // Explicitly specifying model
-      })
-      .limit(limit)
-      .skip((page - 1) * limit);
-
-    const totalBlogs = await Blogs.countDocuments();
-
-    res.status(200).json({
-      totalBlogs,
-      totalPages: Math.ceil(totalBlogs / limit),
-      currentPage: page,
-      limit: limit,
-      blogs: blogslist,
-    });
-  } catch (error) {
-    console.error("Error fetching blogs:", error);
-    res.status(500).json({
-      status: 500,
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
-const listblogWritter = async (req, res) => {
-  try {
+    const { title } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const search = req.query.search || "";
 
-    // Case-insensitive search on author field
-    const filter = search
-      ? { author: { $regex: new RegExp(search, "i") } }
-      : {};
+    let filter = {};
+    function escapeRegex(text) {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}
+
+if (title) {
+  const escapedTitle = escapeRegex(title);
+  filter.title = { $regex: escapedTitle, $options: "i" };
+}
+
 
     const blogslist = await Blogs.find(filter)
-      .select("-comments -detail -viewedBy")
-      .sort({ publishedDate: -1 })
+    .select("-comments -detail -viewedBy -metaDescription -description -thumbnail -faqSchema -slug")
+      .sort({ createdAt: -1 })
       .populate({
         path: "category",
         model: "Category",
@@ -316,11 +413,72 @@ const listblogWritter = async (req, res) => {
 
     const totalBlogs = await Blogs.countDocuments(filter);
 
-    res.status(200).json({
+    
+
+    return res.status(200).json({
       totalBlogs,
       totalPages: Math.ceil(totalBlogs / limit),
       currentPage: page,
       limit: limit,
+      blogs: blogslist,
+    });
+  } catch (error) {
+    console.error("Error fetching services:", error);
+    return res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+const listblogWritter = async (req, res) => {
+  try {
+    const { title, search } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Author is required
+    if (!search) {
+      return res.status(400).json({ message: "Author (search) is required." });
+    }
+    
+
+    // Escape regex
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+    const escapedAuthor = escapeRegex(search);
+    const filter = {
+      author: { $regex: escapedAuthor, $options: "i" },
+    };
+
+    if (title) {
+      const escapedTitle = escapeRegex(title);
+      filter.title = { $regex: escapedTitle, $options: "i" };
+    }
+
+    const blogslist = await Blogs.find(filter)
+      .select(
+        "-comments -detail -viewedBy -metaDescription -description -thumbnail -faqSchema -slug"
+      )
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "category",
+        model: "Category",
+      })
+      .limit(limit)
+      .skip((page - 1) * limit);
+
+    const totalBlogs = await Blogs.countDocuments(filter);
+
+   
+
+    res.status(200).json({
+      totalBlogs,
+      totalPages: Math.ceil(totalBlogs / limit),
+      currentPage: page,
+      limit,
       blogs: blogslist,
     });
   } catch (error) {
@@ -332,6 +490,7 @@ const listblogWritter = async (req, res) => {
     });
   }
 };
+
 
 const viewblog = async (req, res) => {
   try {
@@ -372,6 +531,8 @@ const viewblog = async (req, res) => {
     });
   }
 };
+
+
 const viewblogbyid = async (req, res) => {
   try {
     const { id } = req.params;
@@ -417,6 +578,24 @@ const getblogSlugs = async (req, res) => {
   }
 };
 
+
+const changeblogauther = async (req, res) => {
+  try {
+    const result = await Blogs.updateMany({}, { $set: { author: "Admin" } });
+
+    res.status(200).json({
+      status: 200,
+      message: `${result.modifiedCount} blog authors updated to 'Admin'.`,
+    });
+  } catch (error) {
+    console.error("Error updating blog authors:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
 module.exports = {
   createblog: [upload.single("thumbnail"), createblog],
   updateblog: [upload.single("thumbnail"), updateblog],
@@ -428,4 +607,8 @@ module.exports = {
   listblogWritter,
   viewblogbyid,
   getblogSlugs,
+  getFeaturedblogs,
+  getFeaturedblogsadmin,
+  changeblogauther,
+  
 };

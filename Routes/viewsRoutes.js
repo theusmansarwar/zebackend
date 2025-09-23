@@ -7,6 +7,6 @@ const authMiddleware = require("../Middleware/authMiddleware");
 
 
 router.post('/count', incrementImpression);
-router.get('/get/count',authMiddleware, getImpressionStats);
+router.get('/get/count', getImpressionStats);
 
 module.exports = router;

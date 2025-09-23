@@ -11,10 +11,10 @@ const {
 } = require("../Controller/categoryController");
 const authMiddleware = require("../Middleware/authMiddleware");
 
-router.post("/add",authMiddleware, addCategory);
-router.put("/update/:id",authMiddleware, updateCategory);
-router.delete("/delete/:id",authMiddleware, deleteCategory);
-router.delete("/delete",authMiddleware, deleteAllCategories);
+router.post("/add", addCategory);
+router.put("/update/:id", updateCategory);
+router.delete("/delete/:id", deleteCategory);
+router.delete("/delete", deleteAllCategories);
 router.get("/view", viewCategory);
 router.get("/live", liveCategory);
 
