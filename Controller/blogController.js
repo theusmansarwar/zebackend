@@ -596,6 +596,32 @@ const changeblogauther = async (req, res) => {
     });
   }
 };
+
+const getPopularBlogs = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 5; 
+
+    const blogs = await Blogs.find({ published: true })
+      .select("-comments -detail -viewedBy -faqSchema") // exclude heavy fields
+      .sort({ views: -1 }) // sort by views (highest first)
+      .limit(limit);
+
+    res.status(200).json({
+      status: 200,
+      message: "Popular blogs fetched successfully",
+      blogs,
+    });
+  } catch (error) {
+    console.error("Error fetching popular blogs:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+
 module.exports = {
   createblog: [upload.single("thumbnail"), createblog],
   updateblog: [upload.single("thumbnail"), updateblog],
@@ -610,5 +636,6 @@ module.exports = {
   getFeaturedblogs,
   getFeaturedblogsadmin,
   changeblogauther,
+  getPopularBlogs
   
 };

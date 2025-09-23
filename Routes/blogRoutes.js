@@ -15,6 +15,7 @@ const {
     getFeaturedblogs,
       getFeaturedblogsadmin,
       changeblogauther,
+      getPopularBlogs,
     
 } = require("../Controller/blogController");
 
@@ -33,7 +34,7 @@ router.get('/writerlist', listblogWritter);
 router.get('/featured', getFeaturedblogs);
 router.get('/featuredAdmin', getFeaturedblogsadmin);
 router.get('/changeblogauther', changeblogauther);
-
+router.get('/popular', getPopularBlogs);
 
 
 
