@@ -18,7 +18,7 @@ const allowedOrigins = [
   "https://creators-time.blogspot.com" ,
   "https://creators-time.blogspot.com/"  ,
   "https://plutosec.ca/",
-  "https://plutosec.ca",,
+  "https://ztesting.site",,
   "https://plutosec.ca/*",
   "https://next-sable-theta.vercel.app/",
   
