@@ -54,26 +54,39 @@ const updateTeamMember = async (req, res) => {
     const { id } = req.params;
     let { name, role, description, category, socialLinks, published, image } = req.body;
 
+    // 🔍 collect missing fields
+    const missingFields = [];
+    if (!name) missingFields.push({ name: "name", message: "Name is required" });
+    if (!role) missingFields.push({ name: "role", message: "Role is required" });
+    if (!description) missingFields.push({ name: "description", message: "Description is required" });
+    if (!category) missingFields.push({ name: "category", message: "Category is required" });
+    if (!image) missingFields.push({ name: "image", message: "Image is required" });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Some fields are missing!",
+        missingFields,
+      });
+    }
+
     const member = await Team.findById(id);
     if (!member) return res.status(404).json({ message: "Team member not found" });
 
-    // ✅ validate role
-    if (role) {
-      const roleExists = await Role.findById(role);
-      if (!roleExists) return res.status(400).json({ message: "Invalid role ID" });
-      member.role = role;
-    }
+    // ✅ validate and assign role
+    const roleExists = await Role.findById(role);
+    if (!roleExists) return res.status(400).json({ message: "Invalid role ID" });
+    member.role = role;
 
-    // ✅ validate category
-    if (category) {
-      const categoryExists = await TeamCategory.findById(category);
-      if (!categoryExists) return res.status(400).json({ message: "Invalid category ID" });
-      member.category = category;
-    }
+    // ✅ validate and assign category
+    const categoryExists = await TeamCategory.findById(category);
+    if (!categoryExists) return res.status(400).json({ message: "Invalid category ID" });
+    member.category = category;
 
-    // ✅ assign values safely
-    member.name = name || member.name;
-    member.description = description || member.description;
+    // ✅ assign basic fields
+    member.name = name;
+    member.description = description;
+    member.image = image;
 
     // ✅ handle socialLinks (stringified or object)
     if (socialLinks) {
@@ -94,11 +107,6 @@ const updateTeamMember = async (req, res) => {
         published === "true" || published === true || published === 1;
     }
 
-    // ✅ update image only if provided
-    if (image) {
-      member.image = image;
-    }
-
     await member.save();
 
     res.status(200).json({ status: 200, message: "Team member updated", member });
@@ -107,6 +115,7 @@ const updateTeamMember = async (req, res) => {
     res.status(500).json({ status: 500, message: "Internal server error" });
   }
 };
+
 
 
 const deleteTeamMember = async (req, res) => {
@@ -179,13 +188,41 @@ const getTeamMemberById = async (req, res) => {
 // ✅ Get Published Teams Only (Live Teams)
 const getTeamLiveMember = async (req, res) => {
   try {
-    const teams = await Team.find({ published: true }).populate("role").populate("category").sort({ createdAt: -1 });
-    res.status(200).json({ status: 200, message: "Live team members", members: teams });
+    // 1. Fetch all published categories
+    const categories = await TeamCategory.find({ published: true }).sort({ createdAt: 1 });
+
+    // 2. For each category, fetch only published members
+    const teams = await Promise.all(
+      categories.map(async (category) => {
+        const members = await Team.find({
+          category: category._id,
+          published: true, // ✅ only published members
+        }).sort({ createdAt: 1 });
+
+        return {
+          categoryId: category._id,
+          categoryName: category.name,
+          members, // always an array (empty if none)
+        };
+      })
+    );
+
+    // 3. Send final response
+    res.status(200).json({
+      status: 200,
+      message: "Live team members fetched successfully",
+      categories: teams,
+    });
   } catch (error) {
     console.error("Error fetching live team members:", error);
-    res.status(500).json({ status: 500, message: "Internal server error" });
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
+
 
 module.exports = {
   createTeamMember,
