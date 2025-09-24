@@ -58,6 +58,7 @@ const serviceRouter = require("./Routes/serviceRoutes");
 const adminRoutes = require("./Routes/adminRoutes");
 const viewsRouter = require("./Routes/viewsRoutes");
 const usertypeRouter = require("./Routes/typeRoutes");
+const applicationRoutes = require("./Routes/applicationRoutes");
 // ✅ Use Routes
 app.use("/", userRouter);
 app.use("/usertype", usertypeRouter);
@@ -71,13 +72,69 @@ app.use("/service", serviceRouter);
 app.use("/testimonial", testimonialRouter);
 app.use("/role", roleRouter);
 app.use("/views", viewsRouter);
+app.use("/applications", applicationRoutes);
 
-// ✅ Static Folder for Uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+const multer = require("multer");
+app.use(express.json({ limit: "200mb" }));
+app.use(express.urlencoded({ limit: "200mb", extended: true }));
 
-// ✅ Database Connection & Server Start
+// Storage config
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "uploads"));
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, Date.now() + "-" + Math.round(Math.random() * 1e9) + ext);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 200 * 1024 * 1024 },
+});
+
+// after all routes
+app.use((err, req, res, next) => {
+  console.error("Error middleware caught:", err);
+
+  // Multer file size error
+  if (err.code === "LIMIT_FILE_SIZE") {
+    return res.status(413).json({
+      status: 413,
+      message: "File too large! Please upload smaller files.",
+    });
+  }
+
+  // Body size exceeded (express / nginx)
+  if (err.status === 413) {
+    return res.status(413).json({
+      status: 413,
+      message: "Request entity too large! Please reduce file size or request payload.",
+    });
+  }
+
+  res.status(err.status || 500).json({
+    status: err.status || 500,
+    message: err.message || "Internal Server Error",
+  });
+});
+
+app.post("/upload-image", upload.single("image"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+  const fileUrl = `/uploads/${req.file.filename}`;
+  res.json({
+    file:fileUrl,
+    isSuccess: true,
+    messages: ["Image uploaded successfully"],
+  });
+});
+
 connectDB().then(() => {
   app.listen(port, () => {
-    console.log(`🚀 Server is running on Port: ${port}`);
+    console.log(`Server is running on Port: ${port}`);
   });
 });

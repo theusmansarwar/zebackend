@@ -3,10 +3,8 @@ const mongoose = require("mongoose");
 const BlogsSchema = new mongoose.Schema(
   {
     title: { type: String },
-    category: {
-      _id: { type: mongoose.Schema.Types.ObjectId,  ref: "Category" },
-      name: { type: String,  }
-    },
+    category: { type: mongoose.Schema.Types.ObjectId,  ref: "Category" },
+    
     description: { type: String,  },
     metaDescription: { type: String,  maxlength: 160 , trim: true},
     slug: { type: String,  },

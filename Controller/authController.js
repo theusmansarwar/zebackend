@@ -62,7 +62,8 @@ const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-       type: userType._id
+       type: userType._id,
+       published: typeof published !== "undefined" ? published : false,
     });
 
      const populatedUser = await User.findById(user._id).populate("type");
@@ -111,6 +112,7 @@ const login = async (req, res) => {
       missingFields: [{ name: "email", message: "Email not found" }],
     });
   }
+ 
 
   const matchPassword = await bcrypt.compare(password, user.password);
   if (!matchPassword) {
@@ -121,6 +123,13 @@ const login = async (req, res) => {
     });
   }
 
+   if (!user.published) {
+    return res.status(403).json({
+      status: 403,
+      message: "Your account is Blocked. Please contact admin.",
+      missingFields: [{ name: "published", message: "Account is Blocked" }],
+    });
+  }
   res.status(200).json({
     status: 200,
     message: "Logged in successfully",
@@ -245,9 +254,15 @@ const getUserById = async (req, res) => {
 // ✅ Update user by ID
 const updateUser = async (req, res) => {
   try {
-    const { name, email, typeId } = req.body;
+    const { name, email, typeId, published } = req.body;
 
     const updateData = { name, email };
+
+    // ✅ update published if provided
+    if (typeof published !== "undefined") {
+      updateData.published = published;
+    }
+
     if (typeId) {
       const userType = await UserType.findById(typeId);
       if (!userType) {
@@ -259,15 +274,22 @@ const updateUser = async (req, res) => {
       };
     }
 
-    const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true }).select("-password");
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    ).select("-password");
+
     if (!user) {
       return res.status(404).json({ status: 404, message: "User not found" });
     }
+
     res.status(200).json({ status: 200, message: "User updated", data: user });
   } catch (error) {
     res.status(500).json({ status: 500, message: "Failed to update user", error });
   }
 };
+
 
 // ✅ Delete user by ID
 const deleteUser = async (req, res) => {

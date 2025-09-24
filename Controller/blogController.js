@@ -1,36 +1,8 @@
 const Blogs = require("../Models/blogModel");
 const Comment = require("../Models/commentModel");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 const Category = require("../Models/categoryModel");
 const { default: mongoose } = require("mongoose");
-const uploadDir = path.join(__dirname, "../uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
 
-// Multer Storage Configuration
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-
-// File filter to allow only images
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image/")) {
-    cb(null, true);
-  } else {
-    cb(new Error("Only image files are allowed!"), false);
-  }
-};
-
-// Multer Upload Middleware
-const upload = multer({ storage: storage, fileFilter: fileFilter });
 
 const createblog = async (req, res) => {
   try {
@@ -39,72 +11,76 @@ const createblog = async (req, res) => {
       description,
       detail,
       author,
-     
       metaDescription,
       slug,
       category,
       published,
-   
+      thumbnail,
       faqSchema,
       featured,
     } = req.body;
 
-    const thumbnail = req.file ? `/uploads/${req.file.filename}` : null;
     const missingFields = [];
 
     const isPublished = published === "true" || published === true;
     const isFeatured = featured === "true" || featured === true;
-    if (isPublished) {
-      if (!title)
-        missingFields.push({ name: "title", message: "Title is required" });
-      if (!description)
-        missingFields.push({
-          name: "description",
-          message: "Description is required",
-        });
-      if (!detail)
-        missingFields.push({ name: "detail", message: "Detail is required" });
-      if (!author)
-        missingFields.push({ name: "author", message: "Author is required" });
-      if (!metaDescription)
-        missingFields.push({
-          name: "metaDescription",
-          message: "Meta description is required",
-        });
-      if (!slug)
-        missingFields.push({ name: "slug", message: "Slug is required" });
-      if (!thumbnail)
-        missingFields.push({
-          name: "thumbnail",
-          message: "Thumbnail (image) is required",
-        });
-      if (!category)
-        missingFields.push({
-          name: "category",
-          message: "Category is required",
-        });
-      
-      if (missingFields.length > 0) {
-        return res.status(400).json({
-          status: 400,
-          message: "Some fields are missing!",
-          missingFields,
-        });
-      }
 
+    // ✅ Title is always required
+    if (!title) {
+      missingFields.push({ name: "title", message: "Title is required" });
+    }
+
+    // ✅ If published, check all other required fields
+    if (isPublished) {
+      if (!description) missingFields.push({ name: "description", message: "Description is required" });
+      if (!detail) missingFields.push({ name: "detail", message: "Detail is required" });
+      if (!author) missingFields.push({ name: "author", message: "Author is required" });
+      if (!metaDescription) missingFields.push({ name: "metaDescription", message: "Meta description is required" });
+      if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
+      if (!thumbnail) missingFields.push({ name: "thumbnail", message: "Thumbnail is required" });
+      if (!category) missingFields.push({ name: "category", message: "Category is required" });
+    }
+
+    // ✅ Stop here if any fields missing
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Some fields are missing!",
+        missingFields,
+      });
+    }
+
+    // ✅ check duplicates only if published and all required fields are present
+    if (isPublished) {
       const [existingTitle, existingSlug] = await Promise.all([
         Blogs.findOne({ title }),
         Blogs.findOne({ slug }),
       ]);
-      if (existingTitle)
-        return res.status(400).json({ message: "Blog Title already exists" });
-      if (existingSlug)
-        return res.status(400).json({ message: "Blog Slug already exists" });
+      if (existingTitle) {
+        return res.status(400).json({
+          status: 400,
+          message: "Blog Title already exists",
+        });
+      }
+      if (existingSlug) {
+        return res.status(400).json({
+          status: 400,
+          message: "Blog Slug already exists",
+        });
+      }
     }
 
-    const categoryExists = await Category.findById(category);
-    if (!categoryExists)
-      return res.status(400).json({ message: "Invalid category ID" });
+    let validCategory = undefined;
+    if (category && category !== "") {
+      if (!mongoose.Types.ObjectId.isValid(category)) {
+        return res.status(400).json({
+          status: 400,
+          message: "Invalid category ID",
+          missingFields: [{ name: "category", message: "Invalid category ID" }],
+        });
+      }
+      validCategory = category;
+    }
 
     const newBlog = await Blogs.create({
       title,
@@ -116,7 +92,7 @@ const createblog = async (req, res) => {
       metaDescription,
       published: isPublished,
       featured: isFeatured,
-      category: { _id: categoryExists._id, name: categoryExists.name },
+      category: validCategory,
       faqSchema,
     });
 
@@ -135,65 +111,111 @@ const createblog = async (req, res) => {
   }
 };
 
+
 const updateblog = async (req, res) => {
-  try {
+ 
     const { id } = req.params;
-    let {
+    const {
       title,
       description,
       detail,
       author,
-      slug,
       metaDescription,
-      published,
+      slug,
       category,
+      published,
+      thumbnail,
       faqSchema,
       featured,
     } = req.body;
-
-    const thumbnail = req.file ? `/uploads/${req.file.filename}` : null;
-    const isPublished = published === "true" || published === true;
-    const isFeatured = featured === "true" || featured === true;
-    const blog = await Blogs.findById(id);
-    if (!blog) return res.status(404).json({ message: "Blog not found" });
-
-    if (category) {
-      const categoryExists = await Category.findById(category);
-      if (!categoryExists)
-        return res.status(400).json({ message: "Invalid category ID" });
-      blog.category = { _id: categoryExists._id, name: categoryExists.name };
+console.log("Data coming in request is ", req.body);
+try{
+    let blog = await Blogs.findById(id);
+    if (!blog) {
+      return res.status(404).json({ status: 404, message: "Blog not found" });
     }
 
-    blog.title = title || blog.title;
-    blog.description = description || blog.description;
-    blog.detail = detail || blog.detail;
-    blog.author = author || blog.author;
-    blog.slug = slug || blog.slug;
-    blog.metaDescription = metaDescription || blog.metaDescription;
-    blog.published = isPublished;
-    blog.featured = isFeatured;
+    const missingFields = [];
+    const isPublished = published === "true" || published === true;
+    const isFeatured = featured === "true" || featured === true;
 
-    blog.faqSchema = faqSchema;
+    // ✅ Required validation
+    if (!title && !blog.title) {
+      missingFields.push({ name: "title", message: "Title is required" });
+    }
 
-    if (thumbnail) {
-      if (blog.thumbnail) {
-        const oldPath = path.join(__dirname, "..", blog.thumbnail);
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    if (isPublished) {
+      if (!(description || blog.description))
+        missingFields.push({ name: "description", message: "Description is required" });
+      if (!(detail || blog.detail))
+        missingFields.push({ name: "detail", message: "Detail is required" });
+      if (!(author || blog.author))
+        missingFields.push({ name: "author", message: "Author is required" });
+      if (!(metaDescription || blog.metaDescription))
+        missingFields.push({ name: "metaDescription", message: "Meta description is required" });
+      if (!(slug || blog.slug))
+        missingFields.push({ name: "slug", message: "Slug is required" });
+      if (!(thumbnail || blog.thumbnail))
+        missingFields.push({ name: "thumbnail", message: "Thumbnail is required" });
+      if (!(category || blog.category))
+        missingFields.push({ name: "category", message: "Category is required" });
+    }
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({ status: 400, message: "Some fields are missing!", missingFields });
+    }
+
+    // ✅ Duplicate checks when publishing
+    if (isPublished) {
+      const [existingTitle, existingSlug] = await Promise.all([
+        Blogs.findOne({ title, _id: { $ne: id } }),
+        Blogs.findOne({ slug, _id: { $ne: id } }),
+      ]);
+      if (existingTitle) {
+        return res.status(400).json({ status: 400, message: "Blog Title already exists" });
       }
-      blog.thumbnail = thumbnail;
+      if (existingSlug) {
+        return res.status(400).json({ status: 400, message: "Blog Slug already exists" });
+      }
+    }
+
+    // ✅ Update only provided fields
+    if (title !== undefined) blog.title = title;
+    if (description !== undefined) blog.description = description;
+    if (detail !== undefined) blog.detail = detail;
+    if (author !== undefined) blog.author = author;
+    if (metaDescription !== undefined) blog.metaDescription = metaDescription;
+    if (slug !== undefined) blog.slug = slug;
+    if (thumbnail !== undefined) blog.thumbnail = thumbnail;
+    if (faqSchema !== undefined) blog.faqSchema = faqSchema;
+    if (published !== undefined) blog.published = isPublished;
+    if (featured !== undefined) blog.featured = isFeatured;
+
+    // ✅ Category update
+    if (category !== undefined) {
+      if (!mongoose.Types.ObjectId.isValid(category)) {
+        return res.status(400).json({ status: 400, message: "Invalid category ID" });
+      }
+      const categoryExists = await Category.findById(category);
+      if (!categoryExists) {
+        return res.status(400).json({ status: 400, message: "Category not found" });
+      }
+      blog.category = categoryExists._id;
     }
 
     await blog.save();
-    res
-      .status(200)
-      .json({ status: 200, message: "Blog updated successfully", blog });
+
+    // ✅ Return blog with category populated
+    blog = await Blogs.findById(id).populate("category");
+
+    res.status(200).json({
+      status: 200,
+      message: "Blog updated successfully",
+      blog,
+    });
   } catch (error) {
     console.error("Error updating blog:", error);
-    res.status(500).json({
-      status: 500,
-      message: "Internal server error",
-      error: error.message,
-    });
+    res.status(500).json({ status: 500, message: "Internal server error", error: error.message });
   }
 };
 
@@ -359,7 +381,7 @@ const getFeaturedblogsadmin = async (req, res) => {
     }
 
     // Fetch paginated blogs
-    const allFeaturedBlogs = await Blogs.find(filter)
+    const allFeaturedBlogs = await Blogs.find(filter).populate("category")
       .select(
         "-comments -detail -viewedBy -metaDescription -description -thumbnail -faqSchema -slug"
       )
@@ -536,7 +558,10 @@ const viewblog = async (req, res) => {
 const viewblogbyid = async (req, res) => {
   try {
     const { id } = req.params;
-    let blog = await Blogs.findById(id);
+    let blog = await Blogs.findById(id).populate({
+        path: "category",
+        model: "Category",
+      });
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
@@ -623,8 +648,8 @@ const getPopularBlogs = async (req, res) => {
 
 
 module.exports = {
-  createblog: [upload.single("thumbnail"), createblog],
-  updateblog: [upload.single("thumbnail"), updateblog],
+  createblog,
+  updateblog,
   deleteblog,
   listblog,
   viewblog,

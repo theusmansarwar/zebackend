@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
   });
  
 
-  const sendEmailToCompany = ({ email, name, subject, phone, query }, res) => {
+  const sendEmailToCompany = ({ email, name,lastName, subject, phone, query }, res) => {
   
   
     // ✅ 1. Email to the Customer
@@ -36,7 +36,7 @@ const transporter = nodemailer.createTransport({
                   <!-- Body -->
                   <tr>
                     <td style="padding: 20px; text-align: left; color: #333333;">
-                      <p style="margin: 0; font-size: 16px;">Dear ${name},</p>
+                      <p style="margin: 0; font-size: 16px;">Dear ${name} ${lastName},</p>
                       <p style="margin: 16px 0; font-size: 16px;">
                         Thank you for reaching out to <strong>Zemalt Pvt Ltd</strong>. We have received your query and our team will get back to you shortly.
                       </p>
@@ -88,6 +88,7 @@ const transporter = nodemailer.createTransport({
                   <tr>
                     <td style="padding: 20px; text-align: left; color: #333333;">
                       <p style="margin: 0; font-size: 16px;"><strong>Name:</strong> ${name}</p>
+                      <p style="margin: 0; font-size: 16px;"><strong>Name:</strong> ${lastName}</p>
                       <p style="margin: 0; font-size: 16px;"><strong>Email:</strong> ${email}</p>
                       <p style="margin: 0; font-size: 16px;"><strong>Phone:</strong> ${phone}</p>
                       <p style="margin: 0; font-size: 16px;"><strong>Subject:</strong> ${subject}</p>

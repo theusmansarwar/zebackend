@@ -1,58 +1,39 @@
 const mongoose = require("mongoose");
 
-const ServiceSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  introduction: {
-    type: String,
-    required: true,
-  },
-  image: {
-    type: String, 
-    required: true,
-  },
-  slug: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  published: { type: Boolean, default: false },
-  subservices: [
-    {
-      _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
-      image: { type: String, required: true }, 
-      title: { type: String, required: true },
-      description: { type: String, required: true },
+const ServiceSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    description: { type: String },
+    short_description: { type: String },
+    metaDescription: { type: String, maxlength: 160, trim: true },
+    slug: { type: String, unique: true },
+    icon: { type: String},
+    faqs: {
+      title: { type: String },
+      description: { type: String },
+      items: [{ type: mongoose.Schema.Types.ObjectId, ref: "Faqs" }],
       published: { type: Boolean, default: false },
     },
-  ],
-  benefits: [
-    {
-      _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
-      title: { type: String, required: true },
-      image: { type: String, required: true }, 
-      description: { type: String, required: true },
+    how_we_delivered: {
+      description: { type: String },
+      lower_description: { type: String },
+      image: { type: String },
       published: { type: Boolean, default: false },
     },
-  ],
-  process: [
-    {
-      _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
-      image: { type: String, required: true },
-      title: { type: String, required: true },
-      description: { type: String, required: true },
+    portfolio: {
+      items: [{ type: mongoose.Schema.Types.ObjectId, ref: "Portfolio" }],
       published: { type: Boolean, default: false },
     },
-  ],
-  isPricing: { type: Boolean, default: false },
-  pricing: [{ type: mongoose.Schema.Types.ObjectId, ref: "Pricing" }],
+    video: {
+      description: { type: String },
+      url: { type: String },
+      published: { type: Boolean, default: false },
+    },
+    detail: { type: String },
+    published: { type: Boolean, default: false },
+  },
+  { timestamps: true }
+);
 
-} ,
-{ timestamps: true });
-
-
-
-const Service = mongoose.model("Service", ServiceSchema);
-module.exports = Service;
+const Services = mongoose.model("Services", ServiceSchema);
+module.exports = Services;
