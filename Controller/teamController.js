@@ -197,7 +197,7 @@ const getTeamLiveMember = async (req, res) => {
         const members = await Team.find({
           category: category._id,
           published: true, // ✅ only published members
-        }).sort({ createdAt: 1 });
+        }).populate("role").sort({ createdAt: 1 });
 
         return {
           categoryId: category._id,
