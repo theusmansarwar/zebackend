@@ -266,15 +266,7 @@ const deletemultiblog = async (req, res) => {
         .json({ message: "No blogs found with the given IDs" });
     }
     await Comment.deleteMany({ blogId: { $in: ids } });
-    // ✅ Delete each blog's thumbnail if exists
-    blogs.forEach((blog) => {
-      if (blog.thumbnail) {
-        const filePath = path.join(__dirname, "..", blog.thumbnail);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath); // Delete the image file
-        }
-      }
-    });
+   
 
     // ✅ Delete blogs in one go
     await Blogs.deleteMany({ _id: { $in: ids } });
