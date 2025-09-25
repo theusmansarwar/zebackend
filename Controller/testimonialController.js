@@ -1,14 +1,12 @@
 const Testimonials = require("../Models/testimonialModel");
 
-// ✅ Add Testimonial
-// Create Testimonial
 const addTestimonial = async (req, res) => {
   try {
-    let { name, whatwedid, clientsays, rating, published, boost, boosttext } = req.body;
+    let { image, whatwedid, clientsays, rating, published, boost, boosttext } = req.body;
     const missingFields = [];
 
     // 🔍 Validate required fields
-    if (!name) missingFields.push({ name: "name", message: "Name is required" });
+    if (!image) missingFields.push({ name: "image", message: "Image is required" });
     if (!whatwedid) missingFields.push({ name: "whatwedid", message: "What We Did is required" });
     if (!clientsays) missingFields.push({ name: "clientsays", message: "Client Says is required" });
     if (rating === undefined) missingFields.push({ name: "rating", message: "Rating is required" });
@@ -20,7 +18,7 @@ const addTestimonial = async (req, res) => {
     }
 
     const testimonial = new Testimonials({
-      name,
+      image,
       whatwedid,
       clientsays,
       rating,
@@ -41,13 +39,13 @@ const addTestimonial = async (req, res) => {
 const updateTestimonial = async (req, res) => {
   try {
     const { id } = req.params;
-    let { name, whatwedid, clientsays, rating, published, boost, boosttext } = req.body;
+    let { image, whatwedid, clientsays, rating, published, boost, boosttext } = req.body;
     const testimonial = await Testimonials.findById(id);
     if (!testimonial) {
       return res.status(404).json({ message: "Testimonial not found" });
     }
     const missingFields = [];
-    if (!name) missingFields.push({ name: "name", message: "Name is required" });
+    if (!image) missingFields.push({ name: "image", message: "Image is required" });
     if (!whatwedid) missingFields.push({ name: "whatwedid", message: "What We Did is required" });
     if (!clientsays) missingFields.push({ name: "clientsays", message: "Client Says is required" });
     if (rating === undefined) missingFields.push({ name: "rating", message: "Rating is required" });
@@ -58,7 +56,7 @@ const updateTestimonial = async (req, res) => {
       return res.status(400).json({ status: 400, message: "Some fields are missing!", missingFields });
     }
 
-    testimonial.name = name;
+    testimonial.image = image;
     testimonial.whatwedid = whatwedid;
     testimonial.clientsays = clientsays;
     testimonial.rating = rating;

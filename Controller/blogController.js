@@ -424,7 +424,7 @@ if (title) {
 
 
     const blogslist = await Blogs.find(filter)
-    .select("-comments -detail -viewedBy -metaDescription -description -thumbnail -faqSchema -slug")
+    .select("-comments -detail -viewedBy -metaDescription -description  -faqSchema -slug")
       .sort({ createdAt: -1 })
       .populate({
         path: "category",
@@ -482,7 +482,7 @@ const listblogWritter = async (req, res) => {
 
     const blogslist = await Blogs.find(filter)
       .select(
-        "-comments -detail -viewedBy -metaDescription -description -thumbnail -faqSchema -slug"
+        "-comments -detail -viewedBy -metaDescription -description -faqSchema -slug"
       )
       .sort({ createdAt: -1 })
       .populate({
