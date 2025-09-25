@@ -375,7 +375,7 @@ const getFeaturedblogsadmin = async (req, res) => {
     // Fetch paginated blogs
     const allFeaturedBlogs = await Blogs.find(filter).populate("category")
       .select(
-        "-comments -detail -viewedBy -metaDescription -description -thumbnail -faqSchema -slug"
+        "-comments -detail -viewedBy -metaDescription -description  -faqSchema -slug"
       )
       .sort({ createdAt: -1 })
       .limit(limit)
