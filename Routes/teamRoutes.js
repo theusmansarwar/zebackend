@@ -7,7 +7,8 @@ const {
   getAllTeamMembers,
   getTeamMemberById,
   getTeamLiveMember,
-  deleteAllTeamMembers
+  deleteAllTeamMembers,
+  getTeamFeaturedMember
   
 } = require("../Controller/teamController");
 const authMiddleware = require("../Middleware/authMiddleware");
@@ -19,5 +20,6 @@ router.delete("/delete", deleteAllTeamMembers);
 router.get("/view", getAllTeamMembers);
 router.get("/view/:id", getTeamMemberById);
 router.get("/live", getTeamLiveMember);
+router.get("/featured", getTeamFeaturedMember);
 
 module.exports = router;

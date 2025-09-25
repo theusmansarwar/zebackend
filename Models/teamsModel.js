@@ -15,7 +15,8 @@ const TeamSchema = new mongoose.Schema(
       instagram: { type: String, default: "" },
       facebook: { type: String, default: "" },
     },
-    published: { type: Boolean, default: false }, // Optional publish status
+    published: { type: Boolean, default: false }, 
+    showonteamsection: { type: Boolean, default: false }, 
   },
   { timestamps: true }
 );

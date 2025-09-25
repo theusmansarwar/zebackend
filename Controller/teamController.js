@@ -5,9 +5,10 @@ const fs = require("fs");
 const path = require("path");
 
 // ✅ Create Team Member
-const createTeamMember = async (req, res) => {
+// ✅ Create Team Member
+const createTeamMember = async (req, res) => { 
   try {
-    const { name, role, description, category, socialLinks, image, published } = req.body;
+    const { name, role, description, category, socialLinks, image, published, showonteamsection } = req.body;
 
     const missingFields = [];
     if (!name) missingFields.push({ name: "name", message: "Name is required" });
@@ -33,12 +34,12 @@ const createTeamMember = async (req, res) => {
       category,
       image, // ✅ path string from upload API
       socialLinks: socialLinks
-  ? typeof socialLinks === "string"
-    ? JSON.parse(socialLinks)
-    : socialLinks
-  : {},
-
+        ? typeof socialLinks === "string"
+          ? JSON.parse(socialLinks)
+          : socialLinks
+        : {},
       published: published === "true" || published === true,
+      showonteamsection: showonteamsection === "true" || showonteamsection === true
     });
 
     res.status(201).json({ status: 201, message: "Team member created", member: newMember });
@@ -48,11 +49,12 @@ const createTeamMember = async (req, res) => {
   }
 };
 
+
 // ✅ Update Team Member
 const updateTeamMember = async (req, res) => {
   try {
     const { id } = req.params;
-    let { name, role, description, category, socialLinks, published, image } = req.body;
+    let { name, role, description, category, socialLinks, published, showonteamsection, image } = req.body;
 
     // 🔍 collect missing fields
     const missingFields = [];
@@ -101,10 +103,14 @@ const updateTeamMember = async (req, res) => {
       }
     }
 
-    // ✅ handle published (boolean or string)
+    // ✅ handle published
     if (published !== undefined) {
-      member.published =
-        published === "true" || published === true || published === 1;
+      member.published = published === "true" || published === true || published === 1;
+    }
+
+    // ✅ handle showonteamsection
+    if (showonteamsection !== undefined) {
+      member.showonteamsection = showonteamsection === "true" || showonteamsection === true || showonteamsection === 1;
     }
 
     await member.save();
@@ -115,7 +121,6 @@ const updateTeamMember = async (req, res) => {
     res.status(500).json({ status: 500, message: "Internal server error" });
   }
 };
-
 
 
 const deleteTeamMember = async (req, res) => {
@@ -222,6 +227,25 @@ const getTeamLiveMember = async (req, res) => {
     });
   }
 };
+const getTeamFeaturedMember = async (req, res) => {
+  try {
+    // 1. Fetch all published categories
+    const teams = await Team.find({ published: true,showonteamsection:true }).populate("role","name").select('name role image').sort({ createdAt: 1 });
+
+    res.status(200).json({
+      status: 200,
+      message: "Live team members fetched successfully",
+      Members: teams,
+    });
+  } catch (error) {
+    console.error("Error fetching live team members:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
 
 
 module.exports = {
@@ -232,4 +256,5 @@ module.exports = {
   getAllTeamMembers,
   getTeamMemberById,
   getTeamLiveMember,
+  getTeamFeaturedMember
 };
