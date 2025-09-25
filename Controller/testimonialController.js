@@ -1,78 +1,83 @@
 const Testimonials = require("../Models/testimonialModel");
 
 // ✅ Add Testimonial
+// Create Testimonial
 const addTestimonial = async (req, res) => {
   try {
-    let { name, service, location, description, date, rating, published } = req.body;
+    let { name, whatwedid, clientsays, rating, published, boost, boosttext } = req.body;
     const missingFields = [];
 
-    // ✅ Validate required fields
+    // 🔍 Validate required fields
     if (!name) missingFields.push({ name: "name", message: "Name is required" });
-    if (!service) missingFields.push({ name: "service", message: "Service is required" });
-    if (!location) missingFields.push({ name: "location", message: "Location is required" });
-    if (!description) missingFields.push({ name: "description", message: "Description is required" });
-    if (!date) missingFields.push({ name: "date", message: "Date is required" });
-    if (!rating) missingFields.push({ name: "rating", message: "Rating is required" });
+    if (!whatwedid) missingFields.push({ name: "whatwedid", message: "What We Did is required" });
+    if (!clientsays) missingFields.push({ name: "clientsays", message: "Client Says is required" });
+    if (rating === undefined) missingFields.push({ name: "rating", message: "Rating is required" });
+    if (!boost) missingFields.push({ name: "boost", message: "Boost is required" });
+    if (!boosttext) missingFields.push({ name: "boosttext", message: "Boost Text is required" });
 
     if (missingFields.length > 0) {
       return res.status(400).json({ status: 400, message: "Some fields are missing!", missingFields });
     }
 
-    const testimonial = new Testimonials({ name, service, location, description, date, rating, published });
+    const testimonial = new Testimonials({
+      name,
+      whatwedid,
+      clientsays,
+      rating,
+      published: published === "true" || published === true,
+      boost,
+      boosttext,
+    });
+
     await testimonial.save();
 
     res.status(201).json({ status: 201, message: "Testimonial added successfully", testimonial });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to add testimonial", error: error.message });
+    console.error("Error adding testimonial:", error);
+    res.status(500).json({ status: 500, message: "Failed to add testimonial", error: error.message });
   }
 };
 
-// ✅ Update Testimonial
 const updateTestimonial = async (req, res) => {
   try {
     const { id } = req.params;
-    let { name, service, location, description, date, rating, published } = req.body;
-
-    const existingTestimonial = await Testimonials.findById(id);
-    if (!existingTestimonial) {
+    let { name, whatwedid, clientsays, rating, published, boost, boosttext } = req.body;
+    const testimonial = await Testimonials.findById(id);
+    if (!testimonial) {
       return res.status(404).json({ message: "Testimonial not found" });
     }
-
     const missingFields = [];
     if (!name) missingFields.push({ name: "name", message: "Name is required" });
-    if (!service) missingFields.push({ name: "service", message: "Service is required" });
-    if (!location) missingFields.push({ name: "location", message: "Location is required" });
-    if (!description) missingFields.push({ name: "description", message: "Description is required" });
-    if (!date) missingFields.push({ name: "date", message: "Date is required" });
-    if (!rating) missingFields.push({ name: "rating", message: "Rating is required" });
+    if (!whatwedid) missingFields.push({ name: "whatwedid", message: "What We Did is required" });
+    if (!clientsays) missingFields.push({ name: "clientsays", message: "Client Says is required" });
+    if (rating === undefined) missingFields.push({ name: "rating", message: "Rating is required" });
+    if (!boost) missingFields.push({ name: "boost", message: "Boost is required" });
+    if (!boosttext) missingFields.push({ name: "boosttext", message: "Boost Text is required" });
 
     if (missingFields.length > 0) {
       return res.status(400).json({ status: 400, message: "Some fields are missing!", missingFields });
     }
 
-    // ✅ Check for duplicate name (excluding the current testimonial)
-    const duplicateTestimonial = await Testimonials.findOne({ name: new RegExp(`^${name}$`, "i") });
-    if (duplicateTestimonial && duplicateTestimonial._id.toString() !== id) {
-      return res.status(400).json({ message: "Testimonial with this name already exists" });
+    testimonial.name = name;
+    testimonial.whatwedid = whatwedid;
+    testimonial.clientsays = clientsays;
+    testimonial.rating = rating;
+    testimonial.boost = boost;
+    testimonial.boosttext = boosttext;
+
+    if (published !== undefined) {
+      testimonial.published = published === "true" || published === true || published === 1;
     }
 
-    // ✅ Handle Image Update
-    let imagePath = existingTestimonial.image;
-    if (req.file) {
-      imagePath = `/uploads/${req.file.filename}`;
-    }
+    await testimonial.save();
 
-    const updatedTestimonial = await Testimonials.findByIdAndUpdate(
-      id,
-      { name, service, location, description, date, rating, published, image: imagePath },
-      { new: true, runValidators: true }
-    );
-
-    res.status(200).json({ status:200 , message: "Testimonial updated successfully", updatedTestimonial });
+    res.status(200).json({ status: 200, message: "Testimonial updated successfully", testimonial });
   } catch (error) {
-    res.status(500).json({status:500, message: "Failed to update testimonial", error: error.message });
+    console.error("Error updating testimonial:", error);
+    res.status(500).json({ status: 500, message: "Failed to update testimonial", error: error.message });
   }
 };
+
 
 // ✅ Delete Testimonial
 const deleteTestimonial = async (req, res) => {
