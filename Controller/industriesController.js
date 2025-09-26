@@ -3,12 +3,11 @@ const Industry = require("../Models/industriesModel");
 // ✅ Add Industry
 const addIndustry = async (req, res) => {
   try {
-    let { name, description,detail, image, published } = req.body;
+    let { name, description, image, published } = req.body;
     const missingFields = [];
 
     if (!name) missingFields.push({ field: "name", message: "Name is required" });
     if (!description) missingFields.push({ field: "description", message: "Description is required" });
-     if (!detail) missingFields.push({ field: "detail", message: "Detail is required" });
     if (!image) missingFields.push({ field: "image", message: "Image is required" });
 
     if (missingFields.length > 0) {
@@ -26,7 +25,7 @@ const addIndustry = async (req, res) => {
       return res.status(400).json({ message: "Industry already exists" });
     }
 
-    const newIndustry = new Industry({ name, description, detail, image, published });
+    const newIndustry = new Industry({ name, description, image, published });
     await newIndustry.save();
 
     res.status(201).json({
@@ -48,8 +47,6 @@ const updateIndustry = async (req, res) => {
     const missingFields = [];
     if (!name) missingFields.push({ field: "name", message: "Name is required" });
     if (!description) missingFields.push({ field: "description", message: "Description is required" });
-    
-     if (!detail) missingFields.push({ field: "detail", message: "Detail is required" });
     if (!image) missingFields.push({ field: "image", message: "Image is required" });
 
     if (missingFields.length > 0) {
@@ -69,7 +66,7 @@ const updateIndustry = async (req, res) => {
 
     const updatedIndustry = await Industry.findByIdAndUpdate(
       id,
-      { name, description, image, detail,published },
+      { name, description, image,published },
       { new: true, runValidators: true }
     );
 
