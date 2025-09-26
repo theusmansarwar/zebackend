@@ -3,11 +3,12 @@ const Industry = require("../Models/industriesModel");
 // ✅ Add Industry
 const addIndustry = async (req, res) => {
   try {
-    let { name, description, image, published } = req.body;
+    let { name, description,detail, image, published } = req.body;
     const missingFields = [];
 
     if (!name) missingFields.push({ field: "name", message: "Name is required" });
     if (!description) missingFields.push({ field: "description", message: "Description is required" });
+     if (!detail) missingFields.push({ field: "detail", message: "Detail is required" });
     if (!image) missingFields.push({ field: "image", message: "Image is required" });
 
     if (missingFields.length > 0) {
@@ -25,7 +26,7 @@ const addIndustry = async (req, res) => {
       return res.status(400).json({ message: "Industry already exists" });
     }
 
-    const newIndustry = new Industry({ name, description, image, published });
+    const newIndustry = new Industry({ name, description, detail, image, published });
     await newIndustry.save();
 
     res.status(201).json({
@@ -42,11 +43,13 @@ const addIndustry = async (req, res) => {
 const updateIndustry = async (req, res) => {
   try {
     const { id } = req.params;
-    let { name, description, image, published } = req.body;
+    let { name, description,detail, image, published } = req.body;
 
     const missingFields = [];
     if (!name) missingFields.push({ field: "name", message: "Name is required" });
     if (!description) missingFields.push({ field: "description", message: "Description is required" });
+    
+     if (!detail) missingFields.push({ field: "detail", message: "Detail is required" });
     if (!image) missingFields.push({ field: "image", message: "Image is required" });
 
     if (missingFields.length > 0) {
@@ -66,7 +69,7 @@ const updateIndustry = async (req, res) => {
 
     const updatedIndustry = await Industry.findByIdAndUpdate(
       id,
-      { name, description, image, published },
+      { name, description, image, detail,published },
       { new: true, runValidators: true }
     );
 
@@ -82,6 +85,35 @@ const updateIndustry = async (req, res) => {
   }
 };
 
+
+// ✅ Get CaseStudy by ID
+const getIndustryById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const industry = await Industry.findById(id);
+
+    if (!industry) {
+      return res.status(404).json({ 
+        status: 404, 
+        message: "Industry not found" 
+      });
+    }
+
+    res.status(200).json({
+      status: 200,
+      message: "Industry fetched successfully",
+      industry: industry,
+    });
+  } catch (error) {
+    console.error("Error fetching Industry:", error);
+    res.status(500).json({ 
+      status: 500, 
+      message: "Internal server error", 
+      error: error.message 
+    });
+  }
+};
 // ✅ Delete Industry
 const deleteIndustry = async (req, res) => {
   try {
@@ -125,6 +157,7 @@ const viewIndustry = async (req, res) => {
 
     const totalIndustries = await Industry.countDocuments();
     const industries = await Industry.find()
+    .select("-detail")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -161,4 +194,5 @@ module.exports = {
   viewIndustry,
   liveIndustry,
   deleteAllIndustries,
+  getIndustryById
 };
