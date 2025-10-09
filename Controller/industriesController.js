@@ -7,9 +7,9 @@ const addIndustry = async (req, res) => {
     let { name, description, image, published } = req.body;
     const missingFields = [];
 
-    if (!name) missingFields.push({ field: "name", message: "Name is required" });
-    if (!description) missingFields.push({ field: "description", message: "Description is required" });
-    if (!image) missingFields.push({ field: "image", message: "Image is required" });
+    if (!name) missingFields.push({ name: "name", message: "Name is required" });
+    if (!description) missingFields.push({ name: "description", message: "Description is required" });
+    if (!image) missingFields.push({ name: "image", message: "Image is required" });
 
     if (missingFields.length > 0) {
       return res.status(400).json({
@@ -46,9 +46,9 @@ const updateIndustry = async (req, res) => {
     let { name, description,detail, image, published } = req.body;
 
     const missingFields = [];
-    if (!name) missingFields.push({ field: "name", message: "Name is required" });
-    if (!description) missingFields.push({ field: "description", message: "Description is required" });
-    if (!image) missingFields.push({ field: "image", message: "Image is required" });
+    if (!name) missingFields.push({ name: "name", message: "Name is required" });
+    if (!description) missingFields.push({ name: "description", message: "Description is required" });
+    if (!image) missingFields.push({ name: "image", message: "Image is required" });
 
     if (missingFields.length > 0) {
       return res.status(400).json({
