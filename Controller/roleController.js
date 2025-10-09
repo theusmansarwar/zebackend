@@ -7,8 +7,18 @@ const addRole = async (req, res) => {
   try {
     let { name, published } = req.body;
 
-    if (!name) {
-      return res.status(400).json({ message: "Role name is required" });
+      const missingFields = [];
+
+      if (!name) missingFields.push({ name: "name", message: "Roles name is required" });
+     
+
+    // ✅ Stop here if any fields missing
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Some fields are missing!",
+        missingFields,
+      });
     }
 
     name = name.trim(); // ✅ Trim whitespace
