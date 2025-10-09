@@ -57,75 +57,73 @@ const updateCategory = async (req, res) => {
   }
 };
 
-// ✅ Delete Category (Show List of Related Blogs)
-const deleteCategory = async (req, res) => {
-    try {
-      const { id } = req.params;
-  
-      // ✅ Find all blogs linked to this category
-      const existingBlogs = await Blogs.find({ category: id }).select("title _id slug");
-  
-      if (existingBlogs.length > 0) {
-        return res.status(400).json({ 
-          message: "Cannot delete category. It is linked to blogs.", 
-          blogs: existingBlogs // ✅ Return list of linked blogs (ID + Title)
-        });
-      }
-  
-      // ✅ Delete the category if no linked blogs
-      const category = await Category.findByIdAndDelete(id);
-      if (!category) return res.status(404).json({ message: "Category not found" });
-  
-      res.status(200).json({ message: "Category deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  };
-  const deleteAllCategories = async (req, res) => {
-    try {
-      const { ids } = req.body; // Expecting { ids: ["id1", "id2", ...] }
-  
-      if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        return res.status(400).json({ message: "Invalid request. Provide category IDs." });
-      }
-      const linkedBlogs = await Blogs.find({ category: { $in: ids } }).select("title _id category");
-  
-      // ✅ Extract category IDs that have linked blogs
-      const categoriesWithBlogs = [...new Set(linkedBlogs.map(blog => blog.category.toString()))];
-  
-      // ✅ Filter out categories that can be deleted
-      const categoriesToDelete = ids.filter(id => !categoriesWithBlogs.includes(id));
-  
-      if (categoriesToDelete.length === 0) {
-        return res.status(400).json({ 
-          message: "Cannot delete categories. All are linked to blogs.", 
-          linkedBlogs
-        });
-      }
-  
-      // ✅ Delete categories that are not linked to any blogs
-      await Category.deleteMany({ _id: { $in: categoriesToDelete } });
-  
-      res.status(200).json({
-        status:200,
-        message: "Categories Delete successfully.",
-        deletedCategories: categoriesToDelete,
-        failedToDelete: categoriesWithBlogs,
-        linkedBlogs
+
+ const deleteAllCategories = async (req, res) => {
+  try {
+    const { ids } = req.body; // Expecting { ids: ["id1", "id2", ...] }
+
+    // ✅ Validate request body
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Invalid request. Provide a non-empty array of category IDs.",
       });
-  
-    } catch (error) {
-      res.status(500).json({ error: error.message });
     }
-  };
+
+    // ✅ Filter only valid MongoDB ObjectIds
+    const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
+    if (validIds.length === 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "No valid category IDs provided.",
+      });
+    }
+
+    // ✅ Find all blogs linked to the given category IDs
+    const linkedBlogs = await Blogs.find({ category: { $in: validIds } })
+      .select("title _id category");
+
+    // ✅ Extract IDs of categories that are linked to blogs
+    const categoriesWithBlogs = [...new Set(linkedBlogs.map(blog => blog.category.toString()))];
+
+    // ✅ Filter out deletable categories (those not linked)
+    const categoriesToDelete = validIds.filter(id => !categoriesWithBlogs.includes(id));
+
+    if (categoriesToDelete.length === 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Cannot delete any categories — all are linked to existing blogs.",
+        linkedBlogs,
+      });
+    }
+
+    // ✅ Delete categories that are not linked to blogs
+    const deleteResult = await Category.deleteMany({ _id: { $in: categoriesToDelete } });
+
+    res.status(200).json({
+      status: 200,
+      message: `${deleteResult.deletedCount} category(ies) deleted successfully.`,
+      deletedCategories: categoriesToDelete,
+      failedToDelete: categoriesWithBlogs,
+      linkedBlogs,
+    });
+  } catch (error) {
+    console.error("Error deleting categories:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error.",
+      error: error.message,
+    });
+  }
+};
 
   const viewCategory = async (req, res) => {
     try {
       const page = parseInt(req.query.page) || 1; // Default page = 1
       const limit = parseInt(req.query.limit) || 10; // Default limit = 10
   
-      const totalCategories = await Category.countDocuments();
-      const categories = await Category.find()
+      const totalCategories = await Category.countDocuments({ isDeleted: false });
+      const categories = await Category.find({ isDeleted: false })
         .sort({ createdAt: -1 })
         .limit(limit)
         .skip((page - 1) * limit);
@@ -145,7 +143,7 @@ const deleteCategory = async (req, res) => {
   // ✅ View Only Published Categories with Pagination
   const liveCategory = async (req, res) => {
     try {
-      const categories = await Category.find({ published: true }).sort({ createdAt: -1 });
+      const categories = await Category.find({ published: true, deleted: false }).sort({ createdAt: -1 });
   
       res.status(200).json({
         totalCategories: categories.length,
@@ -157,4 +155,4 @@ const deleteCategory = async (req, res) => {
   };
   
 
-module.exports = { addCategory, updateCategory, deleteCategory, viewCategory, liveCategory,deleteAllCategories };
+module.exports = { addCategory, updateCategory, viewCategory, liveCategory,deleteAllCategories };

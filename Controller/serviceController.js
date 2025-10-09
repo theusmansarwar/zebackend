@@ -388,7 +388,11 @@ const listservice = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    let filter = { published: true }; // ✅ Only published services
+    let filter = { 
+  published: true, 
+  deleted: false // ✅ only include non-deleted items
+};
+; // ✅ Only published services
     if (title) {
       filter.title = { $regex: title, $options: "i" };
     }
@@ -471,30 +475,63 @@ const deleteAllservices = async (req, res) => {
   try {
     const { ids } = req.body;
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Invalid request. Provide ServiceCategory IDs." });
+    // ✅ Validate input
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Invalid request. Provide Service IDs.",
+      });
     }
 
-    await Services.deleteMany({ _id: { $in: ids } });
+    // ✅ Filter valid ObjectIds
+    const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
+    if (validIds.length === 0) {
+      return res
+        .status(400)
+        .json({ status: 400, message: "No valid service IDs provided." });
+    }
+
+    // ✅ Check existing services
+    const existingServices = await Services.find({
+      _id: { $in: validIds },
+      isDeleted: false,
+    });
+
+    if (existingServices.length === 0) {
+      return res.status(404).json({
+        status: 404,
+        message: "No active services found with the given IDs.",
+      });
+    }
+
+    // ✅ Soft delete (mark as deleted)
+    await Services.updateMany(
+      { _id: { $in: validIds } },
+      { $set: { isDeleted: true } }
+    );
 
     res.status(200).json({
       status: 200,
-      message: "Categories Delete successfully.",
+      message: `${existingServices.length} service(s) soft-deleted successfully.`,
+      deletedServices: validIds,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error soft deleting services:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
 const getservicesSlugs = async (req, res) => {
   try {
-    const serviceslist = await Services.find({ published: true })
+    const serviceslist = await Services.find({ published: true, deleted: false })
       .select("slug _id title")
       .sort({ publishedDate: -1 });
 
-    const totalServices = await Services.countDocuments({ published: true });
+    const totalServices = await Services.countDocuments({ published: true , deleted: false});
 
     res.status(200).json({
       totalServices,

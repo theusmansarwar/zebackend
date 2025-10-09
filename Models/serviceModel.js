@@ -7,7 +7,7 @@ const ServiceSchema = new mongoose.Schema(
     short_description: { type: String },
     metaDescription: { type: String, maxlength: 160, trim: true },
     slug: { type: String, unique: true },
-    icon: { type: String},
+    icon: { type: String },
     faqs: {
       title: { type: String },
       description: { type: String },
@@ -31,6 +31,7 @@ const ServiceSchema = new mongoose.Schema(
     },
     detail: { type: String },
     published: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

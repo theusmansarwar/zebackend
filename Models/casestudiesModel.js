@@ -8,6 +8,7 @@ const CaseStudiesSchema = new mongoose.Schema(
     image: { type: String, required: true },
     file: { type: String, required: true },
     published: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

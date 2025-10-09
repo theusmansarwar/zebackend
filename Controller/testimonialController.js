@@ -76,37 +76,40 @@ const updateTestimonial = async (req, res) => {
   }
 };
 
-
-// ✅ Delete Testimonial
-const deleteTestimonial = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const testimonial = await Testimonials.findByIdAndDelete(id);
-
-    if (!testimonial) return res.status(404).json({ message: "Testimonial not found" });
-
-    res.status(200).json({ message: "Testimonial deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// ✅ Delete Multiple Testimonials
 const deleteAllTestimonial = async (req, res) => {
   try {
     const { ids } = req.body; // Expecting { ids: ["id1", "id2", ...] }
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ message: "Invalid request. Provide testimonial IDs." });
+    // ✅ Validate input
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Invalid request. Please provide an array of testimonial IDs.",
+      });
     }
 
-    await Testimonials.deleteMany({ _id: { $in: ids } });
+    // ✅ Soft delete (mark as deleted)
+    const result = await Testimonials.updateMany(
+      { _id: { $in: ids } },
+      { $set: { isDeleted: true } }
+    );
 
-    res.status(200).json({ status: 200, message: "Testimonials deleted successfully.", deletedTestimonials: ids });
+    res.status(200).json({
+      status: 200,
+      message: `${result.modifiedCount} testimonial(s) soft deleted successfully.`,
+      softDeletedTestimonials: ids,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error soft deleting testimonials:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
+
+
 
 // ✅ View All Testimonials (with Pagination)
 const viewTestimonial = async (req, res) => {
@@ -114,8 +117,8 @@ const viewTestimonial = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const totalTestimonials = await Testimonials.countDocuments();
-    const testimonials = await Testimonials.find()
+    const totalTestimonials = await Testimonials.countDocuments({ isDeleted: false });
+    const testimonials = await Testimonials.find({ isDeleted: false })
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -154,8 +157,8 @@ const liveTestimonial = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const totalTestimonials = await Testimonials.countDocuments({ published: true });
-    const testimonials = await Testimonials.find({ published: true })
+    const totalTestimonials = await Testimonials.countDocuments({ published: true , deleted: false});
+    const testimonials = await Testimonials.find({ published: true, deleted: false })
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -177,7 +180,6 @@ const liveTestimonial = async (req, res) => {
 module.exports = {
   addTestimonial,
   updateTestimonial,
-  deleteTestimonial,
   deleteAllTestimonial,
   viewTestimonial,
   liveTestimonial,

@@ -123,6 +123,13 @@ const login = async (req, res) => {
     });
   }
 
+  if (user.isDeleted) {
+  return res.status(403).json({
+    status: 403,
+    message: "Your account has been deleted. Please contact support.",
+  });
+}
+
    if (!user.published) {
     return res.status(403).json({
       status: 403,
@@ -157,8 +164,8 @@ const stats = async (req, res) => {
     yesterdayEnd.setHours(23, 59, 59, 999);
 
     // ✅ Counts
-    const totalBlogs = await Blogs.countDocuments();
-    const totalLeads = await Leads.countDocuments();
+    const totalBlogs = await Blogs.countDocuments({ isDeleted: false });
+    const totalLeads = await Leads.countDocuments({ isDeleted: false });
 
     // ✅ Leads
     const todayLeads = await Leads.countDocuments({
@@ -186,9 +193,9 @@ const stats = async (req, res) => {
     const totalImpressionRecord = await TotalImpression.findOne().select("totalImpression -_id");
     const totalImpressions = totalImpressionRecord ? totalImpressionRecord.totalImpression : 0;
 
-    const totalComments = await Comment.countDocuments();
-    const totalUsers = await User.countDocuments();
-    const totalServices = await Service.countDocuments();
+    const totalComments = await Comment.countDocuments({ isDeleted: false });
+    const totalUsers = await User.countDocuments({ isDeleted: false });
+    const totalServices = await Service.countDocuments({ isDeleted: false });
 
     return res.status(200).json({
       message: "Data fetched successfully",
@@ -215,9 +222,9 @@ const getAllUsers = async (req, res) => {
     const page = parseInt(req.query.page) || 1; 
     const limit = parseInt(req.query.limit) || 10;
 
-    const totalUsers = await User.countDocuments(); // ✅ count all users
+    const totalUsers = await User.countDocuments({ isDeleted: false }); // ✅ count all users
 
-    const users = await User.find()
+    const users = await User.find({ isDeleted: false })
       .select("-password")
       .populate("type")
       .sort({ createdAt: -1 }) // ✅ latest first
@@ -291,19 +298,6 @@ const updateUser = async (req, res) => {
 };
 
 
-// ✅ Delete user by ID
-const deleteUser = async (req, res) => {
-  try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) {
-      return res.status(404).json({ status: 404, message: "User not found" });
-    }
-    res.status(200).json({ status: 200, message: "User deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ status: 500, message: "Failed to delete user", error });
-  }
-};
-
 
 
 const deleteMultipleUsers = async (req, res) => {
@@ -321,22 +315,25 @@ const deleteMultipleUsers = async (req, res) => {
       return res.status(400).json({ message: "No valid user IDs provided" });
     }
 
-    // ✅ Check if users exist
-    const users = await User.find({ _id: { $in: validIds } });
+    // ✅ Check if users exist and not already deleted
+    const users = await User.find({ _id: { $in: validIds }, isDeleted: false });
 
     if (users.length === 0) {
-      return res.status(404).json({ message: "No users found with the given IDs" });
+      return res.status(404).json({ message: "No active users found with the given IDs" });
     }
 
-    // ✅ Delete users
-    await User.deleteMany({ _id: { $in: validIds } });
+    // ✅ Soft delete users instead of removing them
+    await User.updateMany(
+      { _id: { $in: validIds } },
+      { $set: { isDeleted: true } }
+    );
 
     res.status(200).json({
       status: 200,
-      message: `${users.length} user(s) deleted successfully`,
+      message: `${users.length} user(s) soft-deleted successfully`,
     });
   } catch (error) {
-    console.error("Error deleting users:", error);
+    console.error("Error soft-deleting users:", error);
     res.status(500).json({
       status: 500,
       message: "Internal server error",
@@ -346,6 +343,7 @@ const deleteMultipleUsers = async (req, res) => {
 };
 
 
+
 module.exports = {
   register,
   stats,
@@ -353,7 +351,6 @@ module.exports = {
   getAllUsers,
   getUserById,
   updateUser,
-  deleteUser,
   deleteMultipleUsers
 
 };

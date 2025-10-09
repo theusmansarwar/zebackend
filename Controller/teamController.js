@@ -122,37 +122,35 @@ const updateTeamMember = async (req, res) => {
   }
 };
 
-
-const deleteTeamMember = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const member = await Team.findById(id);
-    if (!member) return res.status(404).json({ message: "Team member not found" });
-
-    if (member.image) {
-      const filePath = path.join(__dirname, "..", member.image);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    }
-
-    await Team.findByIdAndDelete(id);
-    res.status(200).json({ status: 200, message: "Team member deleted" });
-  } catch (error) {
-    console.error("Error deleting team member:", error);
-    res.status(500).json({ status: 500, message: "Internal server error" });
-  }
-};
 const deleteAllTeamMembers = async (req, res) => {
   try {
     const { ids } = req.body;
-    if (!ids || !Array.isArray(ids)) return res.status(400).json({ message: "Invalid IDs" });
 
-    await Team.deleteMany({ _id: { $in: ids } });
-    res.status(200).json({ status: 200, message: "Team members deleted", deleted: ids });
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "Invalid request. Provide team member IDs." });
+    }
+
+    // ✅ Soft delete: set isDeleted = true
+    const result = await Team.updateMany(
+      { _id: { $in: ids } },
+      { $set: { isDeleted: true } }
+    );
+
+    res.status(200).json({
+      status: 200,
+      message: `${result.modifiedCount} team member(s) soft deleted successfully.`,
+      deleted: ids,
+    });
   } catch (error) {
-    console.error("Error deleting multiple team members:", error);
-    res.status(500).json({ status: 500, message: "Internal server error" });
+    console.error("Error soft deleting multiple team members:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
+
 
 // ✅ Get All Team Members (paginated)
 const getAllTeamMembers = async (req, res) => {
@@ -161,8 +159,8 @@ const getAllTeamMembers = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const total = await Team.countDocuments();
-    const members = await Team.find().populate("role").populate("category").skip(skip).limit(limit);
+    const total = await Team.countDocuments({ isDeleted: false });
+    const members = await Team.find({ isDeleted: false }).populate("role").populate("category").skip(skip).limit(limit);
 
     res.status(200).json({
       status: 200,
@@ -194,7 +192,7 @@ const getTeamMemberById = async (req, res) => {
 const getTeamLiveMember = async (req, res) => {
   try {
     // 1. Fetch all published categories
-    const categories = await TeamCategory.find({ published: true }).sort({ createdAt: 1 });
+    const categories = await TeamCategory.find({ published: true, deleted: false }).sort({ createdAt: 1 });
 
     // 2. For each category, fetch only published members
     const teams = await Promise.all(
@@ -251,7 +249,6 @@ const getTeamFeaturedMember = async (req, res) => {
 module.exports = {
   createTeamMember,
   updateTeamMember,
-  deleteTeamMember,
   deleteAllTeamMembers,
   getAllTeamMembers,
   getTeamMemberById,

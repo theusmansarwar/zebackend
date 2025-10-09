@@ -116,49 +116,62 @@ const getCaseStudyById = async (req, res) => {
   }
 };
 
-// ✅ Delete CaseStudy
-const deleteCaseStudy = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deletedCaseStudy = await CaseStudy.findByIdAndDelete(id);
 
-    if (!deletedCaseStudy) return res.status(404).json({ message: "CaseStudy not found" });
-
-    res.status(200).json({ message: "CaseStudy deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// ✅ Delete multiple CaseStudies
 const deleteAllCaseStudies = async (req, res) => {
   try {
     const { ids } = req.body;
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ message: "Invalid request. Provide CaseStudy IDs." });
+
+    // ✅ Validate request body
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Invalid request. Provide a non-empty array of CaseStudy IDs.",
+      });
     }
 
-    const result = await CaseStudy.deleteMany({ _id: { $in: ids } });
+    // ✅ Filter valid MongoDB ObjectIds
+    const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
+    if (validIds.length === 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "No valid CaseStudy IDs provided.",
+      });
+    }
+
+    // ✅ Check if any CaseStudies exist
+    const caseStudies = await CaseStudy.find({ _id: { $in: validIds } });
+    if (caseStudies.length === 0) {
+      return res.status(404).json({
+        status: 404,
+        message: "No CaseStudies found with the provided IDs.",
+      });
+    }
+
+    // ✅ Delete all matching CaseStudies
+    const result = await CaseStudy.deleteMany({ _id: { $in: validIds } });
 
     res.status(200).json({
       status: 200,
-      message: "CaseStudies deleted successfully.",
-      deletedCount: result.deletedCount,
-      deletedIds: ids,
+      message: `${result.deletedCount} CaseStudy record(s) deleted successfully.`,
+      deletedIds: validIds,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error deleting CaseStudies:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error.",
+      error: error.message,
+    });
   }
 };
-
 // ✅ View CaseStudies with pagination
 const viewCaseStudy = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const totalCaseStudies = await CaseStudy.countDocuments();
-    const CaseStudies = await CaseStudy.find()
+    const totalCaseStudies = await CaseStudy.countDocuments({ isDeleted: false });
+    const CaseStudies = await CaseStudy.find({ isDeleted: false })
     .select("-detail")
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -179,7 +192,7 @@ const viewCaseStudy = async (req, res) => {
 // ✅ View only published CaseStudies
 const liveCaseStudy = async (req, res) => {
   try {
-    const CaseStudies = await CaseStudy.find({ published: true }).sort({ createdAt: -1 });
+    const CaseStudies = await CaseStudy.find({ published: true, deleted: false }).sort({ createdAt: -1 });
     res.status(200).json({
       totalCaseStudies: CaseStudies.length,
       CaseStudies,
@@ -192,7 +205,6 @@ const liveCaseStudy = async (req, res) => {
 module.exports = {
   addCaseStudy,
   updateCaseStudy,
-  deleteCaseStudy,
   viewCaseStudy,
   getCaseStudyById,
   liveCaseStudy,

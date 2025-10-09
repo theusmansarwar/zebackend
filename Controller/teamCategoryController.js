@@ -52,38 +52,57 @@ const updateTeamCategory = async (req, res) => {
   }
 };
 
-// ✅ Delete Team Category
-const deleteTeamCategory = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const category = await TeamCategory.findByIdAndDelete(id);
-
-    if (!category) return res.status(404).json({ message: "Category not found" });
-
-    res.status(200).json({ message: "Team Category deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// ✅ Delete Multiple Team Categories
 const deleteAllTeamCategories = async (req, res) => {
   try {
     const { ids } = req.body; // Expecting { ids: ["id1", "id2", ...] }
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ message: "Invalid request. Provide category IDs." });
+    // ✅ Validate input
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Invalid request. Provide team category IDs.",
+      });
     }
 
-    await TeamCategory.deleteMany({ _id: { $in: ids } });
+    // ✅ Filter valid ObjectIds
+    const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
+    if (validIds.length === 0) {
+      return res
+        .status(400)
+        .json({ status: 400, message: "No valid category IDs provided." });
+    }
+
+    // ✅ Check if these team categories exist and are not already deleted
+    const existingCategories = await TeamCategory.find({
+      _id: { $in: validIds },
+      isDeleted: false,
+    });
+
+    if (existingCategories.length === 0) {
+      return res.status(404).json({
+        status: 404,
+        message: "No active team categories found with the given IDs.",
+      });
+    }
+
+    // ✅ Soft delete categories (set isDeleted: true)
+    await TeamCategory.updateMany(
+      { _id: { $in: validIds } },
+      { $set: { isDeleted: true } }
+    );
 
     res.status(200).json({
       status: 200,
-      message: "Team Categories deleted successfully.",
-      deletedCategories: ids
+      message: `${existingCategories.length} team category(ies) soft-deleted successfully.`,
+      deletedCategories: validIds,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error soft deleting team categories:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
@@ -93,8 +112,8 @@ const viewTeamCategory = async (req, res) => {
     const page = parseInt(req.query.page) || 1; // Default page = 1
     const limit = parseInt(req.query.limit) || 10; // Default limit = 10
 
-    const totalCategories = await TeamCategory.countDocuments();
-    const categories = await TeamCategory.find()
+    const totalCategories = await TeamCategory.countDocuments({ isDeleted: false });
+    const categories = await TeamCategory.find({ isDeleted: false })
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -117,8 +136,8 @@ const liveTeamCategory = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const totalCategories = await TeamCategory.countDocuments({ published: true });
-    const categories = await TeamCategory.find({ published: true })
+    const totalCategories = await TeamCategory.countDocuments({ published: true , deleted: false});
+    const categories = await TeamCategory.find({ published: true, deleted: false })
     .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -138,7 +157,6 @@ const liveTeamCategory = async (req, res) => {
 module.exports = {
   addTeamCategory,
   updateTeamCategory,
-  deleteTeamCategory,
   deleteAllTeamCategories,
   viewTeamCategory,
   liveTeamCategory

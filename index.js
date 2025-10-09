@@ -18,7 +18,7 @@ const allowedOrigins = [
   "https://creators-time.blogspot.com" ,
   "https://creators-time.blogspot.com/"  ,
   "https://plutosec.ca/",
-  "https://ztesting.site",,
+  "https://ztesting.site",
   "https://plutosec.ca/*",
   "https://next-sable-theta.vercel.app/",
   
@@ -58,7 +58,6 @@ const serviceRouter = require("./Routes/serviceRoutes");
 const adminRoutes = require("./Routes/adminRoutes");
 const viewsRouter = require("./Routes/viewsRoutes");
 const usertypeRouter = require("./Routes/typeRoutes");
-const applicationRoutes = require("./Routes/applicationRoutes");
 const industryRoutes = require("./Routes/industriesRoutes");
 const caseStudyRoutes = require("./Routes/caseStudiesRoutes");
 // ✅ Use Routes
@@ -74,7 +73,6 @@ app.use("/service", serviceRouter);
 app.use("/testimonial", testimonialRouter);
 app.use("/role", roleRouter);
 app.use("/views", viewsRouter);
-app.use("/applications", applicationRoutes);
 app.use("/industry", industryRoutes);
 app.use("/casestudy", caseStudyRoutes);
 

@@ -74,9 +74,9 @@ const LeadsList = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const totalLeads = await Leads.countDocuments();
+    const totalLeads = await Leads.countDocuments({ isDeleted: false });
 
-    const leads = await Leads.find()
+    const leads = await Leads.find({ isDeleted: false })
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -130,37 +130,51 @@ const DeleteLeads = async (req, res) => {
   try {
     const { ids } = req.body;
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    // ✅ Validate input
+    if (!Array.isArray(ids) || ids.length === 0) {
       return res
         .status(400)
         .json({ status: 400, message: "Invalid request. Provide Lead IDs." });
     }
 
-    // ✅ Check if leads exist before deleting
-    const existingLeads = await Leads.find({ _id: { $in: ids } });
+    // ✅ Filter only valid ObjectIds
+    const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
+    if (validIds.length === 0) {
+      return res
+        .status(400)
+        .json({ status: 400, message: "No valid Lead IDs provided." });
+    }
+
+    // ✅ Find non-deleted leads
+    const existingLeads = await Leads.find({
+      _id: { $in: validIds },
+      isDeleted: false,
+    });
 
     if (existingLeads.length === 0) {
       return res
         .status(404)
-        .json({ status: 400, message: "No leads found with the given IDs." });
+        .json({ status: 404, message: "No active leads found with the given IDs." });
     }
 
-    // ✅ Delete leads
-    await Leads.deleteMany({ _id: { $in: ids } });
+    // ✅ Soft delete leads
+    await Leads.updateMany(
+      { _id: { $in: validIds } },
+      { $set: { isDeleted: true } }
+    );
 
     res.status(200).json({
       status: 200,
-      message: "Leads deleted successfully.",
-      deletedLeads: ids,
+      message: `${existingLeads.length} lead(s) soft-deleted successfully.`,
+      deletedLeads: validIds,
     });
   } catch (error) {
-    console.error("Error deleting leads:", error);
+    console.error("Error soft deleting leads:", error);
     res
       .status(500)
-      .json({ message: "Internal server error", error: error.message });
+      .json({ status: 500, message: "Internal server error", error: error.message });
   }
 };
-
 module.exports = {
   CreateLeads,
   LeadsList,

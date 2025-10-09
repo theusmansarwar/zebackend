@@ -3,7 +3,6 @@ const router = express.Router();
 
 const {
   addRole,
-  deleteRole,
   updateRole,
   viewRole,
   liveRole,
@@ -13,7 +12,6 @@ const authMiddleware = require("../Middleware/authMiddleware");
 
 router.post("/add", addRole);
 router.put("/update/:id", updateRole);
-router.delete("/delete/:id", deleteRole);
 router.delete("/delete", deleteAllRole);
 router.get("/view", viewRole);
 router.get("/live", liveRole);

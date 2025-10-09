@@ -3,7 +3,6 @@ const router = express.Router();
 
 const {
   addCategory,
-  deleteCategory,
   updateCategory,
   viewCategory,
   liveCategory,
@@ -13,7 +12,6 @@ const authMiddleware = require("../Middleware/authMiddleware");
 
 router.post("/add", addCategory);
 router.put("/update/:id", updateCategory);
-router.delete("/delete/:id", deleteCategory);
 router.delete("/delete", deleteAllCategories);
 router.get("/view", viewCategory);
 router.get("/live", liveCategory);

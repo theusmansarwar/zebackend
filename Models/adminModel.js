@@ -20,7 +20,9 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     type: { type: mongoose.Schema.Types.ObjectId, ref: "UserType" },
-    published: { type: Boolean, default: false },
+
+    published: { type: Boolean, default: false }, 
+ isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

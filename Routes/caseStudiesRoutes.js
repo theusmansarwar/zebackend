@@ -2,9 +2,8 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    addCaseStudy,
+  addCaseStudy,
   updateCaseStudy,
-  deleteCaseStudy,
   viewCaseStudy,
   liveCaseStudy,
   deleteAllCaseStudies,
@@ -16,7 +15,6 @@ router.put("/update/:id", updateCaseStudy);
 router.get("/get/:id", getCaseStudyById);
 router.get("/view", viewCaseStudy);
 router.get("/live", liveCaseStudy);
-router.delete("/delete/:id", deleteCaseStudy);
 router.delete("/delete", deleteAllCaseStudies);
 
 module.exports = router;

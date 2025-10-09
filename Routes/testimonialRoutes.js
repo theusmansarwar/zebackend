@@ -4,7 +4,6 @@ const router = express.Router();
 const {
     addTestimonial,
   updateTestimonial,
-  deleteTestimonial,
   deleteAllTestimonial,
   viewTestimonial,
   liveTestimonial,
@@ -18,7 +17,6 @@ router.get("/live",liveTestimonial)
 router.get("/view",viewTestimonial)
 router.get("/view/:id",viewTestimonialById)
 router.delete("/delete",deleteAllTestimonial)
-router.get("/delete/:id",deleteTestimonial)
 
 
 module.exports = router;

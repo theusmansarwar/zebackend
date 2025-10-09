@@ -99,9 +99,9 @@ const viewComments = async (req, res) => {
       const skip = (page - 1) * limit;
   
       // Fetch total count for pagination
-      const totalComments = await Comment.countDocuments();
+      const totalComments = await Comment.countDocuments({ isDeleted: false });
   
-      const comments = await Comment.find()
+      const comments = await Comment.find({ isDeleted: false })
         .populate("blogId", "title")
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -132,7 +132,7 @@ const viewComments = async (req, res) => {
   
 const approvedComments = async (req, res) => {
   try {
-    const comment = await Comment.find({ published: true }).sort({
+    const comment = await Comment.find({ published: true, deleted: false }).sort({
       createdAt: -1,
     });
 
@@ -152,75 +152,64 @@ const approvedComments = async (req, res) => {
     });
   }
 };
-const deleteComment = async (req, res) => {
-  try {
-    const { id } = req.params;
 
-    const comment = await Comment.findById(id);
-    if (!comment) {
-      return res.status(404).json({ message: "Comment not found" });
-    }
-
-    // ✅ Remove comment from the Blog's comments array
-    await Blogs.findByIdAndUpdate(comment.blogId, {
-      $pull: { comments: id },
-    });
-
-    // ✅ Delete the comment
-    await Comment.findByIdAndDelete(id);
-
-    res.status(200).json({ message: "Comment deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting comment:", error);
-    res.status(500).json({
-      status: 500,
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
 
 const deleteAllComment = async (req, res) => {
   try {
     const { ids } = req.body; // Expecting { ids: ["id1", "id2", ...] }
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Invalid request. Provide comment IDs." });
+    // ✅ Validate request body
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Invalid request. Provide a non-empty array of comment IDs.",
+      });
     }
 
-    // ✅ Find all comments that need to be deleted
-    const comments = await Comment.find({ _id: { $in: ids } });
+    // ✅ Filter valid MongoDB ObjectIds
+    const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
+    if (validIds.length === 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "No valid comment IDs provided.",
+      });
+    }
+
+    // ✅ Find comments that exist
+    const comments = await Comment.find({ _id: { $in: validIds }, isDeleted: false });
 
     if (comments.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No comments found with the given IDs." });
+      return res.status(404).json({
+        status: 404,
+        message: "No active comments found with the given IDs.",
+      });
     }
 
-    // ✅ Extract the blog IDs related to these comments
-    const blogIds = [
-      ...new Set(comments.map((comment) => comment.blogId.toString())),
-    ];
+    // ✅ Extract related blog IDs
+    const blogIds = [...new Set(comments.map(comment => comment.blogId?.toString()))];
 
+    // ✅ Optionally remove these comment references from Blog documents
     await Blogs.updateMany(
       { _id: { $in: blogIds } },
-      { $pull: { comments: { $in: ids } } }
+      { $pull: { comments: { $in: validIds } } }
     );
 
-    // ✅ Delete comments from the database
-    await Comment.deleteMany({ _id: { $in: ids } });
+    // ✅ Perform soft delete by updating `isDeleted`
+    await Comment.updateMany(
+      { _id: { $in: validIds } },
+      { $set: { isDeleted: true } }
+    );
 
     res.status(200).json({
       status: 200,
-      message: "Comments deleted successfully.",
-      deletedComments: ids,
+      message: `${comments.length} comment(s) soft-deleted successfully.`,
+      deletedComments: validIds,
     });
   } catch (error) {
-    console.error("Error deleting comments:", error);
+    console.error("Error soft-deleting comments:", error);
     res.status(500).json({
-      message: "Internal server error",
+      status: 500,
+      message: "Internal server error.",
       error: error.message,
     });
   }
@@ -230,7 +219,6 @@ module.exports = {
   viewComments,
   addComment,
   approveComment,
-  deleteComment,
   deleteAllComment,
   approvedComments,
 };

@@ -57,67 +57,66 @@ const updateRole = async (req, res) => {
   }
 };
 
-// ✅ Delete Role (Show List of Related Blogs)
-const deleteRole = async (req, res) => {
-    try {
-      const { id } = req.params;
-  
-      // ✅ Find all blogs linked to this role
-      const existingBlogs = await Blogs.find({ role: id }).select("title _id slug");
-  
-      if (existingBlogs.length > 0) {
-        return res.status(400).json({ 
-          message: "Cannot delete role. It is linked to blogs.", 
-          blogs: existingBlogs // ✅ Return list of linked blogs (ID + Title)
-        });
-      }
-  
-      // ✅ Delete the role if no linked blogs
-      const role = await Role.findByIdAndDelete(id);
-      if (!role) return res.status(404).json({ message: "Role not found" });
-  
-      res.status(200).json({ message: "Role deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-};
 
-// ✅ Delete Multiple Roles
+
 const deleteAllRole = async (req, res) => {
   try {
     const { ids } = req.body; // Expecting { ids: ["id1", "id2", ...] }
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ message: "Invalid request. Provide role IDs." });
+    // ✅ Validate input
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res
+        .status(400)
+        .json({ status: 400, message: "Invalid request. Provide role IDs." });
     }
-    const linkedBlogs = await Blogs.find({ role: { $in: ids } }).select("title _id role");
+
+    // ✅ Filter only valid ObjectIds
+    const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
+    if (validIds.length === 0) {
+      return res
+        .status(400)
+        .json({ status: 400, message: "No valid role IDs provided." });
+    }
+
+    // ✅ Find blogs linked to these roles
+    const linkedBlogs = await Blogs.find({ role: { $in: validIds } }).select(
+      "title _id role"
+    );
 
     // ✅ Extract role IDs that have linked blogs
-    const rolesWithBlogs = [...new Set(linkedBlogs.map(blog => blog.role.toString()))];
+    const rolesWithBlogs = [...new Set(linkedBlogs.map((blog) => blog.role.toString()))];
 
-    // ✅ Filter out roles that can be deleted
-    const rolesToDelete = ids.filter(id => !rolesWithBlogs.includes(id));
+    // ✅ Filter out roles that can be safely deleted
+    const rolesToDelete = validIds.filter((id) => !rolesWithBlogs.includes(id));
 
     if (rolesToDelete.length === 0) {
-      return res.status(400).json({ 
-        message: "Cannot delete roles. All are linked to blogs.", 
-        linkedBlogs
+      return res.status(400).json({
+        status: 400,
+        message: "Cannot delete roles. All are linked to blogs.",
+        linkedBlogs,
       });
     }
 
-    // ✅ Delete roles that are not linked to any blogs
-    await Role.deleteMany({ _id: { $in: rolesToDelete } });
+    // ✅ Soft delete roles that are not linked to any blogs
+    await Role.updateMany(
+      { _id: { $in: rolesToDelete } },
+      { $set: { isDeleted: true } }
+    );
 
     res.status(200).json({
-      status:200,
-      message: "Roles deleted successfully.",
+      status: 200,
+      message: `${rolesToDelete.length} role(s) soft-deleted successfully.`,
       deletedRoles: rolesToDelete,
       failedToDelete: rolesWithBlogs,
-      linkedBlogs
+      linkedBlogs,
     });
-
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error soft deleting roles:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
@@ -127,8 +126,8 @@ const viewRole = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const totalRoles = await Role.countDocuments();
-    const roles = await Role.find()
+    const totalRoles = await Role.countDocuments({ isDeleted: false });
+    const roles = await Role.find({ isDeleted: false })
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -148,7 +147,7 @@ const viewRole = async (req, res) => {
 
 const liveRole = async (req, res) => {
     try {
-      const roles = await Role.find({ published: true }).sort({ createdAt: -1 });
+      const roles = await Role.find({ published: true, deleted: false }).sort({ createdAt: -1 });
   
       res.status(200).json({
         totalRoles: roles.length,
@@ -160,4 +159,4 @@ const liveRole = async (req, res) => {
   };
   
 
-module.exports = { addRole, updateRole, deleteRole, viewRole, liveRole, deleteAllRole };
+module.exports = { addRole, updateRole, viewRole, liveRole, deleteAllRole };

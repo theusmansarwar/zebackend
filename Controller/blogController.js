@@ -219,34 +219,6 @@ try{
   }
 };
 
-const deleteblog = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const blog = await Blogs.findById(id);
-    if (!blog) {
-      return res.status(404).json({ message: "Blog not found" });
-    }
-    await Comment.deleteMany({ blogId: id });
-    if (blog.thumbnail) {
-      const filePath = path.join(__dirname, "..", blog.thumbnail);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    }
-
-    await Blogs.findByIdAndDelete(id);
-
-    res.status(200).json({ status: 200, message: "Blog deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting blog:", error);
-    res.status(500).json({
-      status: 500,
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
 const deletemultiblog = async (req, res) => {
   try {
     const { ids } = req.body; // Expecting an array of blog IDs
@@ -257,25 +229,33 @@ const deletemultiblog = async (req, res) => {
         .json({ message: "Invalid or empty list of blog IDs" });
     }
 
-    // ✅ Find all blogs by IDs
-    const blogs = await Blogs.find({ _id: { $in: ids } });
+    // ✅ Find blogs to ensure they exist
+    const blogs = await Blogs.find({ _id: { $in: ids }, isDeleted: false });
 
     if (blogs.length === 0) {
       return res
         .status(404)
         .json({ message: "No blogs found with the given IDs" });
     }
-    await Comment.deleteMany({ blogId: { $in: ids } });
-   
 
-    // ✅ Delete blogs in one go
-    await Blogs.deleteMany({ _id: { $in: ids } });
+    // ✅ Soft delete comments related to those blogs (optional)
+    await Comment.updateMany(
+      { blogId: { $in: ids } },
+      { $set: { isDeleted: true } }
+    );
 
-    res
-      .status(200)
-      .json({ status: 200, message: "Blogs deleted successfully" });
+    // ✅ Soft delete the blogs (mark as deleted instead of removing)
+    await Blogs.updateMany(
+      { _id: { $in: ids } },
+      { $set: { isDeleted: true } }
+    );
+
+    res.status(200).json({
+      status: 200,
+      message: "Blogs soft-deleted successfully",
+    });
   } catch (error) {
-    console.error("Error deleting blogs:", error);
+    console.error("Error soft-deleting blogs:", error);
     res.status(500).json({
       status: 500,
       message: "Internal server error",
@@ -283,6 +263,7 @@ const deletemultiblog = async (req, res) => {
     });
   }
 };
+
 
 const listblog = async (req, res) => {
   try {
@@ -292,7 +273,11 @@ const listblog = async (req, res) => {
 
 
     // base filter
-    let filter = { published: true };
+    let filter = { 
+  published: true, 
+  deleted: false // ✅ only include non-deleted items
+};
+;
 if (categoryId && categoryId !== "all" && categoryId.trim() !== "") {
   filter["category._id"] = new mongoose.Types.ObjectId(categoryId);
 }
@@ -404,19 +389,20 @@ const listblogAdmin = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    let filter = {};
-    function escapeRegex(text) {
-  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-}
+    let filter = { isDeleted: { $ne: true } }; // ✅ Exclude deleted blogs
 
-if (title) {
-  const escapedTitle = escapeRegex(title);
-  filter.title = { $regex: escapedTitle, $options: "i" };
-}
+    // Escape regex safely
+    const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 
+    if (title) {
+      const escapedTitle = escapeRegex(title);
+      filter.title = { $regex: escapedTitle, $options: "i" };
+    }
 
     const blogslist = await Blogs.find(filter)
-    .select("-comments -detail -viewedBy -metaDescription -description  -faqSchema -slug")
+      .select(
+        "-comments -detail -viewedBy -metaDescription -description -faqSchema -slug"
+      )
       .sort({ createdAt: -1 })
       .populate({
         path: "category",
@@ -427,17 +413,15 @@ if (title) {
 
     const totalBlogs = await Blogs.countDocuments(filter);
 
-    
-
     return res.status(200).json({
       totalBlogs,
       totalPages: Math.ceil(totalBlogs / limit),
       currentPage: page,
-      limit: limit,
+      limit,
       blogs: blogslist,
     });
   } catch (error) {
-    console.error("Error fetching services:", error);
+    console.error("Error fetching blogs:", error);
     return res.status(500).json({
       status: 500,
       message: "Internal server error",
@@ -452,19 +436,18 @@ const listblogWritter = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    // Author is required
     if (!search) {
       return res.status(400).json({ message: "Author (search) is required." });
     }
-    
 
-    // Escape regex
-    const escapeRegex = (text) =>
-      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+    const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 
     const escapedAuthor = escapeRegex(search);
+
+    // ✅ Filter for author + not deleted
     const filter = {
       author: { $regex: escapedAuthor, $options: "i" },
+      isDeleted: { $ne: true },
     };
 
     if (title) {
@@ -486,8 +469,6 @@ const listblogWritter = async (req, res) => {
 
     const totalBlogs = await Blogs.countDocuments(filter);
 
-   
-
     res.status(200).json({
       totalBlogs,
       totalPages: Math.ceil(totalBlogs / limit),
@@ -504,6 +485,7 @@ const listblogWritter = async (req, res) => {
     });
   }
 };
+
 
 
 const viewblog = async (req, res) => {
@@ -575,11 +557,11 @@ const viewblogbyid = async (req, res) => {
 };
 const getblogSlugs = async (req, res) => {
   try {
-    const blogslist = await Blogs.find({ published: true })
+    const blogslist = await Blogs.find({ published: true, deleted: false })
       .select("slug _id title")
       .sort({ publishedDate: -1 });
 
-    const totalBlogs = await Blogs.countDocuments({ published: true });
+    const totalBlogs = await Blogs.countDocuments({ published: true , deleted: false});
 
     res.status(200).json({
       totalBlogs,
@@ -618,7 +600,7 @@ const getPopularBlogs = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 5; 
 
-    const blogs = await Blogs.find({ published: true })
+    const blogs = await Blogs.find({ published: true, deleted: false })
       .select("-comments -detail -viewedBy -faqSchema") // exclude heavy fields
       .sort({ views: -1 }) // sort by views (highest first)
       .limit(limit);
@@ -642,7 +624,6 @@ const getPopularBlogs = async (req, res) => {
 module.exports = {
   createblog,
   updateblog,
-  deleteblog,
   listblog,
   viewblog,
   deletemultiblog,
