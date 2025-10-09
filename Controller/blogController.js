@@ -557,7 +557,7 @@ const viewblogbyid = async (req, res) => {
 };
 const getblogSlugs = async (req, res) => {
   try {
-    const blogslist = await Blogs.find({ published: true, deleted: false })
+    const blogslist = await Blogs.find({ published: true, isDeleted: false })
       .select("slug _id title")
       .sort({ publishedDate: -1 });
 
@@ -600,7 +600,7 @@ const getPopularBlogs = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 5; 
 
-    const blogs = await Blogs.find({ published: true, deleted: false })
+    const blogs = await Blogs.find({ published: true, isDeleted: false })
       .select("-comments -detail -viewedBy -faqSchema") // exclude heavy fields
       .sort({ views: -1 }) // sort by views (highest first)
       .limit(limit);

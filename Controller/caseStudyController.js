@@ -193,7 +193,7 @@ const viewCaseStudy = async (req, res) => {
 // ✅ View only published CaseStudies
 const liveCaseStudy = async (req, res) => {
   try {
-    const CaseStudies = await CaseStudy.find({ published: true, deleted: false }).sort({ createdAt: -1 });
+    const CaseStudies = await CaseStudy.find({ published: true, isDeleted: false }).sort({ createdAt: -1 });
     res.status(200).json({
       totalCaseStudies: CaseStudies.length,
       CaseStudies,

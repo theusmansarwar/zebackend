@@ -133,7 +133,7 @@ const viewComments = async (req, res) => {
   
 const approvedComments = async (req, res) => {
   try {
-    const comment = await Comment.find({ published: true, deleted: false }).sort({
+    const comment = await Comment.find({ published: true, isDeleted: false }).sort({
       createdAt: -1,
     });
 

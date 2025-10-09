@@ -148,7 +148,7 @@ const viewRole = async (req, res) => {
 
 const liveRole = async (req, res) => {
     try {
-      const roles = await Role.find({ published: true, deleted: false }).sort({ createdAt: -1 });
+      const roles = await Role.find({ published: true, isDeleted: false }).sort({ createdAt: -1 });
   
       res.status(200).json({
         totalRoles: roles.length,

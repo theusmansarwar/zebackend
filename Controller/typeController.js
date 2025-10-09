@@ -143,7 +143,7 @@ const viewUserType = async (req, res) => {
 // ✅ View Only Published UserTypes
 const liveUserType = async (req, res) => {
   try {
-    const userType = await UserType.find({ published: true, deleted: false }).sort({ createdAt: -1 });
+    const userType = await UserType.find({ published: true, isDeleted: false }).sort({ createdAt: -1 });
 
     res.status(200).json({
       totalUserType: userType.length,

@@ -528,7 +528,7 @@ const deleteAllservices = async (req, res) => {
 
 const getservicesSlugs = async (req, res) => {
   try {
-    const serviceslist = await Services.find({ published: true, deleted: false })
+    const serviceslist = await Services.find({ published: true, isDeleted: false })
       .select("slug _id title")
       .sort({ publishedDate: -1 });
 

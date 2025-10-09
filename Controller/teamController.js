@@ -193,7 +193,7 @@ const getTeamMemberById = async (req, res) => {
 const getTeamLiveMember = async (req, res) => {
   try {
     // 1. Fetch all published categories
-    const categories = await TeamCategory.find({ published: true, deleted: false }).sort({ createdAt: 1 });
+    const categories = await TeamCategory.find({ published: true, isDeleted: false }).sort({ createdAt: 1 });
 
     // 2. For each category, fetch only published members
     const teams = await Promise.all(
