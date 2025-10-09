@@ -390,8 +390,7 @@ const listservice = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
 
     let filter = { 
-  published: true, 
-  deleted: false // ✅ only include non-deleted items
+  published: true,  isDeleted: false // ✅ only include non-deleted items
 };
 ; // ✅ Only published services
     if (title) {
@@ -532,7 +531,7 @@ const getservicesSlugs = async (req, res) => {
       .select("slug _id title")
       .sort({ publishedDate: -1 });
 
-    const totalServices = await Services.countDocuments({ published: true , deleted: false});
+    const totalServices = await Services.countDocuments({ published: true ,  isDeleted: false});
 
     res.status(200).json({
       totalServices,

@@ -158,7 +158,7 @@ const liveTestimonial = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const totalTestimonials = await Testimonials.countDocuments({ published: true , deleted: false});
+    const totalTestimonials = await Testimonials.countDocuments({ published: true ,  isDeleted: false});
     const testimonials = await Testimonials.find({ published: true, isDeleted: false })
       .sort({ createdAt: -1 })
       .limit(limit)

@@ -137,7 +137,7 @@ const liveTeamCategory = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const totalCategories = await TeamCategory.countDocuments({ published: true , deleted: false});
+    const totalCategories = await TeamCategory.countDocuments({ published: true ,  isDeleted: false});
     const categories = await TeamCategory.find({ published: true, isDeleted: false })
     .sort({ createdAt: -1 })
       .limit(limit)

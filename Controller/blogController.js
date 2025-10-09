@@ -274,8 +274,7 @@ const listblog = async (req, res) => {
 
     // base filter
     let filter = { 
-  published: true, 
-  deleted: false // ✅ only include non-deleted items
+  published: true,  isDeleted: false // ✅ only include non-deleted items
 };
 ;
 if (categoryId && categoryId !== "all" && categoryId.trim() !== "") {
@@ -561,7 +560,7 @@ const getblogSlugs = async (req, res) => {
       .select("slug _id title")
       .sort({ publishedDate: -1 });
 
-    const totalBlogs = await Blogs.countDocuments({ published: true , deleted: false});
+    const totalBlogs = await Blogs.countDocuments({ published: true ,  isDeleted: false});
 
     res.status(200).json({
       totalBlogs,
