@@ -80,7 +80,7 @@ const updateCategory = async (req, res) => {
 };
 
 
- const deleteAllCategories = async (req, res) => {
+const deleteAllCategories = async (req, res) => {
   try {
     const { ids } = req.body; // Expecting { ids: ["id1", "id2", ...] }
 
@@ -119,18 +119,21 @@ const updateCategory = async (req, res) => {
       });
     }
 
-    // ✅ Delete categories that are not linked to blogs
-    const deleteResult = await Category.deleteMany({ _id: { $in: categoriesToDelete } });
+    // ✅ Soft delete categories that are not linked to blogs
+    const softDeleteResult = await Category.updateMany(
+      { _id: { $in: categoriesToDelete } },
+      { $set: { isDeleted: true } }
+    );
 
     res.status(200).json({
       status: 200,
-      message: `${deleteResult.deletedCount} category(ies) deleted successfully.`,
-      deletedCategories: categoriesToDelete,
+      message: `${softDeleteResult.modifiedCount} category(ies) soft-deleted successfully.`,
+      softDeletedCategories: categoriesToDelete,
       failedToDelete: categoriesWithBlogs,
       linkedBlogs,
     });
   } catch (error) {
-    console.error("Error deleting categories:", error);
+    console.error("Error soft deleting categories:", error);
     res.status(500).json({
       status: 500,
       message: "Internal server error.",
