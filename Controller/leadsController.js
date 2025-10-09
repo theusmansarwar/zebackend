@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Leads = require("../Models/leadsModel");
 const sendEmailToCompany = require("./emailverification");
 const CreateLeads = async (req, res) => {

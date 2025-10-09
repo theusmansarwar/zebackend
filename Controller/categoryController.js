@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Category = require("../Models/categoryModel");
 const Blogs = require("../Models/blogModel"); // ✅ Required for blog-category relation
 

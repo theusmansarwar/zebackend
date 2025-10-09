@@ -5,10 +5,9 @@ const Comment = require("../Models/commentModel");
 const Blogs = require("../Models/blogModel");
 const Leads = require("../Models/leadsModel");
 const UserType = require("../Models/typeModel");
+const mongoose = require("mongoose");
 
 const { View, TotalImpression } = require("../Models/viewModel");
-const { default: mongoose } = require("mongoose");
-
 const register = async (req, res) => {
   const { name, email, password,published,typeId } = req.body;
   const missingFields = [];

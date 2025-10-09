@@ -1,7 +1,7 @@
 const Blogs = require("../Models/blogModel");
 const Comment = require("../Models/commentModel");
 const Category = require("../Models/categoryModel");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 
 
 const createblog = async (req, res) => {

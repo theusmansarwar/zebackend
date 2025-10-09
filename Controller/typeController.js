@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const UserType = require("../Models/typeModel");
 const Blogs = require("../Models/blogModel"); // ✅ Import your Blogs model
 

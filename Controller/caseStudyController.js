@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const CaseStudy = require("../Models/casestudiesModel");
 
 // ✅ Add CaseStudy

@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Industry = require("../Models/industriesModel");
 
 // ✅ Add Industry
