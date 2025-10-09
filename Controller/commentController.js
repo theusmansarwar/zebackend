@@ -109,7 +109,8 @@ const viewComments = async (req, res) => {
         .limit(limit);
   
       if (!comments.length) {
-        return res.status(404).json({ message: "No comments found" });
+        return res.status(404).json({  message: "No Comments Found",
+        comments,});
       }
   
       res.status(200).json({
