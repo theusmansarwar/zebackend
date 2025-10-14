@@ -143,7 +143,73 @@ const login = async (req, res) => {
     token: await user.generateToken(),
   });
 };
+const Adminlogin = async (req, res) => {
+  const { email, password } = req.body;
+  const missingFields = [];
 
+  if (!email) {
+    missingFields.push({ name: "email", message: "Email is required" });
+  } else if (!email.includes("@")) {
+    missingFields.push({ name: "email", message: "Email must contain @" });
+  }
+  if (!password) {
+    missingFields.push({ name: "password", message: "Password is required" });
+  }
+
+  if (missingFields.length > 0) {
+    return res.status(400).json({
+      status: 400,
+      message: "Some fields are missing or invalid!",
+      missingFields,
+    });
+  }
+
+  const user = await User.findOne({ email }).populate("type");
+  if (!user) {
+    return res.status(404).json({
+      status: 404,
+      message: "Email not found",
+      missingFields: [{ name: "email", message: "Email not found" }],
+    });
+  }
+ 
+
+  const matchPassword = await bcrypt.compare(password, user.password);
+  if (!matchPassword) {
+    return res.status(400).json({
+      status: 400,
+      message: "Invalid credentials",
+      missingFields: [{ name: "password", message: "Password does not match" }],
+    });
+  }
+
+  if (user.isDeleted) {
+  return res.status(403).json({
+    status: 403,
+    message: "Your account has been deleted. Please contact support.",
+  });
+}
+
+   if (!user.published) {
+    return res.status(403).json({
+      status: 403,
+      message: "Your account is Blocked. Please contact admin.",
+      missingFields: [{ name: "published", message: "Account is Blocked" }],
+    });
+  }
+    if (user.role !== "admin") {
+    return res.status(403).json({
+      status: 403,
+      message: "Invalid credentials: Admin access only",
+    });
+  }
+  res.status(200).json({
+    status: 200,
+    message: "Logged in successfully",
+    data: user,
+    token: await user.generateToken(),
+  });
+};
 
 
 const stats = async (req, res) => {
