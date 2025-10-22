@@ -60,6 +60,8 @@ const viewsRouter = require("./Routes/viewsRoutes");
 const usertypeRouter = require("./Routes/typeRoutes");
 const industryRoutes = require("./Routes/industriesRoutes");
 const caseStudyRoutes = require("./Routes/caseStudiesRoutes");
+
+const faqsRoutes = require("./Routes/faqsRoutes");
 // ✅ Use Routes
 app.use("/", userRouter);
 app.use("/usertype", usertypeRouter);
@@ -75,6 +77,7 @@ app.use("/role", roleRouter);
 app.use("/views", viewsRouter);
 app.use("/industry", industryRoutes);
 app.use("/casestudy", caseStudyRoutes);
+app.use("/faqs", faqsRoutes);
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const multer = require("multer");

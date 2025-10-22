@@ -3,6 +3,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const Services = require("../Models/serviceModel");
+const Faqs = require("../Models/faqsModel");
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -38,42 +39,21 @@ const createservice = async (req, res) => {
       short_description,
       metaDescription,
       slug,
-      detail,
       published,
       icon,
     } = req.body;
 
     const missingFields = [];
     const isPublished = published === "true" || published === true;
-
-    // ✅ Validate required fields only if published
     if (isPublished) {
-      if (!title)
-        missingFields.push({ name: "title", message: "Title is required" });
-      if (!description)
-        missingFields.push({
-          name: "description",
-          message: "Description is required",
-        });
-      if (!short_description)
-        missingFields.push({
-          name: "short_description",
-          message: "Short description is required",
-        });
-      if (!metaDescription)
-        missingFields.push({
-          name: "metaDescription",
-          message: "Meta description is required",
-        });
-      if (!slug)
-        missingFields.push({ name: "slug", message: "Slug is required" });
-      if (!detail)
-        missingFields.push({ name: "detail", message: "Detail is required" });
-      if (!icon)
-        missingFields.push({ name: "icon", message: "Icon is required" });
+      if (!title) missingFields.push({ name: "title", message: "Title is required" });
+      if (!description) missingFields.push({ name: "description", message: "Description is required" });
+      if (!short_description) missingFields.push({ name: "short_description", message: "Short description is required" });
+      if (!metaDescription) missingFields.push({ name: "metaDescription", message: "Meta description is required" });
+      if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
+      if (!icon) missingFields.push({ name: "icon", message: "Icon is required" });
     }
 
-    // ✅ If any required fields are missing, stop
     if (missingFields.length > 0) {
       return res.status(400).json({
         status: 400,
@@ -81,24 +61,15 @@ const createservice = async (req, res) => {
         missingFields,
       });
     }
+    const existing = await Services.findOne({
+      $or: [{ title }, { slug }],
+    });
 
-    // ✅ Check duplicate title & slug
-    const [existingTitle, existingSlug] = await Promise.all([
-      title ? Services.findOne({ title }) : null,
-      slug ? Services.findOne({ slug }) : null,
-    ]);
-
-    if (existingTitle) {
-      missingFields.push({
-        name: "title",
-        message: "Service title already exists",
-      });
-    }
-    if (existingSlug) {
-      missingFields.push({
-        name: "slug",
-        message: "Service slug already exists",
-      });
+    if (existing) {
+      if (existing.title === title)
+        missingFields.push({ name: "title", message: "Service title already exists" });
+      if (existing.slug === slug)
+        missingFields.push({ name: "slug", message: "Service slug already exists" });
     }
 
     if (missingFields.length > 0) {
@@ -108,27 +79,24 @@ const createservice = async (req, res) => {
         missingFields,
       });
     }
-
-    // ✅ Create new service
     const newService = await Services.create({
       title,
       description,
       short_description,
       metaDescription,
       slug,
-      detail,
       icon,
       published: isPublished,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       status: 201,
       message: "Service created successfully",
       service: newService,
     });
   } catch (error) {
     console.error("Error creating service:", error);
-    res.status(500).json({
+    return res.status(500).json({
       status: 500,
       message: "Internal server error",
       error: error.message,
@@ -430,7 +398,6 @@ const getServiceById = async (req, res) => {
       "faqs.items",
       "question answer"
     )
-    .populate("portfolio.items","title description images videos thumbnail published") ;
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
@@ -452,9 +419,7 @@ const getServiceBySlug = async (req, res) => {
     const service = await Services.findOne({ slug, published: true }).populate(
       "faqs.items",
       "question answer"
-    )
-      .populate("portfolio.items","title description images videos thumbnail published") 
-      .exec();
+    ).exec();
 
     if (!service) {
       return res.status(404).json({ message: "Service not found" });

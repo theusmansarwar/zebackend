@@ -8,28 +8,31 @@ const ServiceSchema = new mongoose.Schema(
     metaDescription: { type: String, maxlength: 160, trim: true },
     slug: { type: String, unique: true },
     icon: { type: String },
+
     faqs: {
       title: { type: String },
       description: { type: String },
       items: [{ type: mongoose.Schema.Types.ObjectId, ref: "Faqs" }],
       published: { type: Boolean, default: false },
     },
-    how_we_delivered: {
-      description: { type: String },
-      lower_description: { type: String },
+
+    imageSection: {
+      title: { type: String },
       image: { type: String },
       published: { type: Boolean, default: false },
     },
-    portfolio: {
-      items: [{ type: mongoose.Schema.Types.ObjectId, ref: "Portfolio" }],
-      published: { type: Boolean, default: false },
-    },
-    video: {
+
+    lastSection: {
+      title: { type: String },
       description: { type: String },
-      url: { type: String },
+      image: { type: String },
       published: { type: Boolean, default: false },
     },
-    detail: { type: String },
+
+    subServices: {
+      published: { type: Boolean, default: false },
+      items: [{ type: mongoose.Schema.Types.ObjectId, ref: "subServices" }]
+    },
     published: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
   },
