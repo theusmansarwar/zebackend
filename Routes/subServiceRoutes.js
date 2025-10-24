@@ -3,7 +3,7 @@ const router = express.Router();
 
 const {
   createSubService,
-  updateService,
+  updateSubService,
   listserviceAdmin,
   getServiceById,
   deleteAllservices,
@@ -14,7 +14,7 @@ const {
 const authMiddleware = require("../Middleware/authMiddleware");
 
 router.post("/create", createSubService);
-router.put("/update/:id", updateService);
+router.put("/update/:id", updateSubService);
 router.get("/get/:id", getServiceById);
 router.get("/listbyadmin", listserviceAdmin);
 router.get("/list", listservice);

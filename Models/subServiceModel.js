@@ -9,9 +9,20 @@ const ServiceSchema = new mongoose.Schema(
     slug: { type: String, unique: true },
     icon: { type: String},
 
+     introduction: {
+      title: { type: String },
+      description: { type: String },
+      image: { type: String },
+      published: { type: Boolean, default: false },
+    },
     provenSteps: {
       title: { type: String },
       steps: [{ type: String }],
+      published: { type: Boolean, default: false },
+    },
+      cta: {
+      title: { type: String },
+      description: { type: String },
       published: { type: Boolean, default: false },
     },
  imageSection: {
@@ -26,17 +37,8 @@ const ServiceSchema = new mongoose.Schema(
       items: [{ type: mongoose.Schema.Types.ObjectId, ref: "Faqs" }],
       published: { type: Boolean, default: false },
     },
-    how_we_delivered: {
-      title: { type: String },
-      description: { type: String },
-      image: { type: String },
-      published: { type: Boolean, default: false },
-    },
-     cta: {
-      title: { type: String },
-      description: { type: String },
-      published: { type: Boolean, default: false },
-    },
+   
+   
     portfolio: {
       items: [{ type: mongoose.Schema.Types.ObjectId, ref: "Portfolio" }],
       published: { type: Boolean, default: false },

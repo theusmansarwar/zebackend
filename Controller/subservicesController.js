@@ -128,9 +128,19 @@ const createSubService = async (req, res) => {
 };
 
 
-const updateService = async (req, res) => {
+const updateSubService = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // ✅ Parse any JSON-like strings from body (from form-data or string inputs)
+    for (const key in req.body) {
+      if (typeof req.body[key] === "string") {
+        try {
+          req.body[key] = JSON.parse(req.body[key]);
+        } catch (e) {}
+      }
+    }
+
     const {
       title,
       description,
@@ -139,16 +149,18 @@ const updateService = async (req, res) => {
       slug,
       published,
       icon,
-      faqs,
-      imageSection,
-      lastSection,
-      subServices,
+      introduction = {},
+      provenSteps = {},
+      cta = {},
+      imageSection = {},
+      faqs = {},
+      portfolio = {},
     } = req.body;
 
     const missingFields = [];
     const isPublished = published === "true" || published === true;
 
-    // 🔍 Validate top-level fields if published
+    // ✅ Validate top-level fields if published
     if (isPublished) {
       if (!title)
         missingFields.push({ name: "title", message: "Title is required" });
@@ -168,99 +180,81 @@ const updateService = async (req, res) => {
         missingFields.push({ name: "icon", message: "Icon is required" });
     }
 
-    // ✅ Parse and validate nested sections
-    let faqsData = {};
-    if (faqs) {
-      const parsedFaqs = typeof faqs === "string" ? JSON.parse(faqs) : faqs;
-      faqsData = {
-        title: parsedFaqs.title,
-        description: parsedFaqs.description,
-        items: parsedFaqs.items || [],
-        published:
-          parsedFaqs.published === "true" || parsedFaqs.published === true,
-      };
-
-      if (faqsData.published) {
-        if (!faqsData.title)
-          missingFields.push({
-            name: "faqs.title",
-            message: "FAQs title is required",
-          });
-        if (!faqsData.description)
-          missingFields.push({
-            name: "faqs.description",
-            message: "FAQs description is required",
-          });
-      }
+    // ✅ Fetch existing record for merging
+    const existing = await SubServices.findById(id);
+    if (!existing) {
+      return res.status(404).json({
+        status: 404,
+        message: "Sub-service not found",
+      });
     }
 
-    let imageSectionData = {};
-    if (imageSection) {
-      const parsed =
-        typeof imageSection === "string"
-          ? JSON.parse(imageSection)
-          : imageSection;
-      imageSectionData = {
-        title: parsed.title,
-        image: parsed.image,
-        published: parsed.published === "true" || parsed.published === true,
-      };
+    // ✅ Merge nested sections safely (retain old data if not sent)
+    const introductionData = {
+      title: introduction.title ?? existing.introduction?.title ?? "",
+      description:
+        introduction.description ?? existing.introduction?.description ?? "",
+      image: introduction.image ?? existing.introduction?.image ?? "",
+      published:
+        introduction.published === "true" ||
+        introduction.published === true ||
+        existing.introduction?.published ||
+        false,
+    };
 
-      if (imageSectionData.published) {
-        if (!imageSectionData.title)
-          missingFields.push({
-            name: "imageSection.title",
-            message: "Image section title is required",
-          });
-        if (!parsed.image)
-          missingFields.push({
-            name: "imageSection.image",
-            message: "Image path is required",
-          });
-      }
-    }
+    const provenStepsData = {
+      title: provenSteps.title ?? existing.provenSteps?.title ?? "",
+      steps: provenSteps.steps ?? existing.provenSteps?.steps ?? [],
+      published:
+        provenSteps.published === "true" ||
+        provenSteps.published === true ||
+        existing.provenSteps?.published ||
+        false,
+    };
 
-    let lastSectionData = {};
-    if (lastSection) {
-      const parsed =
-        typeof lastSection === "string" ? JSON.parse(lastSection) : lastSection;
-      lastSectionData = {
-        title: parsed.title,
-        description: parsed.description,
-        image: parsed.image,
-        published: parsed.published === "true" || parsed.published === true,
-      };
+    const ctaData = {
+      title: cta.title ?? existing.cta?.title ?? "",
+      description: cta.description ?? existing.cta?.description ?? "",
+      published:
+        cta.published === "true" ||
+        cta.published === true ||
+        existing.cta?.published ||
+        false,
+    };
 
-      if (lastSectionData.published) {
-        if (!lastSectionData.title)
-          missingFields.push({
-            name: "lastSection.title",
-            message: "Last section title is required",
-          });
-        if (!lastSectionData.description)
-          missingFields.push({
-            name: "lastSection.description",
-            message: "Last section description is required",
-          });
-        if (!parsed.image)
-          missingFields.push({
-            name: "lastSection.image",
-            message: "Last section image is required",
-          });
-      }
-    }
+    const imageSectionData = {
+      title: imageSection.title ?? existing.imageSection?.title ?? "",
+      description:
+        imageSection.description ?? existing.imageSection?.description ?? "",
+      image: imageSection.image ?? existing.imageSection?.image ?? "",
+      published:
+        imageSection.published === "true" ||
+        imageSection.published === true ||
+        existing.imageSection?.published ||
+        false,
+    };
 
-    let subServicesData = {};
-    if (subServices) {
-      const parsed =
-        typeof subServices === "string" ? JSON.parse(subServices) : subServices;
-      subServicesData = {
-        published: parsed.published === "true" || parsed.published === true,
-        items: parsed.items || [],
-      };
-    }
+    const faqsData = {
+      title: faqs.title ?? existing.faqs?.title ?? "",
+      description: faqs.description ?? existing.faqs?.description ?? "",
+      items: existing.faqs?.items || [], // keep linked FAQ IDs
+      published:
+        faqs.published === "true" ||
+        faqs.published === true ||
+        existing.faqs?.published ||
+        false,
+    };
 
-    // ❌ Stop if any required fields missing
+    const portfolioData = {
+      items: existing.portfolio?.items || [], // keep linked portfolio IDs
+      published:
+        portfolio.published === "true" ||
+        portfolio.published === true ||
+        existing.portfolio?.published ||
+        false,
+    };
+
+    // ❌ Return if required fields missing
     if (missingFields.length > 0) {
       return res.status(400).json({
         status: 400,
@@ -269,7 +263,7 @@ const updateService = async (req, res) => {
       });
     }
 
-    // ✅ Prepare update object
+    // ✅ Prepare final update object
     const updateFields = {
       title,
       description,
@@ -278,33 +272,27 @@ const updateService = async (req, res) => {
       slug,
       icon,
       published: isPublished,
+      introduction: introductionData,
+      provenSteps: provenStepsData,
+      cta: ctaData,
+      imageSection: imageSectionData,
+      faqs: faqsData,
+      portfolio: portfolioData,
     };
 
-    if (faqs) updateFields.faqs = faqsData;
-    if (imageSection) updateFields.imageSection = imageSectionData;
-    if (lastSection) updateFields.lastSection = lastSectionData;
-    if (subServices) updateFields.subServices = subServicesData;
-
-    // ✅ Perform update
-    const updatedService = await Services.findByIdAndUpdate(id, updateFields, {
+    // ✅ Update document
+    const updated = await SubServices.findByIdAndUpdate(id, updateFields, {
       new: true,
       runValidators: true,
     });
 
-    if (!updatedService) {
-      return res.status(404).json({
-        status: 404,
-        message: "Service not found",
-      });
-    }
-
     res.status(200).json({
       status: 200,
-      message: "Service updated successfully",
-      service: updatedService,
+      message: "Sub-service updated successfully",
+      service: updated,
     });
   } catch (error) {
-    console.error("Error updating service:", error);
+    console.error("Error updating sub-service:", error);
     res.status(500).json({
       status: 500,
       message: "Internal server error",
@@ -517,7 +505,7 @@ const getservicesSlugs = async (req, res) => {
 
 module.exports = {
   createSubService,
-  updateService,
+  updateSubService,
   listserviceAdmin,
   getServiceById,
   deleteAllservices,
