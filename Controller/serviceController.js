@@ -246,6 +246,7 @@ const listserviceAdmin = async (req, res) => {
 
     const servicesList = await Services.find(filter)
       .select("title short_description published createdAt")
+      .populate("subServices.items")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
