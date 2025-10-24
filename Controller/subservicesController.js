@@ -3,9 +3,10 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const Services = require("../Models/serviceModel");
+const SubServices = require("../Models/subServiceModel");
 const Faqs = require("../Models/faqsModel");
 
-const createservice = async (req, res) => {
+const createSubService = async (req, res) => {
   try {
     const {
       title,
@@ -15,10 +16,13 @@ const createservice = async (req, res) => {
       slug,
       published,
       icon,
+      mainServiceId, // 👈 Parent service ID (must come from frontend)
     } = req.body;
 
     const missingFields = [];
     const isPublished = published === "true" || published === true;
+
+    // ✅ Validation (required only if published)
     if (isPublished) {
       if (!title)
         missingFields.push({ name: "title", message: "Title is required" });
@@ -50,7 +54,9 @@ const createservice = async (req, res) => {
         missingFields,
       });
     }
-    const existing = await Services.findOne({
+
+    // ✅ Check duplicates
+    const existing = await SubServices.findOne({
       $or: [{ title }, { slug }],
     });
 
@@ -58,12 +64,12 @@ const createservice = async (req, res) => {
       if (existing.title === title)
         missingFields.push({
           name: "title",
-          message: "Service title already exists",
+          message: "Sub-service title already exists",
         });
       if (existing.slug === slug)
         missingFields.push({
           name: "slug",
-          message: "Service slug already exists",
+          message: "Sub-service slug already exists",
         });
     }
 
@@ -74,7 +80,9 @@ const createservice = async (req, res) => {
         missingFields,
       });
     }
-    const newService = await Services.create({
+
+    // ✅ Create new subservice
+    const newSubService = await SubServices.create({
       title,
       description,
       short_description,
@@ -84,13 +92,33 @@ const createservice = async (req, res) => {
       published: isPublished,
     });
 
+    // ✅ Add subservice ID to parent service
+    if (mainServiceId) {
+      const parent = await Services.findById(mainServiceId);
+
+      if (!parent) {
+        return res.status(404).json({
+          status: 404,
+          message: "Parent service not found",
+        });
+      }
+
+      // ✅ Push new subservice ID to items array
+      parent.subServices.items.push(newSubService._id);
+
+      // Optionally publish subServices if at least one exists
+      parent.subServices.published = true;
+
+      await parent.save();
+    }
+
     return res.status(201).json({
       status: 201,
-      message: "Service created successfully",
-      service: newService,
+      message: "Sub-service created and linked successfully",
+      subService: newSubService,
     });
   } catch (error) {
-    console.error("Error creating service:", error);
+    console.error("Error creating sub-service:", error);
     return res.status(500).json({
       status: 500,
       message: "Internal server error",
@@ -98,6 +126,7 @@ const createservice = async (req, res) => {
     });
   }
 };
+
 
 const updateService = async (req, res) => {
   try {
@@ -487,7 +516,7 @@ const getservicesSlugs = async (req, res) => {
 };
 
 module.exports = {
-  createservice,
+  createSubService,
   updateService,
   listserviceAdmin,
   getServiceById,

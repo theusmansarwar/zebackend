@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  createservice,
+  createSubService,
   updateService,
   listserviceAdmin,
   getServiceById,
@@ -10,12 +10,10 @@ const {
   getServiceBySlug,
   getservicesSlugs,
   listservice,
-  
- 
 } = require("../Controller/subservicesController");
 const authMiddleware = require("../Middleware/authMiddleware");
 
-router.post("/create", createservice);
+router.post("/create", createSubService);
 router.put("/update/:id", updateService);
 router.get("/get/:id", getServiceById);
 router.get("/listbyadmin", listserviceAdmin);

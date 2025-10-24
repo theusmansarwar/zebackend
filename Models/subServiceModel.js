@@ -14,7 +14,12 @@ const ServiceSchema = new mongoose.Schema(
       steps: [{ type: String }],
       published: { type: Boolean, default: false },
     },
-
+ imageSection: {
+      title: { type: String },
+      description: { type: String },
+      image: { type: String },
+      published: { type: Boolean, default: false },
+    },
     faqs: {
       title: { type: String },
       description: { type: String },
@@ -41,5 +46,5 @@ const ServiceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Services = mongoose.model("subServices", ServiceSchema);
-module.exports = Services;
+const SubServices = mongoose.model("subServices", ServiceSchema);
+module.exports = SubServices;

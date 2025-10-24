@@ -285,7 +285,7 @@ const listservice = async (req, res) => {
     }
 
     const servicesList = await Services.find(filter)
-      .select("title short_description createdAt slug icon") // ✅ Keep published too if you want to show status
+      .select("title short_description createdAt slug icon")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
