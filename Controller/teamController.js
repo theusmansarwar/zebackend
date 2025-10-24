@@ -161,7 +161,7 @@ const getAllTeamMembers = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const total = await Team.countDocuments({ isDeleted: false });
-    const members = await Team.find({ isDeleted: false }).populate("role").populate("category").skip(skip).limit(limit);
+    const members = await Team.find().populate("role").populate("category").skip(skip).limit(limit);
 
     res.status(200).json({
       status: 200,
@@ -193,7 +193,7 @@ const getTeamMemberById = async (req, res) => {
 const getTeamLiveMember = async (req, res) => {
   try {
     // 1. Fetch all published categories
-    const categories = await TeamCategory.find({ published: true, isDeleted: false }).sort({ createdAt: 1 });
+    const categories = await TeamCategory.find({ published: true }).sort({ createdAt: 1 });
 
     // 2. For each category, fetch only published members
     const teams = await Promise.all(
