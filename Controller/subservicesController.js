@@ -312,13 +312,13 @@ const listserviceAdmin = async (req, res) => {
       filter.title = { $regex: title, $options: "i" };
     }
 
-    const servicesList = await Services.find(filter)
+    const servicesList = await SubServices.find(filter)
       .select("title short_description published createdAt") // ✅ Only required fields
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
-    const totalServices = await Services.countDocuments(filter);
+    const totalServices = await SubServices.countDocuments(filter);
 
     return res.status(200).json({
       totalServices,
@@ -351,13 +351,13 @@ const listservice = async (req, res) => {
       filter.title = { $regex: title, $options: "i" };
     }
 
-    const servicesList = await Services.find(filter)
+    const servicesList = await SubServices.find(filter)
       .select("title short_description createdAt slug icon") // ✅ Keep published too if you want to show status
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
-    const totalServices = await Services.countDocuments(filter);
+    const totalServices = await SubServices.countDocuments(filter);
 
     return res.status(200).json({
       totalServices,
@@ -380,7 +380,7 @@ const getServiceById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const service = await Services.findById(id).populate(
+    const service = await SubServices.findById(id).populate(
       "faqs.items",
       "question answer"
     );
@@ -402,7 +402,7 @@ const getServiceBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
 
-    const service = await Services.findOne({ slug, published: true })
+    const service = await SubServices.findOne({ slug, published: true })
       .populate("faqs.items", "question answer")
       .exec();
 
@@ -442,7 +442,7 @@ const deleteAllservices = async (req, res) => {
     }
 
     // ✅ Check existing services
-    const existingServices = await Services.find({
+    const existingServices = await SubServices.find({
       _id: { $in: validIds },
       isDeleted: false,
     });
@@ -455,7 +455,7 @@ const deleteAllservices = async (req, res) => {
     }
 
     // ✅ Soft delete (mark as deleted)
-    await Services.updateMany(
+    await SubServices.updateMany(
       { _id: { $in: validIds } },
       { $set: { isDeleted: true } }
     );
@@ -477,14 +477,14 @@ const deleteAllservices = async (req, res) => {
 
 const getservicesSlugs = async (req, res) => {
   try {
-    const serviceslist = await Services.find({
+    const serviceslist = await SubServices.find({
       published: true,
       isDeleted: false,
     })
       .select("slug _id title")
       .sort({ publishedDate: -1 });
 
-    const totalServices = await Services.countDocuments({
+    const totalServices = await SubServices.countDocuments({
       published: true,
       isDeleted: false,
     });
