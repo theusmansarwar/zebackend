@@ -246,7 +246,7 @@ const listserviceAdmin = async (req, res) => {
 
     const servicesList = await Services.find(filter)
       .select("title short_description published createdAt")
-      .populate("subServices.items")
+      
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -317,7 +317,10 @@ const getServiceById = async (req, res) => {
     const service = await Services.findById(id).populate(
       "faqs.items",
       "question answer"
-    );
+    ).populate(
+      "subServices.items"
+    )
+    ;
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
