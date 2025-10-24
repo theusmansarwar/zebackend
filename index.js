@@ -55,12 +55,15 @@ const TeamCategoryRouter = require("./Routes/teamCategoryRoutes");
 const roleRouter = require("./Routes/roleRoutes");
 const testimonialRouter = require("./Routes/testimonialRoutes");
 const serviceRouter = require("./Routes/serviceRoutes");
+
+const subserviceRouter = require("./Routes/subServiceRoutes");
 const adminRoutes = require("./Routes/adminRoutes");
 const viewsRouter = require("./Routes/viewsRoutes");
 const usertypeRouter = require("./Routes/typeRoutes");
 const industryRoutes = require("./Routes/industriesRoutes");
 const caseStudyRoutes = require("./Routes/caseStudiesRoutes");
 
+const PortfolioRoutes = require("./Routes/portfolioRoutes");
 const faqsRoutes = require("./Routes/faqsRoutes");
 // ✅ Use Routes
 app.use("/", userRouter);
@@ -72,13 +75,14 @@ app.use("/category", categoryRouter);
 app.use("/teamcategory", TeamCategoryRouter);
 app.use("/team", teamRouter);
 app.use("/service", serviceRouter);
+app.use("/sub-service", subserviceRouter);
 app.use("/testimonial", testimonialRouter);
 app.use("/role", roleRouter);
 app.use("/views", viewsRouter);
 app.use("/industry", industryRoutes);
 app.use("/casestudy", caseStudyRoutes);
 app.use("/faqs", faqsRoutes);
-
+app.use("/portfolio", PortfolioRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const multer = require("multer");
 app.use(express.json({ limit: "200mb" }));

@@ -102,16 +102,6 @@ const createservice = async (req, res) => {
 const updateService = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // ✅ Parse stringified JSON fields
-    for (const key in req.body) {
-      if (typeof req.body[key] === "string") {
-        try {
-          req.body[key] = JSON.parse(req.body[key]);
-        } catch (e) {}
-      }
-    }
-
     const {
       title,
       description,
@@ -120,35 +110,128 @@ const updateService = async (req, res) => {
       slug,
       published,
       icon,
-      faqs = {},
-      imageSection = {},
-      lastSection = {},
-      subServices = {},
+      faqs,
+      imageSection,
+      lastSection,
+      subServices,
     } = req.body;
 
-    console.log("📦 RAW BODY RECEIVED:", req.body);
-
-    // ✅ Get existing service
-    const existingService = await Services.findById(id);
-    if (!existingService) {
-      return res.status(404).json({
-        status: 404,
-        message: "Service not found",
-      });
-    }
-
-    // ✅ Validate required fields if published
     const missingFields = [];
     const isPublished = published === "true" || published === true;
 
+    // 🔍 Validate top-level fields if published
     if (isPublished) {
-      if (!title) missingFields.push({ name: "title", message: "Title is required" });
-      if (!description) missingFields.push({ name: "description", message: "Description is required" });
-      if (!metaDescription) missingFields.push({ name: "metaDescription", message: "Meta description is required" });
-      if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
-      if (!icon) missingFields.push({ name: "icon", message: "Icon is required" });
+      if (!title)
+        missingFields.push({ name: "title", message: "Title is required" });
+      if (!description)
+        missingFields.push({
+          name: "description",
+          message: "Description is required",
+        });
+      if (!metaDescription)
+        missingFields.push({
+          name: "metaDescription",
+          message: "Meta description is required",
+        });
+      if (!slug)
+        missingFields.push({ name: "slug", message: "Slug is required" });
+      if (!icon)
+        missingFields.push({ name: "icon", message: "Icon is required" });
     }
 
+    // ✅ Parse and validate nested sections
+    let faqsData = {};
+    if (faqs) {
+      const parsedFaqs = typeof faqs === "string" ? JSON.parse(faqs) : faqs;
+      faqsData = {
+        title: parsedFaqs.title,
+        description: parsedFaqs.description,
+        items: parsedFaqs.items || [],
+        published:
+          parsedFaqs.published === "true" || parsedFaqs.published === true,
+      };
+
+      if (faqsData.published) {
+        if (!faqsData.title)
+          missingFields.push({
+            name: "faqs.title",
+            message: "FAQs title is required",
+          });
+        if (!faqsData.description)
+          missingFields.push({
+            name: "faqs.description",
+            message: "FAQs description is required",
+          });
+      }
+    }
+
+    let imageSectionData = {};
+    if (imageSection) {
+      const parsed =
+        typeof imageSection === "string"
+          ? JSON.parse(imageSection)
+          : imageSection;
+      imageSectionData = {
+        title: parsed.title,
+        image: parsed.image,
+        published: parsed.published === "true" || parsed.published === true,
+      };
+
+      if (imageSectionData.published) {
+        if (!imageSectionData.title)
+          missingFields.push({
+            name: "imageSection.title",
+            message: "Image section title is required",
+          });
+        if (!parsed.image)
+          missingFields.push({
+            name: "imageSection.image",
+            message: "Image path is required",
+          });
+      }
+    }
+
+    let lastSectionData = {};
+    if (lastSection) {
+      const parsed =
+        typeof lastSection === "string" ? JSON.parse(lastSection) : lastSection;
+      lastSectionData = {
+        title: parsed.title,
+        description: parsed.description,
+        image: parsed.image,
+        published: parsed.published === "true" || parsed.published === true,
+      };
+
+      if (lastSectionData.published) {
+        if (!lastSectionData.title)
+          missingFields.push({
+            name: "lastSection.title",
+            message: "Last section title is required",
+          });
+        if (!lastSectionData.description)
+          missingFields.push({
+            name: "lastSection.description",
+            message: "Last section description is required",
+          });
+        if (!parsed.image)
+          missingFields.push({
+            name: "lastSection.image",
+            message: "Last section image is required",
+          });
+      }
+    }
+
+    let subServicesData = {};
+    if (subServices) {
+      const parsed =
+        typeof subServices === "string" ? JSON.parse(subServices) : subServices;
+      subServicesData = {
+        published: parsed.published === "true" || parsed.published === true,
+        items: parsed.items || [],
+      };
+    }
+
+    // ❌ Stop if any required fields missing
     if (missingFields.length > 0) {
       return res.status(400).json({
         status: 400,
@@ -157,64 +240,34 @@ const updateService = async (req, res) => {
       });
     }
 
-    // ✅ Merge old + new FAQ data (preserve items if not sent)
-    const faqsData = {
-      title: faqs.title ?? existingService.faqs.title ?? "",
-      description: faqs.description ?? existingService.faqs.description ?? "",
-      items: faqs.items ?? existingService.faqs.items ?? [],
-      published: faqs.published === "true" || faqs.published === true || existingService.faqs.published,
-    };
-
-    // ✅ Merge old + new image section
-    const imageSectionData = {
-      title: imageSection.title ?? existingService.imageSection.title ?? "",
-      image: imageSection.image ?? existingService.imageSection.image ?? "",
-      published:
-        imageSection.published === "true" ||
-        imageSection.published === true ||
-        existingService.imageSection.published,
-    };
-
-    // ✅ Merge old + new last section
-    const lastSectionData = {
-      title: lastSection.title ?? existingService.lastSection.title ?? "",
-      description: lastSection.description ?? existingService.lastSection.description ?? "",
-      image: lastSection.image ?? existingService.lastSection.image ?? "",
-      published:
-        lastSection.published === "true" ||
-        lastSection.published === true ||
-        existingService.lastSection.published,
-    };
-
-    // ✅ Merge old + new subServices (preserve items if not sent)
-    const subServicesData = {
-      published:
-        subServices.published === "true" ||
-        subServices.published === true ||
-        existingService.subServices.published,
-      items: subServices.items ?? existingService.subServices.items ?? [],
-    };
-
-    // ✅ Build update payload
+    // ✅ Prepare update object
     const updateFields = {
-      title: title ?? existingService.title,
-      description: description ?? existingService.description,
-      short_description: short_description ?? existingService.short_description,
-      metaDescription: metaDescription ?? existingService.metaDescription,
-      slug: slug ?? existingService.slug,
-      icon: icon ?? existingService.icon,
+      title,
+      description,
+      short_description,
+      metaDescription,
+      slug,
+      icon,
       published: isPublished,
-      faqs: faqsData,
-      imageSection: imageSectionData,
-      lastSection: lastSectionData,
-      subServices: subServicesData,
     };
 
-    // ✅ Update and return new service
+    if (faqs) updateFields.faqs = faqsData;
+    if (imageSection) updateFields.imageSection = imageSectionData;
+    if (lastSection) updateFields.lastSection = lastSectionData;
+    if (subServices) updateFields.subServices = subServicesData;
+
+    // ✅ Perform update
     const updatedService = await Services.findByIdAndUpdate(id, updateFields, {
       new: true,
       runValidators: true,
     });
+
+    if (!updatedService) {
+      return res.status(404).json({
+        status: 404,
+        message: "Service not found",
+      });
+    }
 
     res.status(200).json({
       status: 200,
@@ -231,8 +284,6 @@ const updateService = async (req, res) => {
   }
 };
 
-
-
 const listserviceAdmin = async (req, res) => {
   try {
     const { title } = req.query;
@@ -245,7 +296,7 @@ const listserviceAdmin = async (req, res) => {
     }
 
     const servicesList = await Services.find(filter)
-      .select("title short_description published createdAt")
+      .select("title short_description published createdAt") // ✅ Only required fields
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -277,9 +328,8 @@ const listservice = async (req, res) => {
 
     let filter = {
       published: true,
-      isDeleted: false, 
-    }; 
-
+      isDeleted: false, // ✅ only include non-deleted items
+    }; // ✅ Only published services
     if (title) {
       filter.title = { $regex: title, $options: "i" };
     }
@@ -357,18 +407,24 @@ const getServiceBySlug = async (req, res) => {
 const deleteAllservices = async (req, res) => {
   try {
     const { ids } = req.body;
+
+    // ✅ Validate input
     if (!Array.isArray(ids) || ids.length === 0) {
       return res.status(400).json({
         status: 400,
         message: "Invalid request. Provide Service IDs.",
       });
     }
+
+    // ✅ Filter valid ObjectIds
     const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
     if (validIds.length === 0) {
       return res
         .status(400)
         .json({ status: 400, message: "No valid service IDs provided." });
     }
+
+    // ✅ Check existing services
     const existingServices = await Services.find({
       _id: { $in: validIds },
       isDeleted: false,
@@ -380,6 +436,8 @@ const deleteAllservices = async (req, res) => {
         message: "No active services found with the given IDs.",
       });
     }
+
+    // ✅ Soft delete (mark as deleted)
     await Services.updateMany(
       { _id: { $in: validIds } },
       { $set: { isDeleted: true } }
