@@ -25,10 +25,15 @@ const ServiceSchema = new mongoose.Schema(
       description: { type: String },
       published: { type: Boolean, default: false },
     },
- imageSection: {
+    imageSection: {
       title: { type: String },
       description: { type: String },
       image: { type: String },
+      published: { type: Boolean, default: false },
+    },
+     whysection: {
+      title: { type: String },
+      description: { type: String },
       published: { type: Boolean, default: false },
     },
     faqs: {

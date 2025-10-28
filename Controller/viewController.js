@@ -3,9 +3,7 @@ const { View, TotalImpression } = require("../Models/viewModel");
 const incrementImpression = async (req, res) => {
   try {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize time to midnight
-
-    // ✅ Find today's view record
+    today.setHours(0, 0, 0, 0); 
     let viewRecord = await View.findOne({ date: today });
 
     if (!viewRecord) {
@@ -15,7 +13,6 @@ const incrementImpression = async (req, res) => {
       await viewRecord.save();
     }
 
-    // ✅ Update Total Impression Count
     let totalImpressionRecord = await TotalImpression.findOne();
     if (!totalImpressionRecord) {
       totalImpressionRecord = await TotalImpression.create({ totalImpression: 1 });

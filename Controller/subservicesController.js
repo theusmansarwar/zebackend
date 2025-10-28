@@ -151,6 +151,7 @@ const updateSubService = async (req, res) => {
       icon,
       introduction = {},
       provenSteps = {},
+      whySection = {},
       cta = {},
       imageSection = {},
       faqs = {},
@@ -221,6 +222,15 @@ const updateSubService = async (req, res) => {
         existing.cta?.published ||
         false,
     };
+      const whySectionData = {
+      title: whySection.title ?? existing.whySection?.title ?? "",
+      description: whySection.description ?? existing.whySection?.description ?? "",
+      published:
+        whySection.published === "true" ||
+        whySection.published === true ||
+        existing.whySection?.published ||
+        false,
+    };
 
     const imageSectionData = {
       title: imageSection.title ?? existing.imageSection?.title ?? "",
@@ -277,6 +287,7 @@ const updateSubService = async (req, res) => {
       cta: ctaData,
       imageSection: imageSectionData,
       faqs: faqsData,
+      whySection: whySectionData,
       portfolio: portfolioData,
     };
 
