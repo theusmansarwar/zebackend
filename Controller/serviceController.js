@@ -344,7 +344,15 @@ const getServiceBySlug = async (req, res) => {
     const { slug } = req.params;
 
     const service = await Services.findOne({ slug, published: true })
-      .populate("faqs.items", "question answer")
+      .populate({ path: "faqs.items",
+    match: { isDeleted: { $ne: true } }, // only include non-deleted FAQs
+    select: "question answer"})
+       .populate({
+    path: "subServices.items",
+    match: { isDeleted: { $ne: true },
+    select: "title short_description slug icon"
+       }
+  })
       .exec();
 
     if (!service) {
