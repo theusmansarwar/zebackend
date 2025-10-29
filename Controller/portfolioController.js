@@ -1,5 +1,5 @@
 const Portfolio = require("../Models/portfolioModel");
-const Services = require("../Models/serviceModel");
+const SubServices = require("../Models/subServiceModel");
 
 // ✅ Create Portfolio & Link to Service
 const addPortfolio = async (req, res) => {
@@ -22,7 +22,7 @@ const addPortfolio = async (req, res) => {
     const savedPortfolio = await newPortfolio.save();
 
     // link to service
-    const updatedService = await Services.findByIdAndUpdate(
+    const updatedService = await SubServices.findByIdAndUpdate(
       serviceid,
       { $push: { "portfolio.items": savedPortfolio._id } },
       { new: true }
