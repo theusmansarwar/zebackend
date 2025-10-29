@@ -256,6 +256,8 @@ const updateSubService = async (req, res) => {
     };
 
     const portfolioData = {
+      
+      title: portfolio.title ?? existing.portfolio?.title ?? "",
       items: existing.portfolio?.items || [], // keep linked portfolio IDs
       published:
         portfolio.published === "true" ||

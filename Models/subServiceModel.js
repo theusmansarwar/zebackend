@@ -45,6 +45,7 @@ const ServiceSchema = new mongoose.Schema(
    
    
     portfolio: {
+       title: { type: String },
       items: [{ type: mongoose.Schema.Types.ObjectId, ref: "Portfolio" }],
       published: { type: Boolean, default: false },
     },
