@@ -142,11 +142,22 @@ const updateService = async (req, res) => {
     const isPublished = published === "true" || published === true;
 
     if (isPublished) {
-      if (!title) missingFields.push({ name: "title", message: "Title is required" });
-      if (!description) missingFields.push({ name: "description", message: "Description is required" });
-      if (!metaDescription) missingFields.push({ name: "metaDescription", message: "Meta description is required" });
-      if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
-      if (!icon) missingFields.push({ name: "icon", message: "Icon is required" });
+      if (!title)
+        missingFields.push({ name: "title", message: "Title is required" });
+      if (!description)
+        missingFields.push({
+          name: "description",
+          message: "Description is required",
+        });
+      if (!metaDescription)
+        missingFields.push({
+          name: "metaDescription",
+          message: "Meta description is required",
+        });
+      if (!slug)
+        missingFields.push({ name: "slug", message: "Slug is required" });
+      if (!icon)
+        missingFields.push({ name: "icon", message: "Icon is required" });
     }
 
     if (missingFields.length > 0) {
@@ -162,7 +173,10 @@ const updateService = async (req, res) => {
       title: faqs.title ?? existingService.faqs.title ?? "",
       description: faqs.description ?? existingService.faqs.description ?? "",
       items: faqs.items ?? existingService.faqs.items ?? [],
-      published: faqs.published === "true" || faqs.published === true || existingService.faqs.published,
+      published:
+        faqs.published === "true" ||
+        faqs.published === true ||
+        existingService.faqs.published,
     };
 
     // ✅ Merge old + new image section
@@ -178,7 +192,10 @@ const updateService = async (req, res) => {
     // ✅ Merge old + new last section
     const lastSectionData = {
       title: lastSection.title ?? existingService.lastSection.title ?? "",
-      description: lastSection.description ?? existingService.lastSection.description ?? "",
+      description:
+        lastSection.description ??
+        existingService.lastSection.description ??
+        "",
       image: lastSection.image ?? existingService.lastSection.image ?? "",
       published:
         lastSection.published === "true" ||
@@ -231,8 +248,6 @@ const updateService = async (req, res) => {
   }
 };
 
-
-
 const listserviceAdmin = async (req, res) => {
   try {
     const { title } = req.query;
@@ -247,7 +262,7 @@ const listserviceAdmin = async (req, res) => {
 
     const servicesList = await Services.find(filter)
       .select("title short_description published createdAt")
-      
+
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -279,8 +294,8 @@ const listservice = async (req, res) => {
 
     let filter = {
       published: true,
-      isDeleted: false, 
-    }; 
+      isDeleted: false,
+    };
 
     if (title) {
       filter.title = { $regex: title, $options: "i" };
@@ -316,15 +331,15 @@ const getServiceById = async (req, res) => {
     const { id } = req.params;
 
     const service = await Services.findById(id)
-     .populate({
-    path: "faqs.items",
-    match: { isDeleted: { $ne: true } }, // only include non-deleted FAQs
-    select: "question answer",
-  })
-  .populate({
-    path: "subServices.items",
-    match: { isDeleted: { $ne: true } }, // only include non-deleted subServices
-  });
+      .populate({
+        path: "faqs.items",
+        match: { isDeleted: { $ne: true } }, // only include non-deleted FAQs
+        select: "question answer",
+      })
+      .populate({
+        path: "subServices.items",
+        match: { isDeleted: { $ne: true } }, // only include non-deleted subServices
+      });
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
@@ -344,15 +359,18 @@ const getServiceBySlug = async (req, res) => {
     const { slug } = req.params;
 
     const service = await Services.findOne({ slug, published: true })
-      .populate({ path: "faqs.items",
-    match: { isDeleted: { $ne: true } }, // only include non-deleted FAQs
-    select: "question answer"})
-       .populate({
-    path: "subServices.items",
-    match: { isDeleted: { $ne: true },
-    select: "title short_description slug icon"
-       }
-  })
+      .populate({
+        path: "faqs.items",
+        match: { isDeleted: { $ne: true } }, // only include non-deleted FAQs
+        select: "question answer",
+      })
+      .populate({
+        path: "subServices.items",
+        match: {
+          isDeleted: { $ne: true }
+        },
+          select: "title short_description slug icon",
+      })
       .exec();
 
     if (!service) {
