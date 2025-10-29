@@ -238,7 +238,7 @@ const listserviceAdmin = async (req, res) => {
     const { title } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    
+
     let filter = { isDeleted: { $ne: true } };
 
     if (title) {
@@ -315,13 +315,16 @@ const getServiceById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const service = await Services.findById(id).populate(
-      "faqs.items",
-      "question answer"
-    ).populate(
-      "subServices.items"
-    )
-    ;
+    const service = await Services.findById(id)
+     .populate({
+    path: "faqs.items",
+    match: { isDeleted: { $ne: true } }, // only include non-deleted FAQs
+    select: "question answer",
+  })
+  .populate({
+    path: "subServices.items",
+    match: { isDeleted: { $ne: true } }, // only include non-deleted subServices
+  });
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
