@@ -238,8 +238,9 @@ const listserviceAdmin = async (req, res) => {
     const { title } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    
+    let filter = { isDeleted: { $ne: true } };
 
-    let filter = {};
     if (title) {
       filter.title = { $regex: title, $options: "i" };
     }
