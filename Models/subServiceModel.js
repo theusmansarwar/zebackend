@@ -49,6 +49,7 @@ const ServiceSchema = new mongoose.Schema(
       published: { type: Boolean, default: false },
     },
     published: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
