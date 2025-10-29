@@ -394,7 +394,8 @@ const getServiceById = async (req, res) => {
     const service = await SubServices.findById(id).populate(
       "faqs.items",
       "question answer"
-    );
+    ).populate("portfolio.items","title description images videos thumbnail published") ;
+    
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
@@ -415,6 +416,7 @@ const getServiceBySlug = async (req, res) => {
 
     const service = await SubServices.findOne({ slug, published: true })
       .populate("faqs.items", "question answer")
+      .populate("portfolio.items","title description images videos thumbnail published")
       .exec();
 
     if (!service) {
