@@ -9,7 +9,7 @@ const port = process.env.PORT || 4000;
 
 // ✅ Allowed Origins
 const allowedOrigins = [
-  "http://localhost:3000",  // Local frontend (React)
+  "http://localhost:3000", // Local frontend (React)
   "http://localhost:5173",  // Local frontend (Vite)
   "https://admin.zemalt.com", // Admin panel (Live)
   "https://zemalt.com",

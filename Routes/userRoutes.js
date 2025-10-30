@@ -1,9 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { CreateLeads, LeadsList, 
-    // GetLeadById,
-     DeleteLeads } = require("../Controller/leadsController");
+const { CreateLeads, LeadsList, DeleteLeads } = require("../Controller/leadsController");
 const authMiddleware = require("../Middleware/authMiddleware");
 
 
