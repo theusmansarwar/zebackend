@@ -563,7 +563,6 @@ module.exports = {
   viewblog,
   deletemultiblog,
   listblogAdmin,
-  listblogWritter,
   viewblogbyid,
   getblogSlugs,
   getFeaturedblogs,
