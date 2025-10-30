@@ -317,7 +317,11 @@ const getFeaturedblogs = async (req, res) => {
     const allFeaturedBlogs = await Blogs.find({
       published: true,
       featured: true,
-    }).select("-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -createdAt -views -__v  -category");
+    }).select("-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -createdAt -views -__v  -category")
+    .populate(
+        "category",
+        "name "
+      )
 
     const shuffled = allFeaturedBlogs.sort(() => 0.5 - Math.random());
     const blogslist = shuffled.slice(0, 4);
@@ -535,7 +539,11 @@ const getPopularBlogs = async (req, res) => {
     const limit = parseInt(req.query.limit) || 5; 
 
     const blogs = await Blogs.find({ published: true, isDeleted: false })
-      .select("-comments -detail -viewedBy -faqSchema") // exclude heavy fields
+      .select("-comments -detail -viewedBy -faqSchema") 
+       .populate(
+        "category",
+        "name "
+      )
       .sort({ views: -1 }) // sort by views (highest first)
       .limit(limit);
 
