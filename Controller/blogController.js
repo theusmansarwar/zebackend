@@ -398,6 +398,7 @@ const listblogAdmin = async (req, res) => {
       .populate({
         path: "category",
         model: "Category",
+        select:"name "
       })
       .limit(limit)
       .skip((page - 1) * limit);
