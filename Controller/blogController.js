@@ -539,7 +539,7 @@ const getPopularBlogs = async (req, res) => {
     const limit = parseInt(req.query.limit) || 5; 
 
     const blogs = await Blogs.find({ published: true, isDeleted: false })
-      .select("-comments -detail -viewedBy -faqSchema -createdAt -updatedAt -isDeleted -__v -featured -published -view ") 
+      .select("-comments -detail -viewedBy -faqSchema -createdAt -updatedAt -isDeleted -__v -featured -published -views ") 
        .populate(
         "category",
         "name "
