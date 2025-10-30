@@ -318,7 +318,7 @@ const getFeaturedblogs = async (req, res) => {
     const allFeaturedBlogs = await Blogs.find({
       published: true,
       featured: true,
-    }).select("-comments -detail -published -viewedBy -featured");
+    }).select("-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -createdAt -views -__v  -category");
 
     const shuffled = allFeaturedBlogs.sort(() => 0.5 - Math.random());
     const blogslist = shuffled.slice(0, 4);
