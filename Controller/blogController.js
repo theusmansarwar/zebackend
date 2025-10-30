@@ -288,7 +288,7 @@ if (categoryId && categoryId !== "all" && categoryId.trim() !== "") {
 
     // fetch blogs
     const blogslist = await Blogs.find(filter)
-      .select("-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -views -__v ")
+      .select("-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -createdAt -views -__v  -category")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -352,9 +352,7 @@ const getFeaturedblogsadmin = async (req, res) => {
 
     // Fetch paginated blogs
     const allFeaturedBlogs = await Blogs.find(filter).populate("category")
-      .select(
-        "-comments -detail -viewedBy -metaDescription -description  -faqSchema -slug"
-      )
+      .select("-comments -detail -viewedBy -isDeleted -faqSchema -metaDescription -updatedAt -__v ")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -422,61 +420,6 @@ const listblogAdmin = async (req, res) => {
   }
 };
 
-const listblogWritter = async (req, res) => {
-  try {
-    const { title, search } = req.query;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-
-    if (!search) {
-      return res.status(400).json({ message: "Author (search) is required." });
-    }
-
-    const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-
-    const escapedAuthor = escapeRegex(search);
-
-    // ✅ Filter for author + not deleted
-    const filter = {
-      author: { $regex: escapedAuthor, $options: "i" },
-      isDeleted: { $ne: true },
-    };
-
-    if (title) {
-      const escapedTitle = escapeRegex(title);
-      filter.title = { $regex: escapedTitle, $options: "i" };
-    }
-
-    const blogslist = await Blogs.find(filter)
-      .select(
-        "-comments -detail -viewedBy -metaDescription -description -faqSchema -slug"
-      )
-      .sort({ createdAt: -1 })
-      .populate({
-        path: "category",
-        model: "Category",
-      })
-      .limit(limit)
-      .skip((page - 1) * limit);
-
-    const totalBlogs = await Blogs.countDocuments(filter);
-
-    res.status(200).json({
-      totalBlogs,
-      totalPages: Math.ceil(totalBlogs / limit),
-      currentPage: page,
-      limit,
-      blogs: blogslist,
-    });
-  } catch (error) {
-    console.error("Error fetching blogs:", error);
-    res.status(500).json({
-      status: 500,
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
 
 
 
