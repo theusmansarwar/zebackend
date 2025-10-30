@@ -429,7 +429,7 @@ const listblogAdmin = async (req, res) => {
 const viewblog = async (req, res) => {
   try {
     const { slug } = req.params;
-    let blog = await Blogs.findOne({ slug, published: true,isDeleted: false })
+    let blog = await Blogs.findOne({ slug, published: true, isDeleted: false })
       .populate({
         path: "comments",
         match: { published: true },
@@ -437,8 +437,9 @@ const viewblog = async (req, res) => {
       }).populate({
         path: "category",
         model: "Category",
-        select:"name "
+        select:"name _id"
       })
+      .select("-_id -__v -published -isDeleted -updatedAt")
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
