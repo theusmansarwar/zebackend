@@ -294,7 +294,7 @@ if (categoryId && categoryId !== "all" && categoryId.trim() !== "") {
 
     // fetch blogs
     const blogslist = await Blogs.find(filter)
-      .select("-comments -detail -published -viewedBy")
+      .select("-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -views -__v -_id ")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
