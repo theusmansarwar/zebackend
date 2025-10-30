@@ -158,9 +158,13 @@ const liveTestimonial = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const totalTestimonials = await Testimonials.countDocuments({ published: true ,  isDeleted: false});
-    const testimonials = await Testimonials.find({ published: true, isDeleted: false })
+    const filter = { published: true, isDeleted: false };
+
+    const totalTestimonials = await Testimonials.countDocuments(filter);
+
+    const testimonials = await Testimonials.find(filter)
       .sort({ createdAt: -1 })
+      .select("-_id -__v -updatedAt -published -isDeleted") // 👈 exclude fields
       .limit(limit)
       .skip((page - 1) * limit);
 
@@ -175,6 +179,7 @@ const liveTestimonial = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 
 

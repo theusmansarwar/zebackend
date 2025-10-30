@@ -104,8 +104,6 @@ const createservice = async (req, res) => {
 const updateService = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // ✅ Parse stringified JSON fields
     for (const key in req.body) {
       if (typeof req.body[key] === "string") {
         try {
@@ -130,8 +128,6 @@ const updateService = async (req, res) => {
     } = req.body;
 
     console.log("📦 RAW BODY RECEIVED:", req.body);
-
-    // ✅ Get existing service
     const existingService = await Services.findById(id);
     if (!existingService) {
       return res.status(404).json({
@@ -139,8 +135,6 @@ const updateService = async (req, res) => {
         message: "Service not found",
       });
     }
-
-    // ✅ Validate required fields if published
     const missingFields = [];
     const isPublished = published === "true" || published === true;
 
@@ -170,8 +164,6 @@ const updateService = async (req, res) => {
         missingFields,
       });
     }
-
-    // ✅ Merge old + new FAQ data (preserve items if not sent)
     const faqsData = {
       title: faqs.title ?? existingService.faqs.title ?? "",
       description: faqs.description ?? existingService.faqs.description ?? "",
@@ -181,8 +173,6 @@ const updateService = async (req, res) => {
         faqs.published === true ||
         existingService.faqs.published,
     };
-
-    // ✅ Merge old + new image section
     const imageSectionData = {
       title: imageSection.title ?? existingService.imageSection.title ?? "",
       image: imageSection.image ?? existingService.imageSection.image ?? "",
@@ -191,8 +181,6 @@ const updateService = async (req, res) => {
         imageSection.published === true ||
         existingService.imageSection.published,
     };
-
-    // ✅ Merge old + new last section
     const lastSectionData = {
       title: lastSection.title ?? existingService.lastSection.title ?? "",
       description:
