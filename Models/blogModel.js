@@ -10,7 +10,6 @@ const BlogsSchema = new mongoose.Schema(
     slug: { type: String },
     detail: { type: String },
     faqSchema: { type: String },
-    author: { type: String },
     thumbnail: { type: String },
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
     views: { type: Number, default: 0 },

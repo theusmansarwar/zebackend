@@ -34,7 +34,6 @@ const createblog = async (req, res) => {
     if (isPublished) {
       if (!description) missingFields.push({ name: "description", message: "Description is required" });
       if (!detail) missingFields.push({ name: "detail", message: "Detail is required" });
-      if (!author) missingFields.push({ name: "author", message: "Author is required" });
       if (!metaDescription) missingFields.push({ name: "metaDescription", message: "Meta description is required" });
       if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
       if (!thumbnail) missingFields.push({ name: "thumbnail", message: "Thumbnail is required" });
@@ -86,7 +85,6 @@ const createblog = async (req, res) => {
       title,
       description,
       detail,
-      author,
       slug,
       thumbnail,
       metaDescription,
@@ -119,7 +117,6 @@ const updateblog = async (req, res) => {
       title,
       description,
       detail,
-      author,
       metaDescription,
       slug,
       category,
@@ -149,8 +146,6 @@ try{
         missingFields.push({ name: "description", message: "Description is required" });
       if (!(detail || blog.detail))
         missingFields.push({ name: "detail", message: "Detail is required" });
-      if (!(author || blog.author))
-        missingFields.push({ name: "author", message: "Author is required" });
       if (!(metaDescription || blog.metaDescription))
         missingFields.push({ name: "metaDescription", message: "Meta description is required" });
       if (!(slug || blog.slug))
@@ -183,7 +178,6 @@ try{
     if (title !== undefined) blog.title = title;
     if (description !== undefined) blog.description = description;
     if (detail !== undefined) blog.detail = detail;
-    if (author !== undefined) blog.author = author;
     if (metaDescription !== undefined) blog.metaDescription = metaDescription;
     if (slug !== undefined) blog.slug = slug;
     if (thumbnail !== undefined) blog.thumbnail = thumbnail;
@@ -294,7 +288,7 @@ if (categoryId && categoryId !== "all" && categoryId.trim() !== "") {
 
     // fetch blogs
     const blogslist = await Blogs.find(filter)
-      .select("-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -views -__v -_id ")
+      .select("-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -views -__v ")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
@@ -399,9 +393,7 @@ const listblogAdmin = async (req, res) => {
     }
 
     const blogslist = await Blogs.find(filter)
-      .select(
-        "-comments -detail -viewedBy -metaDescription -description -faqSchema -slug"
-      )
+      .select("-comments -detail -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -__v ")
       .sort({ createdAt: -1 })
       .populate({
         path: "category",
