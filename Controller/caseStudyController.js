@@ -4,10 +4,11 @@ const CaseStudy = require("../Models/casestudiesModel");
 // ✅ Add CaseStudy
 const addCaseStudy = async (req, res) => {
   try {
-    let { name, description,detail,file, image, published } = req.body;
+    let { name,shortdescription, description,detail,file, image, published } = req.body;
     const missingFields = [];
 
     if (!name) missingFields.push({ name: "name", message: "Name is required" });
+    if (!shortdescription) missingFields.push({ name: "shortdescription", message: "Short Description is required" });
     if (!description) missingFields.push({ name: "description", message: "Description is required" });
      if (!detail) missingFields.push({ name: "detail", message: "Detail is required" });
     if (!image) missingFields.push({ name: "image", message: "Image is required" });
@@ -28,7 +29,7 @@ const addCaseStudy = async (req, res) => {
       return res.status(400).json({ message: "CaseStudy already exists" });
     }
 
-    const newCaseStudy = new CaseStudy({ name, description, detail, image, file, published });
+    const newCaseStudy = new CaseStudy({ name,shortdescription, description, detail, image, file, published });
     await newCaseStudy.save();
 
     res.status(201).json({
@@ -45,10 +46,11 @@ const addCaseStudy = async (req, res) => {
 const updateCaseStudy = async (req, res) => {
   try {
     const { id } = req.params;
-    let { name, description,detail, image,file, published } = req.body;
+    let { name,shortdescription, description,detail, image,file, published } = req.body;
 
     const missingFields = [];
     if (!name) missingFields.push({ name: "name", message: "Name is required" });
+    if (!shortdescription) missingFields.push({ name: "shortdescription", message: "Short Description is required" });
     if (!description) missingFields.push({ name: "description", message: "Description is required" });
     
     if (!file) missingFields.push({ name: "file", message: "File is required" });
@@ -72,7 +74,7 @@ const updateCaseStudy = async (req, res) => {
 
     const updatedCaseStudy = await CaseStudy.findByIdAndUpdate(
       id,
-      { name, description, image, detail, file, published },
+      { name, shortdescription, description, image, detail, file, published },
       { new: true, runValidators: true }
     );
 
