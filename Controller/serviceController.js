@@ -9,6 +9,7 @@ const createservice = async (req, res) => {
   try {
     const {
       title,
+      metatitle,
       description,
       short_description,
       metaDescription,
@@ -76,6 +77,7 @@ const createservice = async (req, res) => {
     }
     const newService = await Services.create({
       title,
+      metatitle,
       description,
       short_description,
       metaDescription,
@@ -114,6 +116,7 @@ const updateService = async (req, res) => {
 
     const {
       title,
+      metatitle,
       description,
       short_description,
       metaDescription,
@@ -215,6 +218,7 @@ const updateService = async (req, res) => {
     // ✅ Build update payload
     const updateFields = {
       title: title ?? existingService.title,
+      metatitle: metatitle ?? existingService.metatitle,
       description: description ?? existingService.description,
       short_description: short_description ?? existingService.short_description,
       metaDescription: metaDescription ?? existingService.metaDescription,
@@ -341,13 +345,11 @@ const listmenuservice = async (req, res) => {
         },
         select: "title slug -_id",
       })
-      .sort({ createdAt: -1 })
-      
+      .sort({ createdAt: -1 });
 
     const totalServices = await Services.countDocuments(filter);
 
     return res.status(200).json({
-     
       services: servicesList,
     });
   } catch (error) {
@@ -504,5 +506,5 @@ module.exports = {
   getServiceBySlug,
   getservicesSlugs,
   listservice,
-  listmenuservice
+  listmenuservice,
 };

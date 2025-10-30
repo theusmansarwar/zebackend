@@ -10,6 +10,7 @@ const createSubService = async (req, res) => {
   try {
     const {
       title,
+      metatitle,
       description,
       short_description,
       metaDescription,
@@ -84,6 +85,7 @@ const createSubService = async (req, res) => {
     // ✅ Create new subservice
     const newSubService = await SubServices.create({
       title,
+      metatitle,
       description,
       short_description,
       metaDescription,
@@ -127,7 +129,6 @@ const createSubService = async (req, res) => {
   }
 };
 
-
 const updateSubService = async (req, res) => {
   try {
     const { id } = req.params;
@@ -143,6 +144,7 @@ const updateSubService = async (req, res) => {
 
     const {
       title,
+      metatitle,
       description,
       short_description,
       metaDescription,
@@ -193,6 +195,9 @@ const updateSubService = async (req, res) => {
     // ✅ Merge nested sections safely (retain old data if not sent)
     const introductionData = {
       title: introduction.title ?? existing.introduction?.title ?? "",
+
+      metatitle:
+        introduction.metatitle ?? existing.introduction?.metatitle ?? "",
       description:
         introduction.description ?? existing.introduction?.description ?? "",
       image: introduction.image ?? existing.introduction?.image ?? "",
@@ -222,9 +227,10 @@ const updateSubService = async (req, res) => {
         existing.cta?.published ||
         false,
     };
-      const whySectionData = {
+    const whySectionData = {
       title: whySection.title ?? existing.whySection?.title ?? "",
-      description: whySection.description ?? existing.whySection?.description ?? "",
+      description:
+        whySection.description ?? existing.whySection?.description ?? "",
       published:
         whySection.published === "true" ||
         whySection.published === true ||
@@ -256,7 +262,6 @@ const updateSubService = async (req, res) => {
     };
 
     const portfolioData = {
-      
       title: portfolio.title ?? existing.portfolio?.title ?? "",
       items: existing.portfolio?.items || [], // keep linked portfolio IDs
       published:
@@ -278,6 +283,7 @@ const updateSubService = async (req, res) => {
     // ✅ Prepare final update object
     const updateFields = {
       title,
+      metatitle,
       description,
       short_description,
       metaDescription,
@@ -393,11 +399,13 @@ const getServiceById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const service = await SubServices.findById(id).populate(
-      "faqs.items",
-      "question answer"
-    ).populate("portfolio.items","title description images videos thumbnail published") ;
-    
+    const service = await SubServices.findById(id)
+      .populate("faqs.items", "question answer")
+      .populate(
+        "portfolio.items",
+        "title description images videos thumbnail published"
+      );
+
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
@@ -418,7 +426,10 @@ const getServiceBySlug = async (req, res) => {
 
     const service = await SubServices.findOne({ slug, published: true })
       .populate("faqs.items", "question answer")
-      .populate("portfolio.items","title description images videos thumbnail published")
+      .populate(
+        "portfolio.items",
+        "title description images videos thumbnail published"
+      )
       .exec();
 
     if (!service) {
