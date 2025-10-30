@@ -32,7 +32,7 @@ const addIndustry = async (req, res) => {
     res.status(201).json({
       status: 201,
       message: "Industry added successfully",
-      industry: newIndustry,
+      
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -76,7 +76,7 @@ const updateIndustry = async (req, res) => {
     res.status(200).json({
       status: 200,
       message: "Industry updated successfully",
-      industry: updatedIndustry,
+      
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -89,7 +89,8 @@ const getIndustryById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const industry = await Industry.findById(id);
+    const industry = await Industry.findById(id)
+    .select(" -isDeleted -updatedAt -__v");
 
     if (!industry) {
       return res.status(404).json({ 
@@ -139,7 +140,7 @@ const deleteAllIndustries = async (req, res) => {
     const industries = await Industry.find({
       _id: { $in: validIds },
       isDeleted: false,
-    });
+    }) ;
 
     if (industries.length === 0) {
       return res.status(404).json({
@@ -177,7 +178,7 @@ const viewIndustry = async (req, res) => {
 
     const totalIndustries = await Industry.countDocuments({ isDeleted: false });
     const industries = await Industry.find({ isDeleted: false })
-    .select("-detail")
+    .select("-detail -isDeleted -updatedAt -__v")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
