@@ -168,7 +168,9 @@ const deleteAllCategories = async (req, res) => {
   // ✅ View Only Published Categories with Pagination
   const liveCategory = async (req, res) => {
     try {
-      const categories = await Category.find({ published: true, isDeleted: false }).sort({ createdAt: -1 });
+      const categories = await Category.find({ published: true, isDeleted: false }).sort({ createdAt: -1 })
+      .select("-published -isDeleted -updatedAt -createdAt -__v ")
+      ;
   
       res.status(200).json({
         totalCategories: categories.length,
