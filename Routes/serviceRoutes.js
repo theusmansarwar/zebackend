@@ -10,6 +10,7 @@ const {
   getServiceBySlug,
   getservicesSlugs,
   listservice,
+  listmenuservice,
   
  
 } = require("../Controller/serviceController");
@@ -23,4 +24,5 @@ router.get("/list", listservice);
 router.delete("/delete-many", deleteAllservices);
 router.get('/view/:slug', getServiceBySlug);
 router.get('/slugs', getservicesSlugs);
+router.get('/menu', listmenuservice);
 module.exports = router;

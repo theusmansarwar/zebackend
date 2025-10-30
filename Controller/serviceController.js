@@ -325,7 +325,44 @@ const listservice = async (req, res) => {
     });
   }
 };
+const listmenuservice = async (req, res) => {
+  try {
+    let filter = {
+      published: true,
+      isDeleted: false,
+    };
 
+    const servicesList = await Services.find(filter)
+      .select("title slug")
+      .populate({
+        path: "subServices.items",
+        match: {
+          isDeleted: { $ne: true },
+        },
+        select: "title short_description slug icon",
+      })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip((page - 1) * limit);
+
+    const totalServices = await Services.countDocuments(filter);
+
+    return res.status(200).json({
+      totalServices,
+      totalPages: Math.ceil(totalServices / limit),
+      currentPage: page,
+      limit,
+      services: servicesList,
+    });
+  } catch (error) {
+    console.error("Error fetching services:", error);
+    return res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
 const getServiceById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -367,9 +404,9 @@ const getServiceBySlug = async (req, res) => {
       .populate({
         path: "subServices.items",
         match: {
-          isDeleted: { $ne: true }
+          isDeleted: { $ne: true },
         },
-          select: "title short_description slug icon",
+        select: "title short_description slug icon",
       })
       .exec();
 
@@ -471,4 +508,5 @@ module.exports = {
   getServiceBySlug,
   getservicesSlugs,
   listservice,
+  listmenuservice
 };
