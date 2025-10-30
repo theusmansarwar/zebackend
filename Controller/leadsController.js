@@ -180,6 +180,6 @@ const DeleteLeads = async (req, res) => {
 module.exports = {
   CreateLeads,
   LeadsList,
-  GetLeadById,
+ 
   DeleteLeads,
 };
