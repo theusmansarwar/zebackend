@@ -333,13 +333,13 @@ const listmenuservice = async (req, res) => {
     };
 
     const servicesList = await Services.find(filter)
-      .select("title slug")
+      .select("title slug -_id")
       .populate({
         path: "subServices.items",
         match: {
           isDeleted: { $ne: true },
         },
-        select: "title slug",
+        select: "title slug -_id",
       })
       .sort({ createdAt: -1 })
       
