@@ -198,7 +198,9 @@ const viewIndustry = async (req, res) => {
 // ✅ View only published industries
 const liveIndustry = async (req, res) => {
   try {
-    const industries = await Industry.find({ published: true, isDeleted: false }).sort({ createdAt: -1 });
+    const industries = await Industry.find({ published: true, isDeleted: false })
+     .select(" -isDeleted -updatedAt -createdAt -_id -__v -published")
+    .sort({ createdAt: -1 });
     res.status(200).json({
       totalIndustries: industries.length,
       industries,
