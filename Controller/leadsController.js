@@ -79,6 +79,7 @@ const LeadsList = async (req, res) => {
 
     const leads = await Leads.find({ isDeleted: false })
       .sort({ createdAt: -1 })
+      .select(" -isDeleted -updatedAt -__v")
       .limit(limit)
       .skip((page - 1) * limit);
 
@@ -100,32 +101,32 @@ const LeadsList = async (req, res) => {
   }
 };
 
-const GetLeadById = async (req, res) => {
-  try {
-    const { id } = req.params; // Get lead ID from request parameters
+// const GetLeadById = async (req, res) => {
+//   try {
+//     const { id } = req.params; 
 
-    const lead = await Leads.findById(id);
+//     const lead = await Leads.findById(id);
 
-    if (!lead) {
-      return res.status(404).json({
-        status: 404,
-        message: "Lead not found",
-      });
-    }
+//     if (!lead) {
+//       return res.status(404).json({
+//         status: 404,
+//         message: "Lead not found",
+//       });
+//     }
 
-    return res.status(200).json({
-      status: 200,
-      message: "Lead fetched successfully",
-      lead,
-    });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({
-      status: 500,
-      message: "Internal server error",
-    });
-  }
-};
+//     return res.status(200).json({
+//       status: 200,
+//       message: "Lead fetched successfully",
+//       lead,
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     return res.status(500).json({
+//       status: 500,
+//       message: "Internal server error",
+//     });
+//   }
+// };
 
 const DeleteLeads = async (req, res) => {
   try {
