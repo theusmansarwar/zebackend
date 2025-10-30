@@ -339,7 +339,7 @@ const listmenuservice = async (req, res) => {
         match: {
           isDeleted: { $ne: true },
         },
-        select: "title short_description slug icon",
+        select: "title slug",
       })
       .sort({ createdAt: -1 })
       
