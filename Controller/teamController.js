@@ -229,7 +229,7 @@ const getTeamLiveMember = async (req, res) => {
 const getTeamFeaturedMember = async (req, res) => {
   try {
     // 1. Fetch all published categories
-    const teams = await Team.find({ published: true,showonteamsection:true }).populate("role","name").select('name role image').sort({ createdAt: 1 });
+    const teams = await Team.find({ published: true, showonteamsection:true }).populate("role","name -_id").select('name role image -_id').sort({ createdAt: 1 });
 
     res.status(200).json({
       status: 200,
