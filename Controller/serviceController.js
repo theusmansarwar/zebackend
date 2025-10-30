@@ -342,16 +342,12 @@ const listmenuservice = async (req, res) => {
         select: "title short_description slug icon",
       })
       .sort({ createdAt: -1 })
-      .limit(limit)
-      .skip((page - 1) * limit);
+      
 
     const totalServices = await Services.countDocuments(filter);
 
     return res.status(200).json({
-      totalServices,
-      totalPages: Math.ceil(totalServices / limit),
-      currentPage: page,
-      limit,
+     
       services: servicesList,
     });
   } catch (error) {
