@@ -435,7 +435,7 @@ const viewblog = async (req, res) => {
         match: { published: true },
         options: { sort: { createdAt: -1 } },
       })
-      .populate("category");
+      .populate("category" , "name");
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
