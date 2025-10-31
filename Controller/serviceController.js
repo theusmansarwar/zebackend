@@ -112,6 +112,12 @@ const updateService = async (req, res) => {
       }
     }
 
+    const parseBool = (val, fallback) => {
+  if (val === "true" || val === true) return true;
+  if (val === "false" || val === false) return false;
+  return fallback;
+};
+
     const {
       title,
       metatitle,
@@ -167,19 +173,13 @@ const updateService = async (req, res) => {
     const faqsData = {
       title: faqs.title ?? existingService.faqs.title ?? "",
       description: faqs.description ?? existingService.faqs.description ?? "",
-      items: faqs.items ?? existingService.faqs.items ?? [],
-      published:
-        faqs.published === "true" ||
-        faqs.published === true ||
-        existingService.faqs.published,
+      items: faqs.items ?? existingService.faqs.items ?? [],     
+      published: parseBool(faqs.published, existingService.faqs.published),
     };
     const imageSectionData = {
       title: imageSection.title ?? existingService.imageSection.title ?? "",
-      image: imageSection.image ?? existingService.imageSection.image ?? "",
-      published:
-        imageSection.published === "true" ||
-        imageSection.published === true ||
-        existingService.imageSection.published,
+      image: imageSection.image ?? existingService.imageSection.image ?? "",      
+  published: parseBool(imageSection.published, existingService.imageSection.published),
     };
     const lastSectionData = {
       title: lastSection.title ?? existingService.lastSection.title ?? "",
@@ -188,18 +188,12 @@ const updateService = async (req, res) => {
         existingService.lastSection.description ??
         "",
       image: lastSection.image ?? existingService.lastSection.image ?? "",
-      published:
-        lastSection.published === "true" ||
-        lastSection.published === true ||
-        existingService.lastSection.published,
+  published: parseBool(lastSection.published, existingService.lastSection.published),
     };
 
     // ✅ Merge old + new subServices (preserve items if not sent)
     const subServicesData = {
-      published:
-        subServices.published === "true" ||
-        subServices.published === true ||
-        existingService.subServices.published,
+      published: parseBool(subServices.published, existingService.subServices.published),
       items: subServices.items ?? existingService.subServices.items ?? [],
     };
 
