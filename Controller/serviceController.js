@@ -358,7 +358,7 @@ const getServiceById = async (req, res) => {
         match: {
           isDeleted: { $ne: true },
         },
-        select: "title short_description _id",
+        select: "title short_description _id published",
       })
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
