@@ -355,8 +355,11 @@ const getServiceById = async (req, res) => {
       })
       .populate({
         path: "subServices.items",
-        match: { isDeleted: { $ne: true } }, // only include non-deleted subServices
-      });
+        match: {
+          isDeleted: { $ne: true },
+        },
+        select: "title short_description _id",
+      })
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
