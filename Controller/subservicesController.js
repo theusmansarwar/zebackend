@@ -214,7 +214,7 @@ const updateSubService = async (req, res) => {
 
     const provenStepsData = {
       title: provenSteps.title ?? existing.provenSteps?.title ?? "",
-      steps: provenSteps.steps ?? existing.provenSteps?.steps ?? [],
+      items: existing.provenSteps?.items || [],
       published:
         provenSteps.published === "true" ||
         provenSteps.published === true ||
@@ -275,7 +275,62 @@ const updateSubService = async (req, res) => {
         false,
     };
 
-    // ❌ Return if required fields missing
+    if (introductionData.published) {
+      if (!introductionData.title)
+        missingFields.push({ name: "introduction.title", message: "Introduction title is required" });
+      if (!introductionData.description)
+        missingFields.push({ name: "introduction.description", message: "Introduction description is required" });
+      if (!introductionData.image)
+        missingFields.push({ name: "introduction.image", message: "Introduction image is required" });
+    }
+
+    if (provenStepsData.published) {
+      if (!provenStepsData.title)
+        missingFields.push({ name: "provenSteps.title", message: "Proven Steps title is required" });
+      if (!Array.isArray(provenStepsData.items) || provenStepsData.items.length === 0)
+        missingFields.push({ name: "provenSteps.items", message: "At least one Proven Step is required" });
+    }
+
+    if (ctaData.published) {
+      if (!ctaData.title)
+        missingFields.push({ name: "cta.title", message: "CTA title is required" });
+      if (!ctaData.description)
+        missingFields.push({ name: "cta.description", message: "CTA description is required" });
+    }
+
+    if (whySectionData.published) {
+      if (!whySectionData.title)
+        missingFields.push({ name: "whySection.title", message: "Why Section title is required" });
+      if (!whySectionData.description)
+        missingFields.push({ name: "whySection.description", message: "Why Section description is required" });
+    }
+
+    if (imageSectionData.published) {
+      if (!imageSectionData.title)
+        missingFields.push({ name: "imageSection.title", message: "Image Section title is required" });
+      if (!imageSectionData.description)
+        missingFields.push({ name: "imageSection.description", message: "Image Section description is required" });
+      if (!imageSectionData.image)
+        missingFields.push({ name: "imageSection.image", message: "Image Section image is required" });
+    }
+
+    if (faqsData.published) {
+      if (!faqsData.title)
+        missingFields.push({ name: "faqs.title", message: "FAQ title is required" });
+      if (!faqsData.description)
+        missingFields.push({ name: "faqs.description", message: "FAQ description is required" });
+      if (!Array.isArray(faqsData.items) || faqsData.items.length === 0)
+        missingFields.push({ name: "faqs.items", message: "At least one FAQ item is required" });
+    }
+
+    if (portfolioData.published) {
+      if (!portfolioData.title)
+        missingFields.push({ name: "portfolio.title", message: "Portfolio title is required" });
+      if (!Array.isArray(portfolioData.items) || portfolioData.items.length === 0)
+        missingFields.push({ name: "portfolio.items", message: "At least one portfolio item is required" });
+    }
+
+    // ❌ Return if any section or main field missing
     if (missingFields.length > 0) {
       return res.status(400).json({
         status: 400,
