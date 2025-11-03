@@ -164,6 +164,11 @@ const updateSubService = async (req, res) => {
 
     const missingFields = [];
     const isPublished = published === "true" || published === true;
+ const parseBool = (val, fallback) => {
+      if (val === "true" || val === true) return true;
+      if (val === "false" || val === false) return false;
+      return fallback;
+    };
 
     // ✅ Validate top-level fields if published
     if (isPublished) {
@@ -205,41 +210,25 @@ const updateSubService = async (req, res) => {
       description:
         introduction.description ?? existing.introduction?.description ?? "",
       image: introduction.image ?? existing.introduction?.image ?? "",
-      published:
-        introduction.published === "true" ||
-        introduction.published === true ||
-        existing.introduction?.published ||
-        false,
+     published: parseBool(introduction.published, existing.introduction.published),
     };
 
     const provenStepsData = {
       title: provenSteps.title ?? existing.provenSteps?.title ?? "",
       items: existing.provenSteps?.items || [],
-      published:
-        provenSteps.published === "true" ||
-        provenSteps.published === true ||
-        existing.provenSteps?.published ||
-        false,
+     published: parseBool(provenSteps.published, provenSteps.introduction.published),
     };
 
     const ctaData = {
       title: cta.title ?? existing.cta?.title ?? "",
       description: cta.description ?? existing.cta?.description ?? "",
-      published:
-        cta.published === "true" ||
-        cta.published === true ||
-        existing.cta?.published ||
-        false,
+     published: parseBool(cta.published, existing.cta.published),
     };
     const whySectionData = {
       title: whySection.title ?? existing.whySection?.title ?? "",
       description:
         whySection.description ?? existing.whySection?.description ?? "",
-      published:
-        whySection.published === "true" ||
-        whySection.published === true ||
-        existing.whySection?.published ||
-        false,
+    published: parseBool(whySection.published, existing.whySection.published),
     };
 
     const imageSectionData = {
@@ -247,32 +236,20 @@ const updateSubService = async (req, res) => {
       description:
         imageSection.description ?? existing.imageSection?.description ?? "",
       image: imageSection.image ?? existing.imageSection?.image ?? "",
-      published:
-        imageSection.published === "true" ||
-        imageSection.published === true ||
-        existing.imageSection?.published ||
-        false,
+      published: parseBool(imageSection.published, existing.imageSection.published),
     };
 
     const faqsData = {
       title: faqs.title ?? existing.faqs?.title ?? "",
       description: faqs.description ?? existing.faqs?.description ?? "",
       items: existing.faqs?.items || [], // keep linked FAQ IDs
-      published:
-        faqs.published === "true" ||
-        faqs.published === true ||
-        existing.faqs?.published ||
-        false,
+     published: parseBool(faqs.published, existing.faqs.published),
     };
 
     const portfolioData = {
       title: portfolio.title ?? existing.portfolio?.title ?? "",
       items: existing.portfolio?.items || [], // keep linked portfolio IDs
-      published:
-        portfolio.published === "true" ||
-        portfolio.published === true ||
-        existing.portfolio?.published ||
-        false,
+     published: parseBool(portfolio.published, existing.portfolio.published),
     };
 
     if (introductionData.published) {

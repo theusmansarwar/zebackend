@@ -138,7 +138,6 @@ const updateService = async (req, res) => {
       subServices = {},
     } = req.body;
 
-    console.log("📦 RAW BODY RECEIVED:", req.body);
     const existingService = await Services.findById(id);
     if (!existingService) {
       return res.status(404).json({
