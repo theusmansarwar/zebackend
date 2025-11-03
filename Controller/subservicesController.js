@@ -216,7 +216,7 @@ const updateSubService = async (req, res) => {
     const provenStepsData = {
       title: provenSteps.title ?? existing.provenSteps?.title ?? "",
       items: existing.provenSteps?.items || [],
-     published: parseBool(provenSteps.published, provenSteps.introduction.published),
+     published: parseBool(provenSteps.published, existing.provenSteps.published),
     };
 
     const ctaData = {
