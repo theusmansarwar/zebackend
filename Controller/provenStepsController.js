@@ -31,7 +31,7 @@ const addProvenSteps = async (req, res) => {
     // Link to SubServices
     const updatedSubServices = await SubServices.findByIdAndUpdate(
       SubServicesid,
-      { $push: { "ProvenSteps.items": ProvenStepsaved._id } },
+      { $push: { "provenSteps.items": ProvenStepsaved._id } },
       { new: true }
     );
 
