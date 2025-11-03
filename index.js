@@ -65,6 +65,7 @@ const caseStudyRoutes = require("./Routes/caseStudiesRoutes");
 
 const PortfolioRoutes = require("./Routes/portfolioRoutes");
 const faqsRoutes = require("./Routes/faqsRoutes");
+const provenStepsRoutes = require("./Routes/ProvenStepsRoutes");
 // ✅ Use Routes
 app.use("/", userRouter);
 app.use("/usertype", usertypeRouter);
@@ -82,6 +83,7 @@ app.use("/views", viewsRouter);
 app.use("/industry", industryRoutes);
 app.use("/casestudy", caseStudyRoutes);
 app.use("/faqs", faqsRoutes);
+app.use("/provenSteps", provenStepsRoutes);
 app.use("/portfolio", PortfolioRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const multer = require("multer");

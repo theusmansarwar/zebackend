@@ -18,7 +18,7 @@ const ServiceSchema = new mongoose.Schema(
     },
     provenSteps: {
       title: { type: String },
-      steps: [{ type: String }],
+      items: [{ type: mongoose.Schema.Types.ObjectId, ref: "ProvenSteps" }],
       published: { type: Boolean, default: false },
     },
       cta: {
