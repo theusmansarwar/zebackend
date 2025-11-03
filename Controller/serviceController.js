@@ -24,7 +24,7 @@ const createservice = async (req, res) => {
       if (!title)
         missingFields.push({ name: "title", message: "Title is required" });
       if (!metatitle)
-        missingFields.push({ name: "metatitle", message: "metatitle is required" });
+        missingFields.push({ name: "metatitle", message: "Meta Title is required" });
       if (!description)
         missingFields.push({
           name: "description",
@@ -150,7 +150,7 @@ const updateService = async (req, res) => {
       if (!title)
         missingFields.push({ name: "title", message: "Title is required" });
          if (!metatitle)
-        missingFields.push({ name: "metatitle", message: "metatitle is required" });
+        missingFields.push({ name: "metatitle", message: "Meta Title is required" });
       if (!description)
         missingFields.push({
           name: "description",
