@@ -24,7 +24,10 @@ const createservice = async (req, res) => {
       if (!title)
         missingFields.push({ name: "title", message: "Title is required" });
       if (!metatitle)
-        missingFields.push({ name: "metatitle", message: "Meta Title is required" });
+        missingFields.push({
+          name: "metatitle",
+          message: "Meta Title is required",
+        });
       if (!description)
         missingFields.push({
           name: "description",
@@ -115,10 +118,10 @@ const updateService = async (req, res) => {
     }
 
     const parseBool = (val, fallback) => {
-  if (val === "true" || val === true) return true;
-  if (val === "false" || val === false) return false;
-  return fallback;
-};
+      if (val === "true" || val === true) return true;
+      if (val === "false" || val === false) return false;
+      return fallback;
+    };
 
     const {
       title,
@@ -149,8 +152,11 @@ const updateService = async (req, res) => {
     if (isPublished) {
       if (!title)
         missingFields.push({ name: "title", message: "Title is required" });
-         if (!metatitle)
-        missingFields.push({ name: "metatitle", message: "Meta Title is required" });
+      if (!metatitle)
+        missingFields.push({
+          name: "metatitle",
+          message: "Meta Title is required",
+        });
       if (!description)
         missingFields.push({
           name: "description",
@@ -167,23 +173,26 @@ const updateService = async (req, res) => {
         missingFields.push({ name: "icon", message: "Icon is required" });
     }
 
-    if (missingFields.length > 0) {
-      return res.status(400).json({
-        status: 400,
-        message: "Some fields are missing!",
-        missingFields,
-      });
-    }
+    // if (missingFields.length > 0) {
+    //   return res.status(400).json({
+    //     status: 400,
+    //     message: "Some fields are missing!",
+    //     missingFields,
+    //   });
+    // }
     const faqsData = {
       title: faqs.title ?? existingService.faqs.title ?? "",
       description: faqs.description ?? existingService.faqs.description ?? "",
-      items: faqs.items ?? existingService.faqs.items ?? [],     
+      items: faqs.items ?? existingService.faqs.items ?? [],
       published: parseBool(faqs.published, existingService.faqs.published),
     };
     const imageSectionData = {
       title: imageSection.title ?? existingService.imageSection.title ?? "",
-      image: imageSection.image ?? existingService.imageSection.image ?? "",      
-  published: parseBool(imageSection.published, existingService.imageSection.published),
+      image: imageSection.image ?? existingService.imageSection.image ?? "",
+      published: parseBool(
+        imageSection.published,
+        existingService.imageSection.published
+      ),
     };
     const lastSectionData = {
       title: lastSection.title ?? existingService.lastSection.title ?? "",
@@ -192,14 +201,91 @@ const updateService = async (req, res) => {
         existingService.lastSection.description ??
         "",
       image: lastSection.image ?? existingService.lastSection.image ?? "",
-  published: parseBool(lastSection.published, existingService.lastSection.published),
+      published: parseBool(
+        lastSection.published,
+        existingService.lastSection.published
+      ),
     };
 
     // ✅ Merge old + new subServices (preserve items if not sent)
     const subServicesData = {
-      published: parseBool(subServices.published, existingService.subServices.published),
+      published: parseBool(
+        subServices.published,
+        existingService.subServices.published
+      ),
       items: subServices.items ?? existingService.subServices.items ?? [],
     };
+
+    
+    // ✅ Validate FAQ Section
+    if (faqsData.published) {
+      if (!faqsData.title)
+        missingFields.push({
+          name: "faqs.title",
+          message: "FAQ title is required",
+        });
+      if (!faqsData.description)
+        missingFields.push({
+          name: "faqs.description",
+          message: "FAQ description is required",
+        });
+      if (!Array.isArray(faqsData.items) || faqsData.items.length === 0)
+        missingFields.push({
+          name: "faqs.items",
+          message: "At least one FAQ item is required",
+        });
+    }
+
+    // ✅ Validate Image Section
+    if (imageSectionData.published) {
+      if (!imageSectionData.title)
+        missingFields.push({
+          name: "imageSection.title",
+          message: "Image Section title is required",
+        });
+      if (!imageSectionData.image)
+        missingFields.push({
+          name: "imageSection.image",
+          message: "Image Section image is required",
+        });
+    }
+
+    // ✅ Validate Last Section
+    if (lastSectionData.published) {
+      if (!lastSectionData.title)
+        missingFields.push({
+          name: "lastSection.title",
+          message: "Last Section title is required",
+        });
+      if (!lastSectionData.description)
+        missingFields.push({
+          name: "lastSection.description",
+          message: "Last Section description is required",
+        });
+      if (!lastSectionData.image)
+        missingFields.push({
+          name: "lastSection.image",
+          message: "Last Section image is required",
+        });
+    }
+
+    // ✅ Validate Sub Services
+    if (subServicesData.published) {
+      if (!Array.isArray(subServicesData.items) || subServicesData.items.length === 0)
+        missingFields.push({
+          name: "subServices.items",
+          message: "At least one Sub Service item is required",
+        });
+    }
+
+    // ✅ If any required field is missing, return early
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Some fields are missing!",
+        missingFields,
+      });
+    }
 
     // ✅ Build update payload
     const updateFields = {
@@ -363,7 +449,7 @@ const getServiceById = async (req, res) => {
           isDeleted: { $ne: true },
         },
         select: "title description _id published",
-      })
+      });
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
