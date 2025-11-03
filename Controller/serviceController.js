@@ -117,11 +117,7 @@ const updateService = async (req, res) => {
       }
     }
 
-    const parseBool = (val, fallback) => {
-      if (val === "true" || val === true) return true;
-      if (val === "false" || val === false) return false;
-      return fallback;
-    };
+  
 
     const {
       title,
@@ -147,7 +143,11 @@ const updateService = async (req, res) => {
     }
     const missingFields = [];
     const isPublished = published === "true" || published === true;
-
+  const parseBool = (val, fallback) => {
+      if (val === "true" || val === true) return true;
+      if (val === "false" || val === false) return false;
+      return fallback;
+    };
     if (isPublished) {
       if (!title)
         missingFields.push({ name: "title", message: "Title is required" });
