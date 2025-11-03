@@ -9,10 +9,10 @@ const addProvenSteps = async (req, res) => {
     
     const missingFields = [];
     if (!question ) {
-       missingFields.push({ name: "question", message: "Question is required" });
+       missingFields.push({ name: "question", message: "Heading is required" });
     }
      if (!answer) {
-       missingFields.push({ name: "answer", message: "Answer is required" });
+       missingFields.push({ name: "answer", message: "Description is required" });
     }
     if (!serviceid) {
      missingFields.push({ name: "serviceid", message: "serviceid is required" });
@@ -68,10 +68,10 @@ const updateProvenSteps = async (req, res) => {
 
     const missingFields = [];
     if (!question ) {
-       missingFields.push({ name: "question", message: "Question is required" });
+       missingFields.push({ name: "question", message: "Heading is required" });
     }
      if (!answer) {
-       missingFields.push({ name: "answer", message: "Answer is required" });
+       missingFields.push({ name: "answer", message: "Description is required" });
     }
     if (!serviceid) {
      missingFields.push({ name: "serviceid", message: "serviceid is required" });
