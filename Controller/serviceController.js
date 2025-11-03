@@ -109,16 +109,18 @@ const createservice = async (req, res) => {
 const updateService = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // ✅ Parse possible JSON fields
     for (const key in req.body) {
       if (typeof req.body[key] === "string") {
         try {
-          req.body[key] = JSON.parse(req.body[key]);
+          const parsed = JSON.parse(req.body[key]);
+          if (typeof parsed === "object") req.body[key] = parsed;
         } catch (e) {}
       }
     }
 
-  
-
+    // ✅ Destructure from body
     const {
       title,
       metatitle,
@@ -134,150 +136,97 @@ const updateService = async (req, res) => {
       subServices = {},
     } = req.body;
 
-    const existingService = await Services.findById(id);
+    // ✅ Check if service exists
+    const existingService = await Services.findById(id).lean();
     if (!existingService) {
       return res.status(404).json({
         status: 404,
         message: "Service not found",
       });
     }
-    const missingFields = [];
-    const isPublished = published === "true" || published === true;
-  const parseBool = (val, fallback) => {
+
+    // ✅ Ensure nested objects exist
+    existingService.faqs ??= {};
+    existingService.imageSection ??= {};
+    existingService.lastSection ??= {};
+    existingService.subServices ??= {};
+
+    // ✅ Boolean parser
+    const parseBool = (val, fallback) => {
       if (val === "true" || val === true) return true;
       if (val === "false" || val === false) return false;
       return fallback;
     };
+
+    const missingFields = [];
+    const isPublished = parseBool(published, existingService.published);
+
+    // ✅ Validate top-level fields if published
     if (isPublished) {
-      if (!title)
-        missingFields.push({ name: "title", message: "Title is required" });
-      if (!metatitle)
-        missingFields.push({
-          name: "metatitle",
-          message: "Meta Title is required",
-        });
-      if (!description)
-        missingFields.push({
-          name: "description",
-          message: "Description is required",
-        });
-      if (!metaDescription)
-        missingFields.push({
-          name: "metaDescription",
-          message: "Meta description is required",
-        });
-      if (!slug)
-        missingFields.push({ name: "slug", message: "Slug is required" });
-      if (!icon)
-        missingFields.push({ name: "icon", message: "Icon is required" });
+      if (!title) missingFields.push({ name: "title", message: "Title is required" });
+      if (!metatitle) missingFields.push({ name: "metatitle", message: "Meta Title is required" });
+      if (!description) missingFields.push({ name: "description", message: "Description is required" });
+      if (!metaDescription) missingFields.push({ name: "metaDescription", message: "Meta Description is required" });
+      if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
+      if (!icon) missingFields.push({ name: "icon", message: "Icon is required" });
     }
 
-    // if (missingFields.length > 0) {
-    //   return res.status(400).json({
-    //     status: 400,
-    //     message: "Some fields are missing!",
-    //     missingFields,
-    //   });
-    // }
+    // ✅ Section Data Merge
     const faqsData = {
-      title: faqs.title ?? existingService.faqs.title ?? "",
-      description: faqs.description ?? existingService.faqs.description ?? "",
-      items: faqs.items ?? existingService.faqs.items ?? [],
-      published: parseBool(faqs.published, existingService.faqs.published),
+      title: faqs.title ?? existingService.faqs?.title ?? "",
+      description: faqs.description ?? existingService.faqs?.description ?? "",
+      items: faqs.items ?? existingService.faqs?.items ?? [],
+      published: parseBool(faqs.published, existingService.faqs?.published),
     };
+
     const imageSectionData = {
-      title: imageSection.title ?? existingService.imageSection.title ?? "",
-      image: imageSection.image ?? existingService.imageSection.image ?? "",
-      published: parseBool(
-        imageSection.published,
-        existingService.imageSection.published
-      ),
+      title: imageSection.title ?? existingService.imageSection?.title ?? "",
+      image: imageSection.image ?? existingService.imageSection?.image ?? "",
+      published: parseBool(imageSection.published, existingService.imageSection?.published),
     };
+
     const lastSectionData = {
-      title: lastSection.title ?? existingService.lastSection.title ?? "",
-      description:
-        lastSection.description ??
-        existingService.lastSection.description ??
-        "",
-      image: lastSection.image ?? existingService.lastSection.image ?? "",
-      published: parseBool(
-        lastSection.published,
-        existingService.lastSection.published
-      ),
+      title: lastSection.title ?? existingService.lastSection?.title ?? "",
+      description: lastSection.description ?? existingService.lastSection?.description ?? "",
+      image: lastSection.image ?? existingService.lastSection?.image ?? "",
+      published: parseBool(lastSection.published, existingService.lastSection?.published),
     };
 
-    // ✅ Merge old + new subServices (preserve items if not sent)
     const subServicesData = {
-      published: parseBool(
-        subServices.published,
-        existingService.subServices.published
-      ),
-      items: subServices.items ?? existingService.subServices.items ?? [],
+      published: parseBool(subServices.published, existingService.subServices?.published),
+      items: subServices.items ?? existingService.subServices?.items ?? [],
     };
 
-    
-    // ✅ Validate FAQ Section
+    // ✅ Validate each section if published
     if (faqsData.published) {
-      if (!faqsData.title)
-        missingFields.push({
-          name: "faqs.title",
-          message: "FAQ title is required",
-        });
-      if (!faqsData.description)
-        missingFields.push({
-          name: "faqs.description",
-          message: "FAQ description is required",
-        });
+      if (!faqsData.title) missingFields.push({ name: "faqs.title", message: "FAQ title is required" });
+      if (!faqsData.description) missingFields.push({ name: "faqs.description", message: "FAQ description is required" });
       if (!Array.isArray(faqsData.items) || faqsData.items.length === 0)
-        missingFields.push({
-          name: "faqs.items",
-          message: "At least one FAQ item is required",
-        });
+        missingFields.push({ name: "faqs.items", message: "At least one FAQ item is required" });
     }
 
-    // ✅ Validate Image Section
     if (imageSectionData.published) {
       if (!imageSectionData.title)
-        missingFields.push({
-          name: "imageSection.title",
-          message: "Image Section title is required",
-        });
+        missingFields.push({ name: "imageSection.title", message: "Image Section title is required" });
       if (!imageSectionData.image)
-        missingFields.push({
-          name: "imageSection.image",
-          message: "Image Section image is required",
-        });
+        missingFields.push({ name: "imageSection.image", message: "Image Section image is required" });
     }
 
-    // ✅ Validate Last Section
     if (lastSectionData.published) {
       if (!lastSectionData.title)
-        missingFields.push({
-          name: "lastSection.title",
-          message: "Last Section title is required",
-        });
+        missingFields.push({ name: "lastSection.title", message: "Last Section title is required" });
       if (!lastSectionData.description)
-        missingFields.push({
-          name: "lastSection.description",
-          message: "Last Section description is required",
-        });
+        missingFields.push({ name: "lastSection.description", message: "Last Section description is required" });
       if (!lastSectionData.image)
-        missingFields.push({
-          name: "lastSection.image",
-          message: "Last Section image is required",
-        });
+        missingFields.push({ name: "lastSection.image", message: "Last Section image is required" });
     }
 
-    // ✅ Validate Sub Services
     if (subServicesData.published) {
       if (!Array.isArray(subServicesData.items) || subServicesData.items.length === 0)
-        missingFields.push({
-          name: "subServices.items",
-          message: "At least one Sub Service item is required",
-        });
+        missingFields.push({ name: "subServices.items", message: "At least one Sub Service item is required" });
     }
 
-    // ✅ If any required field is missing, return early
+    // ✅ Stop early if any fields missing
     if (missingFields.length > 0) {
       return res.status(400).json({
         status: 400,
@@ -302,26 +251,28 @@ const updateService = async (req, res) => {
       subServices: subServicesData,
     };
 
-    // ✅ Update and return new service
+    // ✅ Update and return
     const updatedService = await Services.findByIdAndUpdate(id, updateFields, {
       new: true,
       runValidators: true,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       status: 200,
       message: "Service updated successfully",
       service: updatedService,
     });
+
   } catch (error) {
     console.error("Error updating service:", error);
-    res.status(500).json({
+    return res.status(500).json({
       status: 500,
       message: "Internal server error",
       error: error.message,
     });
   }
 };
+
 
 const listserviceAdmin = async (req, res) => {
   try {
