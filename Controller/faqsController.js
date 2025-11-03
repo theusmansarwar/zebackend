@@ -7,17 +7,24 @@ const SubServices = require("../Models/subServiceModel");
 const addFAQ = async (req, res) => {
   try {
     let { question, answer, serviceid } = req.body;
-    
+     const missingFields = [];
     if (!question ) {
-      return res.status(400).json({ message: "FAQ question are required" });
+       missingFields.push({ name: "question", message: "Question is required" });
     }
      if (!answer) {
-      return res.status(400).json({ message: "FAQ answer are required" });
+       missingFields.push({ name: "answer", message: "Answer is required" });
     }
     if (!serviceid) {
-      return res.status(400).json({ message: "Service ID is required" });
+     missingFields.push({ name: "serviceid", message: "serviceid is required" });
     }
 
+     if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Some fields are missing!",
+        missingFields,
+      });
+    }
     question = question.trim();
     answer = answer.trim();
 
@@ -58,8 +65,21 @@ const updateFAQ = async (req, res) => {
     const { id } = req.params;
     let { question, answer } = req.body;
 
-    if (!question || !answer) {
-      return res.status(400).json({ message: "FAQ question and answer are required" });
+    const missingFields = [];
+    if (!question ) {
+       missingFields.push({ name: "question", message: "Question is required" });
+    }
+     if (!answer) {
+       missingFields.push({ name: "answer", message: "Answer is required" });
+    }
+    
+
+     if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Some fields are missing!",
+        missingFields,
+      });
     }
 
     question = question.trim();
@@ -130,14 +150,23 @@ const addsubFAQ = async (req, res) => {
   try {
     let { question, answer, serviceid } = req.body;
     
+    const missingFields = [];
     if (!question ) {
-      return res.status(400).json({ message: "FAQ question are required" });
+       missingFields.push({ name: "question", message: "Question is required" });
     }
      if (!answer) {
-      return res.status(400).json({ message: "FAQ answer are required" });
+       missingFields.push({ name: "answer", message: "Answer is required" });
     }
     if (!serviceid) {
-      return res.status(400).json({ message: "Service ID is required" });
+     missingFields.push({ name: "serviceid", message: "serviceid is required" });
+    }
+
+     if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Some fields are missing!",
+        missingFields,
+      });
     }
 
     question = question.trim();
@@ -180,8 +209,20 @@ const updatesubFAQ = async (req, res) => {
     const { id } = req.params;
     let { question, answer } = req.body;
 
-    if (!question || !answer) {
-      return res.status(400).json({ message: "FAQ question and answer are required" });
+    const missingFields = [];
+    if (!question ) {
+       missingFields.push({ name: "question", message: "Question is required" });
+    }
+     if (!answer) {
+       missingFields.push({ name: "answer", message: "Answer is required" });
+    }
+   
+     if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Some fields are missing!",
+        missingFields,
+      });
     }
 
     question = question.trim();
