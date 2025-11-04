@@ -153,28 +153,64 @@ const deleteAllTeamMembers = async (req, res) => {
 };
 
 
-// ✅ Get All Team Members (paginated)
+// ✅ Get All Team Members (Paginated + Search)
 const getAllTeamMembers = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const { search } = req.query;
     const skip = (page - 1) * limit;
 
-    const total = await Team.countDocuments({ isDeleted: false });
-    const members = await Team.find().populate("role").populate("category").skip(skip).limit(limit);
+    // ✅ Base filter
+    let filter = { isDeleted: false };
 
+    // ✅ Safely escape regex
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+    // ✅ Apply search filter if provided
+    if (search && search.trim() !== "") {
+      const escapedSearch = escapeRegex(search);
+      const regex = new RegExp(escapedSearch, "i");
+
+      // Search across multiple relevant fields
+      filter.$or = [
+        { name: { $regex: regex } },
+        { description: { $regex: regex } },
+      ];
+    }
+
+    // ✅ Count total documents
+    const total = await Team.countDocuments(filter);
+
+    // ✅ Fetch paginated + populated members
+    const members = await Team.find(filter)
+      .populate("role", "name")
+      .populate("category", "name")
+      .select("-isDeleted -updatedAt -__v")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // ✅ Send response
     res.status(200).json({
       status: 200,
       total,
       totalPages: Math.ceil(total / limit),
       currentPage: page,
+      limit,
       members,
     });
   } catch (error) {
     console.error("Error fetching team members:", error);
-    res.status(500).json({ status: 500, message: "Internal server error" });
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
+
 
 // ✅ Get Single Team Member
 const getTeamMemberById = async (req, res) => {

@@ -120,29 +120,58 @@ const deleteAllTeamCategories = async (req, res) => {
   }
 };
 
-// ✅ View All Team Categories with Pagination
 const viewTeamCategory = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; // Default page = 1
-    const limit = parseInt(req.query.limit) || 10; // Default limit = 10
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const { search } = req.query;
 
-    const totalCategories = await TeamCategory.countDocuments({ isDeleted: false });
-    const categories = await TeamCategory.find({ isDeleted: false })
+    // ✅ Base filter
+    let filter = { isDeleted: false };
+
+    // ✅ Safely escape regex
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+    // ✅ Apply search filter if provided
+    if (search && search.trim() !== "") {
+      const escapedSearch = escapeRegex(search);
+      const regex = new RegExp(escapedSearch, "i");
+
+      // Search by name or slug (add more fields if needed)
+      filter.$or = [
+        { name: { $regex: regex } },
+      ];
+    }
+
+    // ✅ Count total documents
+    const totalCategories = await TeamCategory.countDocuments(filter);
+
+    // ✅ Fetch paginated data
+    const categories = await TeamCategory.find(filter)
+      .select("-isDeleted -updatedAt -__v")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
+    // ✅ Send response
     res.status(200).json({
       totalCategories,
       totalPages: Math.ceil(totalCategories / limit),
       currentPage: page,
       limit,
-      categories
+      categories,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching team categories:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
+
 
 // ✅ View Only Published Team Categories with Pagination
 const liveTeamCategory = async (req, res) => {

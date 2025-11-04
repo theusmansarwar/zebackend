@@ -136,13 +136,37 @@ const viewRole = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const { search } = req.query;
 
-    const totalRoles = await Role.countDocuments({ isDeleted: false });
-    const roles = await Role.find({ isDeleted: false })
+    // ✅ Base filter
+    let filter = { isDeleted: false };
+
+    // ✅ Escape regex safely
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+    // ✅ Apply search if provided
+    if (search && search.trim() !== "") {
+      const escapedSearch = escapeRegex(search);
+      const regex = new RegExp(escapedSearch, "i");
+
+      // Search by role name or slug
+      filter.$or = [
+        { name: { $regex: regex } },
+      ];
+    }
+
+    // ✅ Count total roles
+    const totalRoles = await Role.countDocuments(filter);
+
+    // ✅ Fetch paginated roles
+    const roles = await Role.find(filter)
+      .select("-isDeleted -updatedAt -__v")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
+    // ✅ Send response
     res.status(200).json({
       totalRoles,
       totalPages: Math.ceil(totalRoles / limit),
@@ -151,7 +175,12 @@ const viewRole = async (req, res) => {
       roles,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching roles:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
