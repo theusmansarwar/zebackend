@@ -74,12 +74,41 @@ const LeadsList = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const { search } = req.query;
 
-    const totalLeads = await Leads.countDocuments({ isDeleted: false });
+    // Base filter
+    let filter = { isDeleted: false };
 
-    const leads = await Leads.find({ isDeleted: false })
+    // Apply search filter if provided
+    if (search && search.trim() !== "") {
+      const searchRegex = new RegExp(search, "i");
+
+      // For createdAt, try to match date-like text
+      const date = new Date(search);
+      const isDate = !isNaN(date.getTime());
+
+      filter.$or = [
+        { name: { $regex: searchRegex } },
+        { email: { $regex: searchRegex } },
+      ];
+
+      // If search looks like a valid date, add createdAt range filter
+      if (isDate) {
+        const nextDay = new Date(date);
+        nextDay.setDate(nextDay.getDate() + 1);
+        filter.$or.push({
+          createdAt: { $gte: date, $lt: nextDay },
+        });
+      }
+    }
+
+    // Count total leads matching the filter
+    const totalLeads = await Leads.countDocuments(filter);
+
+    // Fetch paginated leads
+    const leads = await Leads.find(filter)
       .sort({ createdAt: -1 })
-      .select(" -isDeleted -updatedAt -__v")
+      .select("-isDeleted -updatedAt -__v")
       .limit(limit)
       .skip((page - 1) * limit);
 
@@ -88,7 +117,7 @@ const LeadsList = async (req, res) => {
       message: "Leads fetched successfully",
       leads,
       totalLeads,
-      totalPages: Math.ceil(totalLeads / limit), // Fixed typo
+      totalPages: Math.ceil(totalLeads / limit),
       currentPage: page,
       limit,
     });
@@ -100,6 +129,7 @@ const LeadsList = async (req, res) => {
     });
   }
 };
+
 
 // const GetLeadById = async (req, res) => {
 //   try {
