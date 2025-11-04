@@ -276,25 +276,41 @@ const updateService = async (req, res) => {
 
 const listserviceAdmin = async (req, res) => {
   try {
-    const { title } = req.query;
+    const { search } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
+    // Base filter
     let filter = { isDeleted: { $ne: true } };
 
-    if (title) {
-      filter.title = { $regex: title, $options: "i" };
+    // Escape regex safely
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+    // Apply search filter if provided
+    if (search && search.trim() !== "") {
+      const escapedSearch = escapeRegex(search);
+      const regex = new RegExp(escapedSearch, "i");
+
+      // Search across multiple fields for flexibility
+      filter.$or = [
+        { title: { $regex: regex } },
+        { slug: { $regex: regex } },
+        { short_description: { $regex: regex } },
+      ];
     }
 
+    // Query services
     const servicesList = await Services.find(filter)
-      .select("title short_description published createdAt")
-
+      .select("title short_description slug published createdAt")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
+    // Count total for pagination
     const totalServices = await Services.countDocuments(filter);
 
+    // Response
     return res.status(200).json({
       totalServices,
       totalPages: Math.ceil(totalServices / limit),
@@ -311,6 +327,7 @@ const listserviceAdmin = async (req, res) => {
     });
   }
 };
+
 
 const listservice = async (req, res) => {
   try {
