@@ -170,19 +170,43 @@ const deleteAllIndustries = async (req, res) => {
   }
 };
 
-// ✅ View Industries with pagination
+
 const viewIndustry = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const { search } = req.query;
 
-    const totalIndustries = await Industry.countDocuments({ isDeleted: false });
-    const industries = await Industry.find({ isDeleted: false })
-    .select("-detail -isDeleted -updatedAt -__v")
+    // Base filter
+    let filter = { isDeleted: false };
+
+    // Escape regex safely
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+    // Apply search filter if provided
+    if (search && search.trim() !== "") {
+      const escapedSearch = escapeRegex(search);
+      const regex = new RegExp(escapedSearch, "i");
+
+      // Search by name or slug
+      filter.$or = [
+        { name: { $regex: regex } },
+        { description: { $regex: regex } },
+      ];
+    }
+
+    // Count total
+    const totalIndustries = await Industry.countDocuments(filter);
+
+    // Fetch paginated industries
+    const industries = await Industry.find(filter)
+      .select("-detail -isDeleted -updatedAt -__v")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
+    // Response
     res.status(200).json({
       totalIndustries,
       totalPages: Math.ceil(totalIndustries / limit),
@@ -191,7 +215,12 @@ const viewIndustry = async (req, res) => {
       industries,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching industries:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 

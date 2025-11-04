@@ -142,29 +142,58 @@ const deleteAllCategories = async (req, res) => {
   }
 };
 
-  const viewCategory = async (req, res) => {
-    try {
-      const page = parseInt(req.query.page) || 1; // Default page = 1
-      const limit = parseInt(req.query.limit) || 10; // Default limit = 10
-  
-      const totalCategories = await Category.countDocuments({ isDeleted: false });
-      const categories = await Category.find({ isDeleted: false })
-        .sort({ createdAt: -1 })
-        .limit(limit)
-        .skip((page - 1) * limit);
-  
-      res.status(200).json({
-        totalCategories,
-        totalPages: Math.ceil(totalCategories / limit),
-        currentPage: page,
-        limit,
-        categories,
-      });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+ const viewCategory = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1; // Default page = 1
+    const limit = parseInt(req.query.limit) || 10; // Default limit = 10
+    const { search } = req.query;
+
+    // Base filter
+    let filter = { isDeleted: false };
+
+    // Escape regex safely
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+    // Apply search filter if provided
+    if (search && search.trim() !== "") {
+      const escapedSearch = escapeRegex(search);
+      const regex = new RegExp(escapedSearch, "i");
+
+      // Search in name and slug
+      filter.$or = [
+        { name: { $regex: regex } },
+        { slug: { $regex: regex } },
+      ];
     }
-  };
-  
+
+    // Count total
+    const totalCategories = await Category.countDocuments(filter);
+
+    // Fetch paginated data
+    const categories = await Category.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip((page - 1) * limit);
+
+    // Response
+    res.status(200).json({
+      totalCategories,
+      totalPages: Math.ceil(totalCategories / limit),
+      currentPage: page,
+      limit,
+      categories,
+    });
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
   // ✅ View Only Published Categories with Pagination
   const liveCategory = async (req, res) => {
     try {

@@ -172,14 +172,38 @@ const viewCaseStudy = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const { search } = req.query;
 
-    const totalCaseStudies = await CaseStudy.countDocuments({ isDeleted: false });
-    const CaseStudies = await CaseStudy.find({ isDeleted: false })
-    .select("-detail")
+    // Base filter
+    let filter = { isDeleted: false };
+
+    // Escape regex safely
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+    // Apply search filter if provided
+    if (search && search.trim() !== "") {
+      const escapedSearch = escapeRegex(search);
+      const regex = new RegExp(escapedSearch, "i");
+
+      filter.$or = [
+        { name: { $regex: regex } },
+        { shortdescription: { $regex: regex } },
+        { description: { $regex: regex } },
+      ];
+    }
+
+    // Count total
+    const totalCaseStudies = await CaseStudy.countDocuments(filter);
+
+    // Fetch paginated results
+    const CaseStudies = await CaseStudy.find(filter)
+      .select("-detail -isDeleted -updatedAt -__v")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
+    // Send response
     res.status(200).json({
       totalCaseStudies,
       totalPages: Math.ceil(totalCaseStudies / limit),
@@ -188,9 +212,15 @@ const viewCaseStudy = async (req, res) => {
       CaseStudies,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching case studies:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
+
 
 // ✅ View only published CaseStudies
 const liveCaseStudy = async (req, res) => {
