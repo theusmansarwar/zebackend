@@ -141,13 +141,38 @@ const viewUserType = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const { search } = req.query;
 
-    const totalUserType = await UserType.countDocuments({ isDeleted: false });
-    const userType = await UserType.find({ isDeleted: false })
+    // ✅ Base filter
+    let filter = { isDeleted: false };
+
+    // ✅ Escape regex safely
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+    // ✅ Apply search if provided
+    if (search && search.trim() !== "") {
+      const escapedSearch = escapeRegex(search);
+      const regex = new RegExp(escapedSearch, "i");
+
+      // Search by name or slug
+      filter.$or = [
+        { name: { $regex: regex } },
+        { slug: { $regex: regex } },
+      ];
+    }
+
+    // ✅ Count total
+    const totalUserType = await UserType.countDocuments(filter);
+
+    // ✅ Fetch paginated user types
+    const userType = await UserType.find(filter)
+      .select("-isDeleted -updatedAt -__v")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
+    // ✅ Send response
     res.status(200).json({
       totalUserType,
       totalPages: Math.ceil(totalUserType / limit),
@@ -156,9 +181,15 @@ const viewUserType = async (req, res) => {
       userType,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching user types:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
+
 
 // ✅ View Only Published UserTypes
 const liveUserType = async (req, res) => {

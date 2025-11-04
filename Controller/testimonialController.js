@@ -117,13 +117,39 @@ const viewTestimonial = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const { search } = req.query;
 
-    const totalTestimonials = await Testimonials.countDocuments({ isDeleted: false });
-    const testimonials = await Testimonials.find({ isDeleted: false })
+    // ✅ Base filter
+    let filter = { isDeleted: false };
+
+    // ✅ Escape regex safely
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+    // ✅ Apply search if provided
+    if (search && search.trim() !== "") {
+      const escapedSearch = escapeRegex(search);
+      const regex = new RegExp(escapedSearch, "i");
+
+      // Search by name, company, or designation
+      filter.$or = [
+        { name: { $regex: regex } },
+        { company: { $regex: regex } },
+        { designation: { $regex: regex } },
+      ];
+    }
+
+    // ✅ Count total testimonials
+    const totalTestimonials = await Testimonials.countDocuments(filter);
+
+    // ✅ Fetch paginated testimonials
+    const testimonials = await Testimonials.find(filter)
+      .select("-isDeleted -updatedAt -__v")
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
+    // ✅ Send response
     res.status(200).json({
       totalTestimonials,
       totalPages: Math.ceil(totalTestimonials / limit),
@@ -132,9 +158,15 @@ const viewTestimonial = async (req, res) => {
       testimonials,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching testimonials:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
+
 const viewTestimonialById = async (req, res) => {
   try {
     const { id } = req.params; // Extract ID from URL params

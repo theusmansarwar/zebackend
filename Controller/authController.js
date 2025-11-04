@@ -284,30 +284,60 @@ const stats = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; 
+    const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const { search } = req.query;
 
-    const totalUsers = await User.countDocuments({ isDeleted: false }); // ✅ count all users
+    // ✅ Base filter
+    let filter = { isDeleted: false };
 
-    const users = await User.find({ isDeleted: false })
-      .select("-password")
-      .populate("type")
-      .sort({ createdAt: -1 }) // ✅ latest first
+    // ✅ Escape regex safely
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+    // ✅ Apply search filter
+    if (search && search.trim() !== "") {
+      const escapedSearch = escapeRegex(search);
+      const regex = new RegExp(escapedSearch, "i");
+
+      // Search by multiple fields
+      filter.$or = [
+        { name: { $regex: regex } },
+        { email: { $regex: regex } },
+        { phone: { $regex: regex } },
+      ];
+    }
+
+    // ✅ Count total users
+    const totalUsers = await User.countDocuments(filter);
+
+    // ✅ Fetch paginated users
+    const users = await User.find(filter)
+      .select("-password -isDeleted -updatedAt -__v")
+      .populate("type", "name") // Only fetch name of user type
+      .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
+    // ✅ Send response
     res.status(200).json({
       status: 200,
-      data: users,
       totalUsers,
       totalPages: Math.ceil(totalUsers / limit),
       currentPage: page,
-      limit: limit,
+      limit,
+      users,
     });
   } catch (error) {
-    res.status(500).json({ status: 500, message: "Failed to fetch users", error });
+    console.error("Error fetching users:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
+
 
 
 // ✅ Get user by ID
