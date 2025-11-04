@@ -314,7 +314,7 @@ const listserviceAdmin = async (req, res) => {
 
 const listservice = async (req, res) => {
   try {
-    const { title } = req.query;
+    const { search } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
@@ -323,8 +323,15 @@ const listservice = async (req, res) => {
       isDeleted: false,
     };
 
-    if (title) {
-      filter.title = { $regex: title, $options: "i" };
+    // Escape regex safely
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+    // Apply search filter if provided
+    if (search && search.trim() !== "") {
+      const escapedSearch = escapeRegex(search);
+      const regex = new RegExp(escapedSearch, "i");
+      filter.title = { $regex: regex };
     }
 
     const servicesList = await Services.find(filter)
@@ -351,6 +358,7 @@ const listservice = async (req, res) => {
     });
   }
 };
+
 const listmenuservice = async (req, res) => {
   try {
     let filter = {
