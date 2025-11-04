@@ -339,27 +339,41 @@ res.status(200).json({
 };
 const getFeaturedblogsadmin = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; // page number
-    const limit = parseInt(req.query.limit) || 10; // per-page limit
-    const { title } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const { search } = req.query;
 
-    // Build filter
-    let filter = { featured: true }; 
-    function escapeRegex(text) {
-      return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-    }
-    if (title) {
-      const escapedTitle = escapeRegex(title);
-      filter.title = { $regex: escapedTitle, $options: "i" };
+    let filter = { featured: true };
+
+    // Escape regex safely
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+    if (search && search.trim() !== "") {
+      const escapedSearch = escapeRegex(search);
+      const regex = new RegExp(escapedSearch, "i");
+
+      // Search by title or category name
+      const categories = await Category.find({ name: regex }).select("_id");
+      const categoryIds = categories.map((cat) => cat._id);
+
+      filter.$or = [
+        { title: { $regex: regex } },
+        { category: { $in: categoryIds } },
+      ];
     }
 
-    // Fetch paginated blogs
-    const allFeaturedBlogs = await Blogs.find(filter).populate("category")
-      .select("-comments -detail -viewedBy  -isDeleted -faqSchema -metaDescription -updatedAt -__v")
+    const allFeaturedBlogs = await Blogs.find(filter)
+      .populate("category", "name")
+      .select(
+        "-comments -detail -viewedBy -isDeleted -faqSchema -metaDescription -updatedAt -__v"
+      )
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
+
     const totalBlogs = await Blogs.countDocuments(filter);
+
     res.status(200).json({
       blogs: allFeaturedBlogs,
       currentPage: page,
@@ -368,7 +382,7 @@ const getFeaturedblogsadmin = async (req, res) => {
       totalPages: Math.ceil(totalBlogs / limit),
     });
   } catch (error) {
-    console.error("Error fetching blogs:", error);
+    console.error("Error fetching featured blogs:", error);
     res.status(500).json({
       status: 500,
       message: "Internal server error",
@@ -377,30 +391,38 @@ const getFeaturedblogsadmin = async (req, res) => {
   }
 };
 
+
 const listblogAdmin = async (req, res) => {
   try {
-    const { title } = req.query;
+    const { search } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    let filter = { isDeleted: { $ne: true } }; // ✅ Exclude deleted blogs
+    let filter = { isDeleted: { $ne: true } };
 
-    // Escape regex safely
-    const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+    const escapeRegex = (text) =>
+      text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 
-    if (title) {
-      const escapedTitle = escapeRegex(title);
-      filter.title = { $regex: escapedTitle, $options: "i" };
+    if (search && search.trim() !== "") {
+      const escapedSearch = escapeRegex(search);
+      const regex = new RegExp(escapedSearch, "i");
+
+      // Search by title or category name
+      const categories = await Category.find({ name: regex }).select("_id");
+      const categoryIds = categories.map((cat) => cat._id);
+
+      filter.$or = [
+        { title: { $regex: regex } },
+        { category: { $in: categoryIds } },
+      ];
     }
 
     const blogslist = await Blogs.find(filter)
-      .select("-comments -detail -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -__v ")
+      .populate("category", "name")
+      .select(
+        "-comments -detail -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -__v"
+      )
       .sort({ createdAt: -1 })
-      .populate({
-        path: "category",
-        model: "Category",
-        select:"name "
-      })
       .limit(limit)
       .skip((page - 1) * limit);
 
