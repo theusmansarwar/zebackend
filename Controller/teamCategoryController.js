@@ -5,9 +5,15 @@ const TeamCategory = require("../Models/teamCategoryModel");
 const addTeamCategory = async (req, res) => {
   try {
     let { name, published } = req.body;
-
-    if (!name) return res.status(400).json({ message: "Category name is required" });
-
+  const missingFields = [];
+    if (!name) missingFields.push({ name: "name", message: "Category Name is required" });
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Some fields are missing!",
+        missingFields,
+      });
+    }
     name = name.trim();
     const existingCategory = await TeamCategory.findOne({ name: new RegExp(`^${name}$`, "i") });
 
@@ -30,8 +36,15 @@ const updateTeamCategory = async (req, res) => {
     const { id } = req.params;
     let { name, published } = req.body;
 
-    if (!name) return res.status(400).json({ message: "Category name is required" });
-
+     const missingFields = [];
+    if (!name) missingFields.push({ name: "name", message: "Category Name is required" });
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Some fields are missing!",
+        missingFields,
+      });
+    }
     name = name.trim();
     const existingCategory = await TeamCategory.findOne({ name: new RegExp(`^${name}$`, "i") });
 
