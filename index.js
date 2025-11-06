@@ -62,11 +62,15 @@ const viewsRouter = require("./Routes/viewsRoutes");
 const usertypeRouter = require("./Routes/typeRoutes");
 const industryRoutes = require("./Routes/industriesRoutes");
 const caseStudyRoutes = require("./Routes/caseStudiesRoutes");
+
+const jobsRoutes = require("./Routes/jobRoutes");
 const productRoutes = require("./Routes/productsRoutes");
 
 const PortfolioRoutes = require("./Routes/portfolioRoutes");
 const faqsRoutes = require("./Routes/faqsRoutes");
 const provenStepsRoutes = require("./Routes/ProvenStepsRoutes");
+
+const ApplicationRoutes = require("./Routes/applicationRoutes");
 // ✅ Use Routes
 app.use("/", userRouter);
 app.use("/usertype", usertypeRouter);
@@ -83,11 +87,13 @@ app.use("/role", roleRouter);
 app.use("/views", viewsRouter);
 app.use("/industry", industryRoutes);
 app.use("/casestudy", caseStudyRoutes);
-
+app.use("/jobs", jobsRoutes);
 app.use("/product", productRoutes);
 app.use("/faqs", faqsRoutes);
 app.use("/provenSteps", provenStepsRoutes);
 app.use("/portfolio", PortfolioRoutes);
+
+app.use("/applications", ApplicationRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const multer = require("multer");
 app.use(express.json({ limit: "200mb" }));
