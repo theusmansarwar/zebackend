@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 const JobSchema = new mongoose.Schema(
   {
-    jobtitle: { type: String, required: true },
-    description: { type: String, required: true },
+    jobtitle: { type: String,  },
+    description: { type: String,  },
     
-    jobCategory: { type: String, required: true },
-    noofyearsexperience: { type: Number, required: true },
-    jobtype: { type: String, required: true }, // e.g. Full-time, Part-time, Remote
-    location: { type: String, required: true },
+    jobCategory: { type: String,  },
+    noofyearsexperience: { type: String,  },
+    jobtype: { type: String,  }, // e.g. Full-time, Part-time, Remote
+    location: { type: String,  },
     WorkingDaysSchema: {
       saturday: { type: Boolean, default: false },
       sunday: { type: Boolean, default: false },
@@ -17,9 +17,9 @@ const JobSchema = new mongoose.Schema(
       thursday: { type: Boolean, default: false },
       friday: { type: Boolean, default: false },
     },
-    noofvacancies: { type: Number, required: true },
-    officetiming: { type: String, required: true },
-    lastdatetoapply: { type: Date, required: true },
+    noofvacancies: { type: String,  },
+    officetiming: { type: String,  },
+    lastdatetoapply: { type: Date,  },
     isPublished: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
     applications: [
