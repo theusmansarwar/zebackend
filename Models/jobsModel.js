@@ -4,6 +4,8 @@ const JobSchema = new mongoose.Schema(
   {
     jobtitle: { type: String, required: true },
     description: { type: String, required: true },
+    
+    jobCategory: { type: String, required: true },
     noofyearsexperience: { type: Number, required: true },
     jobtype: { type: String, required: true }, // e.g. Full-time, Part-time, Remote
     location: { type: String, required: true },
