@@ -93,9 +93,9 @@ const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const Product = await Product.findById(id);
+    const product = await Product.findById(id);
 
-    if (!Product) {
+    if (!product) {
       return res.status(404).json({ 
         status: 404, 
         message: "Product not found" 
@@ -105,7 +105,7 @@ const getProductById = async (req, res) => {
     res.status(200).json({
       status: 200,
       message: "Product fetched successfully",
-      Product: Product,
+      product,
     });
   } catch (error) {
     console.error("Error fetching Product:", error);
