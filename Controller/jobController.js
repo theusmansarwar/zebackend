@@ -14,7 +14,7 @@ const addJob = async (req, res) => {
       noofvacancies,
       officetiming,
       lastdatetoapply,
-      isPublished,
+      published,
     } = req.body;
 
     const missingFields = [];
@@ -51,7 +51,7 @@ const addJob = async (req, res) => {
       noofvacancies,
       officetiming,
       lastdatetoapply,
-      isPublished,
+      published,
     });
 
     res.status(201).json({
@@ -79,7 +79,7 @@ const updateJob = async (req, res) => {
       noofvacancies,
       officetiming,
       lastdatetoapply,
-      isPublished,
+      published,
       jobCategory
     } = req.body;
 
@@ -119,7 +119,7 @@ const updateJob = async (req, res) => {
         noofvacancies,
         officetiming,
         lastdatetoapply,
-        isPublished,
+        published,
         jobCategory
       },
       { new: true }
@@ -189,7 +189,7 @@ const viewJobs = async (req, res) => {
 const liveJobs = async (req, res) => {
   try {
     const jobs = await Jobs.find({
-      isPublished: true,
+      published: true,
       isDeleted: false,
     })
       .sort({ createdAt: -1 })

@@ -20,7 +20,7 @@ const JobSchema = new mongoose.Schema(
     noofvacancies: { type: String,  },
     officetiming: { type: String,  },
     lastdatetoapply: { type: Date,  },
-    isPublished: { type: Boolean, default: false },
+    published: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
     applications: [
       {
