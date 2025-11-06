@@ -195,7 +195,7 @@ const liveJobs = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate("applications");
 
-    res.status(200).json({ status: 200, data: jobs });
+    res.status(200).json({ status: 200, jobs });
   } catch (error) {
     res.status(500).json({ status: false, message: error.message });
   }
