@@ -5,7 +5,7 @@ const addJob = async (req, res) => {
   try {
     const {
       jobtitle,
-      jobcategory,
+      jobCategory,
       description,
       noofyearsexperience,
       jobtype,
@@ -28,7 +28,7 @@ const addJob = async (req, res) => {
     if (!officetiming) missingFields.push({ name: "officetiming", message: "Office timing is required" });
     if (!lastdatetoapply) missingFields.push({ name: "lastdatetoapply", message: "Last date to apply is required" });
     
-    if (!jobcategory) missingFields.push({ name: "jobcategory", message: "jobcategory is required" });
+    if (!jobCategory) missingFields.push({ name: "jobCategory", message: "jobCategory is required" });
 
     if (missingFields.length > 0) {
       return res.status(400).json({ status: false, missingFields });
@@ -46,7 +46,7 @@ const addJob = async (req, res) => {
       noofyearsexperience,
       jobtype,
       location,
-      jobcategory,
+      jobCategory,
       WorkingDaysSchema,
       noofvacancies,
       officetiming,
@@ -80,7 +80,7 @@ const updateJob = async (req, res) => {
       officetiming,
       lastdatetoapply,
       isPublished,
-      jobcategory
+      jobCategory
     } = req.body;
 
     const missingFields = [];
@@ -93,7 +93,7 @@ const updateJob = async (req, res) => {
     if (!noofvacancies) missingFields.push({ name: "noofvacancies", message: "Number of vacancies is required" });
     if (!officetiming) missingFields.push({ name: "officetiming", message: "Office timing is required" });
     if (!lastdatetoapply) missingFields.push({ name: "lastdatetoapply", message: "Last date to apply is required" });
- if (!jobcategory) missingFields.push({ name: "jobcategory", message: "jobcategory is required" });
+ if (!jobCategory) missingFields.push({ name: "jobCategory", message: "jobCategory is required" });
     if (missingFields.length > 0) {
       return res.status(400).json({ status: false, missingFields });
     }
@@ -120,7 +120,7 @@ const updateJob = async (req, res) => {
         officetiming,
         lastdatetoapply,
         isPublished,
-        jobcategory
+        jobCategory
       },
       { new: true }
     );
