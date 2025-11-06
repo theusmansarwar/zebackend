@@ -62,6 +62,7 @@ const viewsRouter = require("./Routes/viewsRoutes");
 const usertypeRouter = require("./Routes/typeRoutes");
 const industryRoutes = require("./Routes/industriesRoutes");
 const caseStudyRoutes = require("./Routes/caseStudiesRoutes");
+const productRoutes = require("./Routes/productsRoutes");
 
 const PortfolioRoutes = require("./Routes/portfolioRoutes");
 const faqsRoutes = require("./Routes/faqsRoutes");
@@ -82,6 +83,8 @@ app.use("/role", roleRouter);
 app.use("/views", viewsRouter);
 app.use("/industry", industryRoutes);
 app.use("/casestudy", caseStudyRoutes);
+
+app.use("/product", productRoutes);
 app.use("/faqs", faqsRoutes);
 app.use("/provenSteps", provenStepsRoutes);
 app.use("/portfolio", PortfolioRoutes);
