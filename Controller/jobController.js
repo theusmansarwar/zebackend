@@ -57,7 +57,7 @@ const addJob = async (req, res) => {
     res.status(201).json({
       status: 201,
       message: "Job added successfully",
-      data: newJob,
+      job: newJob,
     });
   } catch (error) {
     res.status(500).json({ status: false, message: error.message });
@@ -130,9 +130,9 @@ const updateJob = async (req, res) => {
     }
 
     res.status(200).json({
-      status: true,
+      status: 200,
       message: "Job updated successfully",
-      data: updatedJob,
+      job: updatedJob,
     });
   } catch (error) {
     res.status(500).json({ status: false, message: error.message });
@@ -149,7 +149,7 @@ const getJobById = async (req, res) => {
       return res.status(404).json({ status: false, message: "Job not found" });
     }
 
-    res.status(200).json({ status: true, data: job });
+    res.status(200).json({ status: 200, job });
   } catch (error) {
     res.status(500).json({ status: false, message: error.message });
   }
@@ -174,8 +174,8 @@ const viewJobs = async (req, res) => {
       .populate("applications");
 
     res.status(200).json({
-      status: true,
-      data: jobs,
+      status: 200,
+       jobs,
       totalPages: Math.ceil(totalCount / limit),
       currentPage: parseInt(page),
       totalCount,
@@ -195,7 +195,7 @@ const liveJobs = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate("applications");
 
-    res.status(200).json({ status: true, data: jobs });
+    res.status(200).json({ status: 200, data: jobs });
   } catch (error) {
     res.status(500).json({ status: false, message: error.message });
   }
@@ -215,7 +215,7 @@ const deleteAllJobs = async (req, res) => {
     await Jobs.deleteMany({ _id: { $in: validIds } });
 
     res.status(200).json({
-      status: true,
+      status: 200,
       message: "Jobs deleted successfully",
     });
   } catch (error) {
