@@ -1,4 +1,4 @@
-const { default: Jobs } = require("../Models/jobsModel");
+const Jobs  = require("../Models/jobsModel");
 
 // 🟢 Add Job
 const addJob = async (req, res) => {

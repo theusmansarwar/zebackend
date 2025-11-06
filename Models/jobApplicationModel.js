@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
 
-const ApplicationSchema = new mongoose.Schema(
+const mongoose = require("mongoose");
+
+const ApplicationsSchema = new mongoose.Schema(
   {
     jobId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -29,6 +30,7 @@ const ApplicationSchema = new mongoose.Schema(
 );
 
 
-const Applications = mongoose.model("Applications", ApplicationSchema);
 
-export default Applications;
+const Applications = mongoose.model("Applications", ApplicationsSchema);
+
+module.exports = Applications;

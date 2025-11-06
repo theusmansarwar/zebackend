@@ -1,5 +1,6 @@
-const { default: Applications } = require("../Models/jobApplicationModel");
-const { default: Jobs } = require("../Models/jobsModel");
+
+const Applications = require("../Models/jobApplicationModel");
+const Jobs = require("../Models/jobsModel");
 
 
 // ✅ Add Application
