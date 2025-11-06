@@ -206,22 +206,33 @@ const deleteAllJobs = async (req, res) => {
   try {
     const { ids } = req.body;
 
-    if (!ids || !Array.isArray(ids)) {
-      return res.status(400).json({ status: false, message: "IDs array is required" });
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res
+        .status(400)
+        .json({ status: false, message: "IDs array is required and cannot be empty" });
     }
 
     const validIds = ids.filter((id) => id);
 
-    await Jobs.deleteMany({ _id: { $in: validIds } });
+    const result = await Jobs.updateMany(
+      { _id: { $in: validIds } },
+      { $set: { isDeleted: true } }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ status: false, message: "No matching jobs found" });
+    }
 
     res.status(200).json({
       status: 200,
-      message: "Jobs deleted successfully",
+      message: "Jobs marked as deleted successfully",
+      modifiedCount: result.modifiedCount,
     });
   } catch (error) {
-    res.status(500).json({ status: false, message: error.message });
+    res.status(500).json({ status: 500, message: error.message });
   }
 };
+
 module.exports = {
  addJob,
   deleteAllJobs,
