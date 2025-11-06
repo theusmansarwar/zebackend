@@ -11,9 +11,11 @@ const TeamSchema = new mongoose.Schema(
 
     image: { type: String, required: true },
     socialLinks: {
-      linkedin: { type: String, default: "" },
-      instagram: { type: String, default: "" },
-      facebook: { type: String, default: "" },
+      linkedin: { type: String, default: null },
+      github: { type: String, default: null },
+      instagram: { type: String, default: null },
+      facebook: { type: String, default: null },
+      portfolio:{ type: String, default: null },
     },
     published: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
