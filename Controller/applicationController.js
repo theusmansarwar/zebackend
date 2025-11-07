@@ -26,31 +26,55 @@ const addApplication = async (req, res) => {
       whyDoYouWantToSwitch,
     } = req.body;
 
-    // Missing field validation
-    const requiredFields = {
-      jobId,
-      name,
-      email,
-      phone,
-      education,
-      basedInLahore,
-      willingToRelocate,
-      experience,
-    };
+    const missingFields = [];
 
-    const missingFields = Object.keys(requiredFields).filter(
-      (key) => requiredFields[key] === undefined || requiredFields[key] === ""
-    );
+    // ✅ Basic required field checks
+    if (!jobId)
+      missingFields.push({ name: "jobId", message: "Job ID is required" });
+    if (!name)
+      missingFields.push({ name: "name", message: "Applicant name is required" });
+    if (!email)
+      missingFields.push({ name: "email", message: "Email is required" });
+    if (!phone)
+      missingFields.push({ name: "phone", message: "Phone number is required" });
+    if (!education)
+      missingFields.push({ name: "education", message: "Education is required" });
+    if (basedInLahore === undefined)
+      missingFields.push({
+        name: "basedInLahore",
+        message: "Please specify if applicant is based in Lahore",
+      });
+    if (experience === undefined || experience === "")
+      missingFields.push({
+        name: "experience",
+        message: "Experience field is required",
+      });
 
+    // ✅ Conditional check
+    if (basedInLahore === true && willingToRelocate === undefined) {
+      missingFields.push({
+        name: "willingToRelocate",
+        message:
+          "Please specify if applicant is willing to relocate (required when based in Lahore)",
+      });
+    } else if (basedInLahore === false && willingToRelocate === undefined) {
+      // Optional: you can still keep a message for clarity if needed
+      missingFields.push({
+        name: "willingToRelocate",
+        message: "Please specify if applicant is willing to relocate",
+      });
+    }
+
+    // ✅ Stop here if any fields are missing
     if (missingFields.length > 0) {
       return res.status(400).json({
-        status: false,
-        message: `Missing required fields`,
+        status: 400,
+        message: "Some required fields are missing!",
         missingFields,
       });
     }
 
-    // Check job exists
+    // ✅ Check job exists
     const jobExists = await Jobs.findById(jobId);
     if (!jobExists) {
       return res
@@ -58,6 +82,7 @@ const addApplication = async (req, res) => {
         .json({ status: false, message: "Job not found for this application" });
     }
 
+    // ✅ Create new application
     const newApplication = await Applications.create({
       jobId,
       name,
@@ -78,7 +103,7 @@ const addApplication = async (req, res) => {
       whyDoYouWantToSwitch,
     });
 
-    // push to job applications array
+    // ✅ Push to job’s application list
     await Jobs.findByIdAndUpdate(jobId, {
       $push: { applications: newApplication._id },
     });
@@ -89,10 +114,12 @@ const addApplication = async (req, res) => {
       data: newApplication,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error adding application:", error);
     res.status(500).json({ status: false, message: error.message });
   }
 };
+
+
 
 // ✅ View Applications (with pagination + search)
 const viewApplications = async (req, res) => {
