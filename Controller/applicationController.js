@@ -51,21 +51,13 @@ const addApplication = async (req, res) => {
       });
 
     // ✅ Conditional check
-    if (basedInLahore === true && willingToRelocate === undefined) {
+    if (basedInLahore === false && willingToRelocate === undefined) {
       missingFields.push({
         name: "willingToRelocate",
         message:
           "Please specify if applicant is willing to relocate (required when based in Lahore)",
       });
-    } else if (basedInLahore === false && willingToRelocate === undefined) {
-      // Optional: you can still keep a message for clarity if needed
-      missingFields.push({
-        name: "willingToRelocate",
-        message: "Please specify if applicant is willing to relocate",
-      });
     }
-
-    // ✅ Stop here if any fields are missing
     if (missingFields.length > 0) {
       return res.status(400).json({
         status: 400,
