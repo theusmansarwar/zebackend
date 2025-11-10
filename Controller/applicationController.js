@@ -6,7 +6,7 @@ const Jobs = require("../Models/jobsModel");
 // ✅ Add Application
 const addApplication = async (req, res) => {
   try {
-    const {
+    let {
       jobId,
       name,
       email,
@@ -25,8 +25,29 @@ const addApplication = async (req, res) => {
       resume,
       whyDoYouWantToSwitch,
     } = req.body;
-console.log("incomming data from request :::::", req.body)
+
+    console.log("Incoming data from request :::::", req.body);
+
     const missingFields = [];
+
+    // ✅ Convert string booleans only if not empty
+    const rawBasedInLahore = basedInLahore;
+    const rawWillingToRelocate = willingToRelocate;
+
+    // If string is not empty, then convert
+    basedInLahore =
+      basedInLahore === "true" || basedInLahore === true
+        ? true
+        : basedInLahore === "false" || basedInLahore === false
+        ? false
+        : null;
+
+    willingToRelocate =
+      willingToRelocate === "true" || willingToRelocate === true
+        ? true
+        : willingToRelocate === "false" || willingToRelocate === false
+        ? false
+        : null;
 
     // ✅ Basic required field checks
     if (!jobId)
@@ -40,44 +61,68 @@ console.log("incomming data from request :::::", req.body)
     if (!education)
       missingFields.push({ name: "education", message: "Education is required" });
     if (!currentCompany)
-      missingFields.push({ name: "currentCompany", message: "Current Company is required" });
+      missingFields.push({
+        name: "currentCompany",
+        message: "Current Company is required",
+      });
     if (!university)
-      missingFields.push({ name: "university", message: "University is required" });
-        if (!cgpa)
+      missingFields.push({
+        name: "university",
+        message: "University is required",
+      });
+    if (!cgpa)
       missingFields.push({ name: "cgpa", message: "CGPA is required" });
-        if (!graduationYear)
-      missingFields.push({ name: "graduationYear", message: "Graduation Year is required" });
-        if (!linkedinProfile)
-      missingFields.push({ name: "linkedinProfile", message: "Linkedin Profile is required" });
-        if (!currentSalary)
-      missingFields.push({ name: "currentSalary", message: "Current Salary is required" });
-        if (!expectedSalary)
-      missingFields.push({ name: "expectedSalary", message: "Expected Salary is required" });
-        if (!resume)
+    if (!graduationYear)
+      missingFields.push({
+        name: "graduationYear",
+        message: "Graduation Year is required",
+      });
+    if (!linkedinProfile)
+      missingFields.push({
+        name: "linkedinProfile",
+        message: "LinkedIn Profile is required",
+      });
+    if (!currentSalary)
+      missingFields.push({
+        name: "currentSalary",
+        message: "Current Salary is required",
+      });
+    if (!expectedSalary)
+      missingFields.push({
+        name: "expectedSalary",
+        message: "Expected Salary is required",
+      });
+    if (!resume)
       missingFields.push({ name: "resume", message: "Resume is required" });
-      if (!whyDoYouWantToSwitch)
-      missingFields.push({ name: "whyDoYouWantToSwitch", message: "Reason is required" });
-    if (!basedInLahore )
+    if (!whyDoYouWantToSwitch)
+      missingFields.push({
+        name: "whyDoYouWantToSwitch",
+        message: "Reason is required",
+      });
+
+    // ✅ Explicit check for basedInLahore missing
+    if (rawBasedInLahore === "" || basedInLahore === null)
       missingFields.push({
         name: "basedInLahore",
         message: "Please specify if applicant is based in Lahore",
       });
+
     if (experience === undefined || experience === "")
       missingFields.push({
         name: "experience",
         message: "Experience field is required",
       });
 
-    // ✅ Conditional check
-    if (basedInLahore == false && !willingToRelocate) {
- missingFields.push({
-        name: "willingToRelocate",
-        message:
-          "Please specify if applicant is willing to relocate ",
-      });
-     
-     
+    // ✅ Conditional relocation check
+    if (basedInLahore === false) {
+      if (rawWillingToRelocate === "" || willingToRelocate === null) {
+        missingFields.push({
+          name: "willingToRelocate",
+          message: "Please specify if applicant is willing to relocate",
+        });
+      }
     }
+
     if (missingFields.length > 0) {
       return res.status(400).json({
         status: 400,
@@ -89,9 +134,10 @@ console.log("incomming data from request :::::", req.body)
     // ✅ Check job exists
     const jobExists = await Jobs.findById(jobId);
     if (!jobExists) {
-      return res
-        .status(404)
-        .json({ status: false, message: "Job not found for this application" });
+      return res.status(404).json({
+        status: false,
+        message: "Job not found for this application",
+      });
     }
 
     // ✅ Create new application
@@ -130,6 +176,7 @@ console.log("incomming data from request :::::", req.body)
     res.status(500).json({ status: false, message: error.message });
   }
 };
+
 
 
 
