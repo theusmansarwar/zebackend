@@ -25,7 +25,7 @@ const addApplication = async (req, res) => {
       resume,
       whyDoYouWantToSwitch,
     } = req.body;
-
+console.log("incomming data from request :::::", req.body)
     const missingFields = [];
 
     // ✅ Basic required field checks
