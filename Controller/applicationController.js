@@ -69,7 +69,7 @@ const addApplication = async (req, res) => {
       });
 
     // ✅ Conditional check
-    if (basedInLahore === false &&  willingToRelocate === undefined) {
+    if (basedInLahore === false &&  !willingToRelocate ) {
       missingFields.push({
         name: "willingToRelocate",
         message:
