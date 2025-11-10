@@ -39,7 +39,25 @@ const addApplication = async (req, res) => {
       missingFields.push({ name: "phone", message: "Phone number is required" });
     if (!education)
       missingFields.push({ name: "education", message: "Education is required" });
-    if (basedInLahore === undefined)
+    if (!currentCompany)
+      missingFields.push({ name: "currentCompany", message: "Current Company is required" });
+    if (!university)
+      missingFields.push({ name: "university", message: "University is required" });
+        if (!cgpa)
+      missingFields.push({ name: "cgpa", message: "CGPA is required" });
+        if (!graduationYear)
+      missingFields.push({ name: "graduationYear", message: "Graduation Year is required" });
+        if (!linkedinProfile)
+      missingFields.push({ name: "linkedinProfile", message: "Linkedin Profile is required" });
+        if (!currentSalary)
+      missingFields.push({ name: "currentSalary", message: "Current Salary is required" });
+        if (!expectedSalary)
+      missingFields.push({ name: "expectedSalary", message: "Expected Salary is required" });
+        if (!resume)
+      missingFields.push({ name: "resume", message: "Resume is required" });
+      if (!whyDoYouWantToSwitch)
+      missingFields.push({ name: "whyDoYouWantToSwitch", message: "Reason is required" });
+    if (!basedInLahore && basedInLahore=== undefined )
       missingFields.push({
         name: "basedInLahore",
         message: "Please specify if applicant is based in Lahore",
