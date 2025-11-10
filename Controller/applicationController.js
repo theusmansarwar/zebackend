@@ -206,13 +206,12 @@ const viewApplications = async (req, res) => {
     res.status(200).json({
       status: true,
       message: "Applications fetched successfully",
-      data: applications,
-      pagination: {
-        total,
+      applications,
+        totalApplications: total,
         page: Number(page),
         limit: Number(limit),
         totalPages: Math.ceil(total / limit),
-      },
+    
     });
   } catch (error) {
     res.status(500).json({ status: false, message: error.message });
