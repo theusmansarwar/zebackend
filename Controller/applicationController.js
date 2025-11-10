@@ -274,15 +274,48 @@ const updateApplication = async (req, res) => {
 // ✅ Delete All (soft delete)
 const deleteAllApplications = async (req, res) => {
   try {
-    await Applications.updateMany({ isDeleted: false }, { isDeleted: true });
+    const { ids } = req.body; // Expecting an array of application IDs
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Invalid or empty list of application IDs",
+      });
+    }
+
+    // ✅ Find applications that exist and are not deleted
+    const applications = await Applications.find({
+      _id: { $in: ids },
+      isDeleted: false,
+    });
+
+    if (applications.length === 0) {
+      return res.status(404).json({
+        status: 404,
+        message: "No active applications found with the given IDs",
+      });
+    }
+
+    // ✅ Soft delete the applications (mark as deleted)
+    await Applications.updateMany(
+      { _id: { $in: ids } },
+      { $set: { isDeleted: true } }
+    );
+
     res.status(200).json({
       status: 200,
-      message: "All applications marked as deleted",
+      message: `${applications.length} application(s) soft-deleted successfully`,
     });
   } catch (error) {
-    res.status(500).json({ status: false, message: error.message });
+    console.error("Error soft-deleting applications:", error);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
+
 
 module.exports = {
   addApplication,
