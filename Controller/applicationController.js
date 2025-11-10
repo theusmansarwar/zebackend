@@ -204,7 +204,7 @@ const viewApplications = async (req, res) => {
     const total = await Applications.countDocuments(query);
 
     res.status(200).json({
-      status: true,
+      status: 200,
       message: "Applications fetched successfully",
       applications,
         totalApplications: total,
@@ -214,7 +214,7 @@ const viewApplications = async (req, res) => {
     
     });
   } catch (error) {
-    res.status(500).json({ status: false, message: error.message });
+    res.status(500).json({ status: 500, message: error.message });
   }
 };
 
@@ -262,7 +262,7 @@ const updateApplication = async (req, res) => {
     }
 
     res.status(200).json({
-      status: true,
+      status: 200,
       message: "Application updated successfully",
       data: updatedApplication,
     });
@@ -276,7 +276,7 @@ const deleteAllApplications = async (req, res) => {
   try {
     await Applications.updateMany({ isDeleted: false }, { isDeleted: true });
     res.status(200).json({
-      status: true,
+      status: 200,
       message: "All applications marked as deleted",
     });
   } catch (error) {
