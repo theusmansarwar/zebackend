@@ -69,12 +69,15 @@ const addApplication = async (req, res) => {
       });
 
     // ✅ Conditional check
-    if (basedInLahore === false &&  !willingToRelocate ) {
-      missingFields.push({
+    if (basedInLahore == false ) {
+      if(!willingToRelocate || "" ){
+ missingFields.push({
         name: "willingToRelocate",
         message:
           "Please specify if applicant is willing to relocate ",
       });
+      }
+     
     }
     if (missingFields.length > 0) {
       return res.status(400).json({
