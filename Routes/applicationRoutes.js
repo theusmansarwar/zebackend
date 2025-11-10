@@ -13,6 +13,6 @@ router.post("/add", addApplication);
 router.get("/view", viewApplications);
 router.get("/get/:id", getApplicationById);
 router.put("/update/:id", updateApplication);
-router.post("/deleteAll", deleteAllApplications);
+router.delete("/deleteAll", deleteAllApplications);
 
 module.exports = router;
