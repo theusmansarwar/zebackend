@@ -57,7 +57,7 @@ const addApplication = async (req, res) => {
       missingFields.push({ name: "resume", message: "Resume is required" });
       if (!whyDoYouWantToSwitch)
       missingFields.push({ name: "whyDoYouWantToSwitch", message: "Reason is required" });
-    if (!basedInLahore || basedInLahore=== undefined )
+    if (!basedInLahore )
       missingFields.push({
         name: "basedInLahore",
         message: "Please specify if applicant is based in Lahore",
@@ -73,7 +73,7 @@ const addApplication = async (req, res) => {
       missingFields.push({
         name: "willingToRelocate",
         message:
-          "Please specify if applicant is willing to relocate (required when based in Lahore)",
+          "Please specify if applicant is willing to relocate ",
       });
     }
     if (missingFields.length > 0) {
