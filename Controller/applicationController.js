@@ -167,7 +167,7 @@ const addApplication = async (req, res) => {
     });
 
     res.status(200).json({
-      status: true,
+      status: 200,
       message: "Application submitted successfully",
       data: newApplication,
     });
@@ -235,7 +235,7 @@ const getApplicationById = async (req, res) => {
     }
 
     res.status(200).json({
-      status: true,
+      status: 200,
        application,
     });
   } catch (error) {
