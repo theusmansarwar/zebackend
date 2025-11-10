@@ -236,7 +236,7 @@ const getApplicationById = async (req, res) => {
 
     res.status(200).json({
       status: true,
-      data: application,
+       application,
     });
   } catch (error) {
     res.status(500).json({ status: false, message: error.message });
