@@ -4,14 +4,13 @@ const Product = require("../Models/productsModel");
 // ✅ Add Product
 const addProduct = async (req, res) => {
   try {
-    let { name, description,detail,file, image, published } = req.body;
+    let { name, description,detail, image, published } = req.body;
     const missingFields = [];
 
     if (!name) missingFields.push({ name: "name", message: "Name is required" });
     if (!description) missingFields.push({ name: "description", message: "Description is required" });
      if (!detail) missingFields.push({ name: "detail", message: "Detail is required" });
     if (!image) missingFields.push({ name: "image", message: "Image is required" });
-    if (!file) missingFields.push({ name: "file", message: "File is required" });
 
     if (missingFields.length > 0) {
       return res.status(400).json({
@@ -28,7 +27,7 @@ const addProduct = async (req, res) => {
       return res.status(400).json({ message: "Product already exists" });
     }
 
-    const newProduct = new Product({ name, description, detail, image, file, published });
+    const newProduct = new Product({ name, description, detail, image,  published });
     await newProduct.save();
 
     res.status(201).json({
@@ -45,13 +44,13 @@ const addProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    let { name, description,detail, image,file, published } = req.body;
+    let { name, description,detail, image, published } = req.body;
 
     const missingFields = [];
     if (!name) missingFields.push({ name: "name", message: "Name is required" });
     if (!description) missingFields.push({ name: "description", message: "Description is required" });
     
-    if (!file) missingFields.push({ name: "file", message: "File is required" });
+   
      if (!detail) missingFields.push({ name: "detail", message: "Detail is required" });
     if (!image) missingFields.push({ name: "image", message: "Image is required" });
 
@@ -72,7 +71,7 @@ const updateProduct = async (req, res) => {
 
     const updatedProduct = await Product.findByIdAndUpdate(
       id,
-      { name, description, image, detail, file, published },
+      { name, description, image, detail, published },
       { new: true, runValidators: true }
     );
 
