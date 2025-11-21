@@ -1,13 +1,11 @@
 const Portfolio = require("../Models/portfolioModel");
-const SubServices = require("../Models/subServiceModel");
 
-// ✅ Create Portfolio & Link to Service
 const addPortfolio = async (req, res) => {
   try {
-    let { title, description, thumbnail, images, videos, published, serviceid } = req.body;
+    let { title, description, thumbnail, images, videos, published} = req.body;
 
-    if (!title || !serviceid) {
-      return res.status(400).json({ message: "Title and Service ID are required" });
+    if (!title ) {
+      return res.status(400).json({ message: "Title are required" });
     }
 
     const newPortfolio = new Portfolio({
@@ -21,22 +19,10 @@ const addPortfolio = async (req, res) => {
 
     const savedPortfolio = await newPortfolio.save();
 
-    // link to service
-    const updatedService = await SubServices.findByIdAndUpdate(
-      serviceid,
-      { $push: { "portfolio.items": savedPortfolio._id } },
-      { new: true }
-    );
-
-    if (!updatedService) {
-      return res.status(404).json({ message: "Service not found to link Portfolio" });
-    }
-
     res.status(201).json({
       status: 201,
-      message: "Portfolio created & linked to service successfully",
+      message: "Portfolio created successfully",
       portfolio: savedPortfolio,
-      linkedService: updatedService._id,
     });
   } catch (error) {
     console.error("Error adding portfolio:", error);
@@ -89,15 +75,10 @@ const deletePortfolio = async (req, res) => {
       return res.status(404).json({ message: "Portfolio not found" });
     }
 
-    // unlink from all services
-    await Services.updateMany(
-      { "portfolio.items": id },
-      { $pull: { "portfolio.items": id } }
-    );
 
     res.status(200).json({
       status: 200,
-      message: "Portfolio deleted & unlinked from services",
+      message: "Portfolio deleted ",
       deletedId: id,
     });
   } catch (error) {
@@ -116,15 +97,11 @@ const deleteAllPortfolios = async (req, res) => {
     // delete portfolios
     const result = await Portfolio.deleteMany({ _id: { $in: ids } });
 
-    // unlink from all services
-    await Services.updateMany(
-      { "portfolio.items": { $in: ids } },
-      { $pull: { "portfolio.items": { $in: ids } } }
-    );
+   
 
     res.status(200).json({
       status: 200,
-      message: "Portfolios deleted & unlinked from services successfully",
+      message: "Portfolios deleted successfully",
       deletedCount: result.deletedCount,
       deletedIds: ids,
     });
@@ -133,5 +110,67 @@ const deleteAllPortfolios = async (req, res) => {
   }
 };
 
+// ✅ Get all portfolios with pagination (excluding deleted)
+const getPortfolios = async (req, res) => {
+  try {
+    let { page = 1, limit = 10 } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
 
-module.exports = { addPortfolio, updatePortfolio, deletePortfolio, deleteAllPortfolios };
+    // Fetch portfolios that exist (not deleted)
+    const portfolios = await Portfolio.find()
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const total = await Portfolio.countDocuments();
+
+    res.status(200).json({
+      status: 200,
+      page,
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+      portfolios,
+    });
+  } catch (error) {
+    console.error("Error fetching portfolios:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ✅ Get only published portfolios with pagination
+const getPublishedPortfolios = async (req, res) => {
+  try {
+    let { page = 1, limit = 10 } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
+
+    // Fetch only published portfolios
+    const portfolios = await Portfolio.find({ published: true })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const total = await Portfolio.countDocuments({ published: true });
+
+    res.status(200).json({
+      status: 200,
+      page,
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+      portfolios,
+    });
+  } catch (error) {
+    console.error("Error fetching published portfolios:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {
+  addPortfolio,
+  updatePortfolio,
+  deletePortfolio,
+  deleteAllPortfolios,
+  getPortfolios,
+  getPublishedPortfolios,
+};

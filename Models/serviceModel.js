@@ -26,9 +26,13 @@ const ServiceSchema = new mongoose.Schema(
     lastSection: {
       title: { type: String },
       description: { type: String },
-      image: { type: String },
       published: { type: Boolean, default: false },
     },
+    provenSteps: {
+          title: { type: String },
+          items: [{ type: mongoose.Schema.Types.ObjectId, ref: "ProvenSteps" }],
+          published: { type: Boolean, default: false },
+        },
 
     subServices: {
       published: { type: Boolean, default: false },
