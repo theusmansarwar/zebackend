@@ -13,8 +13,8 @@ const {
 const authMiddleware = require("../Middleware/authMiddleware");
 
 router.post("/add",  addPortfolio);
-router.post("/userportfolio",  getPublishedPortfolios);
-router.post("/list",  getPortfolios);
+router.get("/userportfolio",  getPublishedPortfolios);
+router.get("/list",  getPortfolios);
 router.put("/update/:id",  updatePortfolio);
 router.delete("/delete/:id",  deletePortfolio);
 router.delete("/delete-many",  deleteAllPortfolios);
