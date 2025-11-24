@@ -16,6 +16,7 @@ const createservice = async (req, res) => {
       slug,
       published,
       icon,
+      menuImg
     } = req.body;
 
     const missingFields = [];
@@ -37,6 +38,11 @@ const createservice = async (req, res) => {
         missingFields.push({
           name: "short_description",
           message: "Short description is required",
+        });
+        if (!menuImg)
+        missingFields.push({
+          name: "menuImg",
+          message: "menuImg is required",
         });
       if (!metaDescription)
         missingFields.push({
@@ -130,6 +136,7 @@ const updateService = async (req, res) => {
       slug,
       published,
       icon,
+      menuImg,
       faqs = {},
       imageSection = {},
       lastSection = {},
@@ -169,6 +176,11 @@ const updateService = async (req, res) => {
       if (!metaDescription) missingFields.push({ name: "metaDescription", message: "Meta Description is required" });
       if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
       if (!icon) missingFields.push({ name: "icon", message: "Icon is required" });
+       if (!menuImg)
+        missingFields.push({
+          name: "menuImg",
+          message: "menuImg is required",
+        });
     }
 
     // ✅ Section Data Merge
@@ -244,6 +256,7 @@ const updateService = async (req, res) => {
       metaDescription: metaDescription ?? existingService.metaDescription,
       slug: slug ?? existingService.slug,
       icon: icon ?? existingService.icon,
+       menuImg: menuImg ?? existingService.menuImg,
       published: isPublished,
       faqs: faqsData,
       imageSection: imageSectionData,
@@ -384,7 +397,7 @@ const listmenuservice = async (req, res) => {
     };
 
     const servicesList = await Services.find(filter)
-      .select("title slug -_id")
+      .select("title slug menuImg -_id ")
       .populate({
         path: "subServices.items",
         match: {
