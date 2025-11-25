@@ -9,7 +9,7 @@ const ServiceSchema = new mongoose.Schema(
     metaDescription: { type: String, maxlength: 160, trim: true },
     slug: { type: String, unique: true },
     icon: { type: String },
-     menuImg: { type: String },
+    menuImg: { type: String },
 
     faqs: {
       title: { type: String },

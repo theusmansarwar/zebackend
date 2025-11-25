@@ -17,6 +17,7 @@ const createblog = async (req, res) => {
       thumbnail,
       faqSchema,
       featured,
+      publishedDate
     } = req.body;
 
     const missingFields = [];
@@ -37,6 +38,8 @@ const createblog = async (req, res) => {
       if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
       if (!thumbnail) missingFields.push({ name: "thumbnail", message: "Thumbnail is required" });
       if (!category) missingFields.push({ name: "category", message: "Category is required" });
+      if (!publishedDate) missingFields.push({ name: "publishedDate", message: "Published Date is required" });
+    
     }
 
     // ✅ Stop here if any fields missing
@@ -91,6 +94,7 @@ const createblog = async (req, res) => {
       featured: isFeatured,
       category: validCategory,
       faqSchema,
+      publishedDate
     });
 
     res.status(201).json({
@@ -123,6 +127,7 @@ const updateblog = async (req, res) => {
       thumbnail,
       faqSchema,
       featured,
+      publishedDate
     } = req.body;
 console.log("Data coming in request is ", req.body);
 try{
@@ -153,6 +158,8 @@ try{
         missingFields.push({ name: "thumbnail", message: "Thumbnail is required" });
       if (!(category || blog.category))
         missingFields.push({ name: "category", message: "Category is required" });
+         if (!(publishedDate || blog.publishedDate))
+        missingFields.push({ name: "publishedDate", message: "Published Date is required" });
     }
 
     if (missingFields.length > 0) {
@@ -183,6 +190,7 @@ try{
     if (faqSchema !== undefined) blog.faqSchema = faqSchema;
     if (published !== undefined) blog.published = isPublished;
     if (featured !== undefined) blog.featured = isFeatured;
+    if (publishedDate !== undefined) blog.publishedDate = publishedDate;
 
     // ✅ Category update
     if (category !== undefined) {

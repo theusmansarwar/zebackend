@@ -42,7 +42,7 @@ const createservice = async (req, res) => {
         if (!menuImg)
         missingFields.push({
           name: "menuImg",
-          message: "menuImg is required",
+          message: "Menu image is required",
         });
       if (!metaDescription)
         missingFields.push({
@@ -428,7 +428,7 @@ const getServiceById = async (req, res) => {
     const service = await Services.findById(id)
       .populate({
         path: "faqs.items",
-        match: { isDeleted: { $ne: true } }, // only include non-deleted FAQs
+        match: { isDeleted: { $ne: true } },
         select: "question answer",
       })
       .populate({
