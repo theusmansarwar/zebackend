@@ -19,10 +19,17 @@ const LeadsSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  hasWebsite: {
+    type: String,
+  },
+  website: {
+    type: String,
+  },
   subject: {
     type: String,
     required: true
   },
+  
   query: {
     type: String,
     required: true,

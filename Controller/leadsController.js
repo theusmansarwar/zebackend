@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Leads = require("../Models/leadsModel");
 const sendEmailToCompany = require("./emailverification");
 const CreateLeads = async (req, res) => {
-  const { name, lastName, email, phone, subject, query } = req.body;
+  const { name, lastName, email, phone, subject, query,hasWebsite, website } = req.body;
   const missingFields = [];
 
   if (!name)
@@ -23,6 +23,18 @@ const CreateLeads = async (req, res) => {
   else if (phone.trim().length < 6) {
     missingFields.push({ name: "phone", message: "Phone is incomplete" });
   }
+  if (!hasWebsite) {
+    missingFields.push({
+      name: "hasWebsite",
+      message: "Please select Yes or No for Website option",
+    });
+  } else if (hasWebsite === "yes" && (!website || website.trim() === "")) {
+    missingFields.push({
+      name: "website",
+      message: "Website URL or Name is required",
+    });
+  }
+
 
   if (!subject)
     missingFields.push({
@@ -46,10 +58,12 @@ const CreateLeads = async (req, res) => {
       lastName,
       email,
       phone,
+      hasWebsite: hasWebsite || null,
+      website: website || null,
       subject,
       query,
     });
-    sendEmailToCompany({ email, name, lastName, subject, phone, query }, res);
+    sendEmailToCompany({ email, name, lastName, subject, phone , hasWebsite, website , query }, res);
 
     if (!LeadsCreated) {
       return res.status(500).json({
