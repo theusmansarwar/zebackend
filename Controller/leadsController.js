@@ -28,11 +28,14 @@ const CreateLeads = async (req, res) => {
       name: "hasWebsite",
       message: "Please select Yes or No for Website option",
     });
-  } else if (hasWebsite == "yes" && (!website || website.trim() == "")) {
-    missingFields.push({
+  } else if (hasWebsite == "yes" ) {
+    if(!website){
+       missingFields.push({
       name: "website",
       message: "Website URL or Name is required",
     });
+    }
+   
   }
 
 
