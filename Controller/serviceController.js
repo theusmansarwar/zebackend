@@ -1,9 +1,5 @@
 const mongoose = require("mongoose");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 const Services = require("../Models/serviceModel");
-const Faqs = require("../Models/faqsModel");
 
 const createservice = async (req, res) => {
   try {
@@ -16,7 +12,7 @@ const createservice = async (req, res) => {
       slug,
       published,
       icon,
-      menuImg
+      menuImg,
     } = req.body;
 
     const missingFields = [];
@@ -39,7 +35,7 @@ const createservice = async (req, res) => {
           name: "short_description",
           message: "Short description is required",
         });
-        if (!menuImg)
+      if (!menuImg)
         missingFields.push({
           name: "menuImg",
           message: "Menu image is required",
@@ -138,8 +134,10 @@ const updateService = async (req, res) => {
       icon,
       menuImg,
       faqs = {},
+      whySteps = {},
+      secondSection = {},
       imageSection = {},
-      lastSection = {},
+      firstSection = {},
       subServices = {},
     } = req.body;
 
@@ -154,8 +152,10 @@ const updateService = async (req, res) => {
 
     // ✅ Ensure nested objects exist
     existingService.faqs ??= {};
+    existingService.whySteps ??= {};
+    existingService.secondSection ??= {};
     existingService.imageSection ??= {};
-    existingService.lastSection ??= {};
+    existingService.firstSection ??= {};
     existingService.subServices ??= {};
 
     // ✅ Boolean parser
@@ -170,13 +170,28 @@ const updateService = async (req, res) => {
 
     // ✅ Validate top-level fields if published
     if (isPublished) {
-      if (!title) missingFields.push({ name: "title", message: "Title is required" });
-      if (!metatitle) missingFields.push({ name: "metatitle", message: "Meta Title is required" });
-      if (!description) missingFields.push({ name: "description", message: "Description is required" });
-      if (!metaDescription) missingFields.push({ name: "metaDescription", message: "Meta Description is required" });
-      if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
-      if (!icon) missingFields.push({ name: "icon", message: "Icon is required" });
-       if (!menuImg)
+      if (!title)
+        missingFields.push({ name: "title", message: "Title is required" });
+      if (!metatitle)
+        missingFields.push({
+          name: "metatitle",
+          message: "Meta Title is required",
+        });
+      if (!description)
+        missingFields.push({
+          name: "description",
+          message: "Description is required",
+        });
+      if (!metaDescription)
+        missingFields.push({
+          name: "metaDescription",
+          message: "Meta Description is required",
+        });
+      if (!slug)
+        missingFields.push({ name: "slug", message: "Slug is required" });
+      if (!icon)
+        missingFields.push({ name: "icon", message: "Icon is required" });
+      if (!menuImg)
         missingFields.push({
           name: "menuImg",
           message: "menuImg is required",
@@ -190,52 +205,162 @@ const updateService = async (req, res) => {
       items: faqs.items ?? existingService.faqs?.items ?? [],
       published: parseBool(faqs.published, existingService.faqs?.published),
     };
+    const whyStepsData = {
+      title: whySteps.title ?? existingService.whySteps?.title ?? "",
+      description:
+        whySteps.description ?? existingService.whySteps?.description ?? "",
+      image: whySteps.image ?? existingService.whySteps?.image ?? "",
+      items: whySteps.items ?? existingService.whySteps?.items ?? [],
+      published: parseBool(
+        whySteps.published,
+        existingService.whySteps?.published
+      ),
+    };
+    const secondSectionData = {
+      title: secondSection.title ?? existingService.secondSection?.title ?? "",
+      image: secondSection.image ?? existingService.secondSection?.image ?? "",
+      items: secondSection.items ?? existingService.secondSection?.items ?? [],
+      published: parseBool(
+        secondSection.published,
+        existingService.secondSection?.published
+      ),
+    };
 
     const imageSectionData = {
       title: imageSection.title ?? existingService.imageSection?.title ?? "",
       image: imageSection.image ?? existingService.imageSection?.image ?? "",
-      published: parseBool(imageSection.published, existingService.imageSection?.published),
+      published: parseBool(
+        imageSection.published,
+        existingService.imageSection?.published
+      ),
     };
 
-    const lastSectionData = {
-      title: lastSection.title ?? existingService.lastSection?.title ?? "",
-      description: lastSection.description ?? existingService.lastSection?.description ?? "",
-      image: lastSection.image ?? existingService.lastSection?.image ?? "",
-      published: parseBool(lastSection.published, existingService.lastSection?.published),
+    const firstSectionData = {
+      title: firstSection.title ?? existingService.firstSection?.title ?? "",
+      description:
+        firstSection.description ??
+        existingService.firstSection?.description ??
+        "",
+      image: firstSection.image ?? existingService.firstSection?.image ?? "",
+      published: parseBool(
+        firstSection.published,
+        existingService.firstSection?.published
+      ),
     };
 
     const subServicesData = {
-      published: parseBool(subServices.published, existingService.subServices?.published),
+      published: parseBool(
+        subServices.published,
+        existingService.subServices?.published
+      ),
       items: subServices.items ?? existingService.subServices?.items ?? [],
     };
 
     // ✅ Validate each section if published
     if (faqsData.published) {
-      if (!faqsData.title) missingFields.push({ name: "faqs.title", message: "FAQ title is required" });
-      if (!faqsData.description) missingFields.push({ name: "faqs.description", message: "FAQ description is required" });
+      if (!faqsData.title)
+        missingFields.push({
+          name: "faqs.title",
+          message: "FAQ title is required",
+        });
+      if (!faqsData.description)
+        missingFields.push({
+          name: "faqs.description",
+          message: "FAQ description is required",
+        });
       if (!Array.isArray(faqsData.items) || faqsData.items.length === 0)
-        missingFields.push({ name: "faqs.items", message: "At least one FAQ item is required" });
+        missingFields.push({
+          name: "faqs.items",
+          message: "At least one FAQ item is required",
+        });
+    }
+    // Validate second section if published
+    if (secondSectionData.published) {
+      if (!secondSectionData.title)
+        missingFields.push({
+          name: "secondSection.title",
+          message: "Second Section title is required",
+        });
+      if (!secondSectionData.image)
+        missingFields.push({
+          name: "secondSection.image",
+          message: "Second Section image is required",
+        });
+
+      if (
+        !Array.isArray(secondSectionData.items) ||
+        secondSectionData.items.length === 0
+      )
+        missingFields.push({
+          name: "secondSection.items",
+          message: "At least one item is required",
+        });
+    }
+    // Validate why Steps section if published
+    if (whyStepsData.published) {
+      if (!whyStepsData.title)
+        missingFields.push({
+          name: "whySteps.title",
+          message: "Why Steps title is required",
+        });
+      if (!whyStepsData.description)
+        missingFields.push({
+          name: "whySteps.description",
+          message: "Why Steps description is required",
+        });
+      if (!whyStepsData.image)
+        missingFields.push({
+          name: "whySteps.image",
+          message: "Why Steps image is required",
+        });
+
+      if (!Array.isArray(whyStepsData.items) || whyStepsData.items.length === 0)
+        missingFields.push({
+          name: "whySteps.items",
+          message: "At least one item is required",
+        });
     }
 
     if (imageSectionData.published) {
       if (!imageSectionData.title)
-        missingFields.push({ name: "imageSection.title", message: "Image Section title is required" });
+        missingFields.push({
+          name: "imageSection.title",
+          message: "Image Section title is required",
+        });
       if (!imageSectionData.image)
-        missingFields.push({ name: "imageSection.image", message: "Image Section image is required" });
+        missingFields.push({
+          name: "imageSection.image",
+          message: "Image Section image is required",
+        });
     }
 
-    if (lastSectionData.published) {
-      if (!lastSectionData.title)
-        missingFields.push({ name: "lastSection.title", message: "Last Section title is required" });
-      if (!lastSectionData.description)
-        missingFields.push({ name: "lastSection.description", message: "Last Section description is required" });
-      if (!lastSectionData.image)
-        missingFields.push({ name: "lastSection.image", message: "Last Section image is required" });
+    if (firstSectionData.published) {
+      if (!firstSectionData.title)
+        missingFields.push({
+          name: "firstSection.title",
+          message: "First Section title is required",
+        });
+      if (!firstSectionData.description)
+        missingFields.push({
+          name: "firstSection.description",
+          message: "First Section description is required",
+        });
+      if (!firstSectionData.image)
+        missingFields.push({
+          name: "firstSection.image",
+          message: "First Section image is required",
+        });
     }
 
     if (subServicesData.published) {
-      if (!Array.isArray(subServicesData.items) || subServicesData.items.length === 0)
-        missingFields.push({ name: "subServices.items", message: "At least one Sub Service item is required" });
+      if (
+        !Array.isArray(subServicesData.items) ||
+        subServicesData.items.length === 0
+      )
+        missingFields.push({
+          name: "subServices.items",
+          message: "At least one Sub Service item is required",
+        });
     }
 
     // ✅ Stop early if any fields missing
@@ -256,11 +381,13 @@ const updateService = async (req, res) => {
       metaDescription: metaDescription ?? existingService.metaDescription,
       slug: slug ?? existingService.slug,
       icon: icon ?? existingService.icon,
-       menuImg: menuImg ?? existingService.menuImg,
+      menuImg: menuImg ?? existingService.menuImg,
       published: isPublished,
       faqs: faqsData,
+      whySteps: whyStepsData,
+      secondSection: secondSectionData,
       imageSection: imageSectionData,
-      lastSection: lastSectionData,
+      firstSection: firstSectionData,
       subServices: subServicesData,
     };
 
@@ -275,7 +402,6 @@ const updateService = async (req, res) => {
       message: "Service updated successfully",
       service: updatedService,
     });
-
   } catch (error) {
     console.error("Error updating service:", error);
     return res.status(500).json({
@@ -285,7 +411,6 @@ const updateService = async (req, res) => {
     });
   }
 };
-
 
 const listserviceAdmin = async (req, res) => {
   try {
@@ -340,7 +465,6 @@ const listserviceAdmin = async (req, res) => {
     });
   }
 };
-
 
 const listservice = async (req, res) => {
   try {
@@ -432,6 +556,16 @@ const getServiceById = async (req, res) => {
         select: "question answer",
       })
       .populate({
+        path: "whySteps.items",
+        match: { isDeleted: { $ne: true } },
+        select: "stepTitle stepDescription",
+      })
+      .populate({
+        path: "secondSection.items",
+        match: { isDeleted: { $ne: true } },
+        select: "title description image",
+      })
+      .populate({
         path: "subServices.items",
         match: {
           isDeleted: { $ne: true },
@@ -461,6 +595,16 @@ const getServiceBySlug = async (req, res) => {
         path: "faqs.items",
         match: { isDeleted: { $ne: true } }, // only include non-deleted FAQs
         select: "question answer",
+      })
+      .populate({
+        path: "whySteps.items",
+        match: { isDeleted: { $ne: true } }, // only include non-deleted Items
+        select: "stepTitle stepDescription",
+      })
+      .populate({
+        path: "secondSection.items",
+        match: { isDeleted: { $ne: true } }, // only include non-deleted Items
+        select: "title description image",
       })
       .populate({
         path: "subServices.items",

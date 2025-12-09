@@ -68,7 +68,9 @@ const productRoutes = require("./Routes/productsRoutes");
 
 const PortfolioRoutes = require("./Routes/portfolioRoutes");
 const faqsRoutes = require("./Routes/faqsRoutes");
+const secondRoutes = require("./Routes/secondRoutes");
 const provenStepsRoutes = require("./Routes/ProvenStepsRoutes");
+const whyStepsRoutes = require("./Routes/whyStepsRoutes");
 
 const ApplicationRoutes = require("./Routes/applicationRoutes");
 // ✅ Use Routes
@@ -90,6 +92,8 @@ app.use("/casestudy", caseStudyRoutes);
 app.use("/jobs", jobsRoutes);
 app.use("/product", productRoutes);
 app.use("/faqs", faqsRoutes);
+app.use("/second", secondRoutes);
+app.use("/whySteps", whyStepsRoutes);
 app.use("/provenSteps", provenStepsRoutes);
 app.use("/portfolio", PortfolioRoutes);
 

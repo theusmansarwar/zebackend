@@ -11,6 +11,21 @@ const ServiceSchema = new mongoose.Schema(
     icon: { type: String },
     menuImg: { type: String },
 
+    secondSection: {
+      title: { type: String },
+      image: { type: String },
+      items: [{ type: mongoose.Schema.Types.ObjectId, ref: "SecondSection" }],
+      published: { type: Boolean, default: false },
+    },
+
+    whySteps: {
+      title: { type: String },
+      description: { type: String },
+      image: { type: String },
+      items: [{ type: mongoose.Schema.Types.ObjectId, ref: "WhySteps" }],
+      published: { type: Boolean, default: false },
+    },
+
     faqs: {
       title: { type: String },
       description: { type: String },
@@ -24,20 +39,17 @@ const ServiceSchema = new mongoose.Schema(
       published: { type: Boolean, default: false },
     },
 
-    lastSection: {
+    firstSection: {
       title: { type: String },
       description: { type: String },
+      image: { type: String },
       published: { type: Boolean, default: false },
     },
-    provenSteps: {
-          title: { type: String },
-          items: [{ type: mongoose.Schema.Types.ObjectId, ref: "ProvenSteps" }],
-          published: { type: Boolean, default: false },
-        },
+  
 
     subServices: {
       published: { type: Boolean, default: false },
-      items: [{ type: mongoose.Schema.Types.ObjectId, ref: "subServices" }]
+      items: [{ type: mongoose.Schema.Types.ObjectId, ref: "subServices" }],
     },
     published: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
