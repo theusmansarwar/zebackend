@@ -45,7 +45,11 @@ const ServiceSchema = new mongoose.Schema(
       image: { type: String },
       published: { type: Boolean, default: false },
     },
-  
+    contentSection: {
+      title: { type: String },
+      description: { type: String },
+      published: { type: Boolean, default: false },
+    },
 
     subServices: {
       published: { type: Boolean, default: false },

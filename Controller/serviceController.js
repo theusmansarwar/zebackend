@@ -138,6 +138,7 @@ const updateService = async (req, res) => {
       secondSection = {},
       imageSection = {},
       firstSection = {},
+      contentSection = {},
       subServices = {},
     } = req.body;
 
@@ -156,6 +157,7 @@ const updateService = async (req, res) => {
     existingService.secondSection ??= {};
     existingService.imageSection ??= {};
     existingService.firstSection ??= {};
+    existingService.contentSection ??= {};
     existingService.subServices ??= {};
 
     // ✅ Boolean parser
@@ -245,6 +247,19 @@ const updateService = async (req, res) => {
       published: parseBool(
         firstSection.published,
         existingService.firstSection?.published
+      ),
+    };
+    const contentSectionData = {
+      title:
+        contentSection.title ?? existingService.contentSection?.title ?? "",
+      description:
+        contentSection.description ??
+        existingService.contentSection?.description ??
+        "",
+
+      published: parseBool(
+        contentSection.published,
+        existingService.contentSection?.published
       ),
     };
 
@@ -351,6 +366,19 @@ const updateService = async (req, res) => {
           message: "First Section image is required",
         });
     }
+    if (contentSectionData.published) {
+      if (!contentSectionData.title)
+        missingFields.push({
+          name: "contentSection.title",
+          message: "Content Section title is required",
+        });
+      if (!contentSectionData.description)
+        missingFields.push({
+          name: "contentSection.description",
+          message: "Content Section description is required",
+        });
+     
+    }
 
     if (subServicesData.published) {
       if (
@@ -388,6 +416,7 @@ const updateService = async (req, res) => {
       secondSection: secondSectionData,
       imageSection: imageSectionData,
       firstSection: firstSectionData,
+      contentSection: contentSectionData,
       subServices: subServicesData,
     };
 
