@@ -8,8 +8,9 @@ const UserType = require("../Models/typeModel");
 const mongoose = require("mongoose");
 
 const { View, TotalImpression } = require("../Models/viewModel");
+const Applications = require("../Models/jobApplicationModel");
 const register = async (req, res) => {
-  const { name, email, password,published,typeId } = req.body;
+  const { name, email, password, published, typeId } = req.body;
   const missingFields = [];
 
   if (!email) {
@@ -61,11 +62,11 @@ const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-       type: userType._id,
-       published: typeof published !== "undefined" ? published : false,
+      type: userType._id,
+      published: typeof published !== "undefined" ? published : false,
     });
 
-     const populatedUser = await User.findById(user._id).populate("type");
+    const populatedUser = await User.findById(user._id).populate("type");
 
     res.status(201).json({
       status: 201,
@@ -80,7 +81,6 @@ const register = async (req, res) => {
     });
   }
 };
-
 
 const login = async (req, res) => {
   const { email, password } = req.body;
@@ -111,7 +111,6 @@ const login = async (req, res) => {
       missingFields: [{ name: "email", message: "Email not found" }],
     });
   }
- 
 
   const matchPassword = await bcrypt.compare(password, user.password);
   if (!matchPassword) {
@@ -123,13 +122,13 @@ const login = async (req, res) => {
   }
 
   if (user.isDeleted) {
-  return res.status(403).json({
-    status: 403,
-    message: "Your account has been deleted. Please contact support.",
-  });
-}
+    return res.status(403).json({
+      status: 403,
+      message: "Your account has been deleted. Please contact support.",
+    });
+  }
 
-   if (!user.published) {
+  if (!user.published) {
     return res.status(403).json({
       status: 403,
       message: "Your account is Blocked. Please contact admin.",
@@ -172,7 +171,6 @@ const Adminlogin = async (req, res) => {
       missingFields: [{ name: "email", message: "Email not found" }],
     });
   }
- 
 
   const matchPassword = await bcrypt.compare(password, user.password);
   if (!matchPassword) {
@@ -184,20 +182,20 @@ const Adminlogin = async (req, res) => {
   }
 
   if (user.isDeleted) {
-  return res.status(403).json({
-    status: 403,
-    message: "Your account has been deleted. Please contact support.",
-  });
-}
+    return res.status(403).json({
+      status: 403,
+      message: "Your account has been deleted. Please contact support.",
+    });
+  }
 
-   if (!user.published) {
+  if (!user.published) {
     return res.status(403).json({
       status: 403,
       message: "Your account is Blocked. Please contact admin.",
       missingFields: [{ name: "published", message: "Account is Blocked" }],
     });
   }
-    if (user.role !== "admin") {
+  if (user.role !== "admin") {
     return res.status(403).json({
       status: 403,
       message: "Invalid credentials: Admin access only",
@@ -210,7 +208,6 @@ const Adminlogin = async (req, res) => {
     token: await user.generateToken(),
   });
 };
-
 
 const stats = async (req, res) => {
   try {
@@ -234,33 +231,50 @@ const stats = async (req, res) => {
 
     // ✅ Leads
     const todayLeads = await Leads.countDocuments({
-      createdAt: { $gte: todayStart, $lte: todayEnd }
+      createdAt: { $gte: todayStart, $lte: todayEnd },
     });
 
     const yesterdayLeads = await Leads.countDocuments({
-      createdAt: { $gte: yesterdayStart, $lte: yesterdayEnd }
+      createdAt: { $gte: yesterdayStart, $lte: yesterdayEnd },
     });
 
     // ✅ Views/Impressions (Use `$gte` and `$lt` for date range)
     const todayImpressionData = await View.findOne({
-      date: { $gte: todayStart, $lte: todayEnd }
+      date: { $gte: todayStart, $lte: todayEnd },
     });
 
     const yesterdayImpressionData = await View.findOne({
-      date: { $gte: yesterdayStart, $lte: yesterdayEnd }
+      date: { $gte: yesterdayStart, $lte: yesterdayEnd },
     });
 
     // ✅ Set default values
     const todayImpression = todayImpressionData ? todayImpressionData.views : 0;
-    const yesterdayImpression = yesterdayImpressionData ? yesterdayImpressionData.views : 0;
+    const yesterdayImpression = yesterdayImpressionData
+      ? yesterdayImpressionData.views
+      : 0;
 
     // ✅ Fetch total impressions count
-    const totalImpressionRecord = await TotalImpression.findOne().select("totalImpression -_id");
-    const totalImpressions = totalImpressionRecord ? totalImpressionRecord.totalImpression : 0;
+    const totalImpressionRecord = await TotalImpression.findOne().select(
+      "totalImpression -_id"
+    );
+    const totalImpressions = totalImpressionRecord
+      ? totalImpressionRecord.totalImpression
+      : 0;
 
     const totalComments = await Comment.countDocuments({ isDeleted: false });
     const totalUsers = await User.countDocuments({ isDeleted: false });
     const totalServices = await Service.countDocuments({ isDeleted: false });
+
+    //Application Stats Response
+    const totalApplications = await Applications.countDocuments({
+      isDeleted: false,
+    });
+    const todayApplications = await Applications.countDocuments({
+      createdAt: { $gte: todayStart, $lte: todayEnd },
+    });
+    const yesterdayApplications = await Applications.countDocuments({
+      createdAt: { $gte: yesterdayStart, $lte: yesterdayEnd },
+    });
 
     return res.status(200).json({
       message: "Data fetched successfully",
@@ -274,13 +288,14 @@ const stats = async (req, res) => {
       totalComments,
       totalUsers,
       totalServices,
+      totalApplications,
+      todayApplications,
+      yesterdayApplications,
     });
   } catch (error) {
     return res.status(500).json({ message: "Error fetching data", error });
   }
 };
-
-
 
 const getAllUsers = async (req, res) => {
   try {
@@ -338,18 +353,20 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-
-
 // ✅ Get user by ID
 const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-password").populate("type");
+    const user = await User.findById(req.params.id)
+      .select("-password")
+      .populate("type");
     if (!user) {
       return res.status(404).json({ status: 404, message: "User not found" });
     }
     res.status(200).json({ status: 200, data: user });
   } catch (error) {
-    res.status(500).json({ status: 500, message: "Failed to fetch user", error });
+    res
+      .status(500)
+      .json({ status: 500, message: "Failed to fetch user", error });
   }
 };
 
@@ -368,7 +385,9 @@ const updateUser = async (req, res) => {
     if (typeId) {
       const userType = await UserType.findById(typeId);
       if (!userType) {
-        return res.status(400).json({ status: 400, message: "Invalid user type" });
+        return res
+          .status(400)
+          .json({ status: 400, message: "Invalid user type" });
       }
       updateData.type = {
         _id: userType._id,
@@ -376,11 +395,9 @@ const updateUser = async (req, res) => {
       };
     }
 
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true }
-    ).select("-password");
+    const user = await User.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+    }).select("-password");
 
     if (!user) {
       return res.status(404).json({ status: 404, message: "User not found" });
@@ -388,23 +405,24 @@ const updateUser = async (req, res) => {
 
     res.status(200).json({ status: 200, message: "User updated", data: user });
   } catch (error) {
-    res.status(500).json({ status: 500, message: "Failed to update user", error });
+    res
+      .status(500)
+      .json({ status: 500, message: "Failed to update user", error });
   }
 };
-
-
-
 
 const deleteMultipleUsers = async (req, res) => {
   try {
     const { ids } = req.body;
 
     if (!Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ message: "Invalid or empty list of user IDs" });
+      return res
+        .status(400)
+        .json({ message: "Invalid or empty list of user IDs" });
     }
 
     // ✅ Filter only valid MongoDB ObjectIds
-    const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
+    const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
 
     if (validIds.length === 0) {
       return res.status(400).json({ message: "No valid user IDs provided" });
@@ -414,7 +432,9 @@ const deleteMultipleUsers = async (req, res) => {
     const users = await User.find({ _id: { $in: validIds }, isDeleted: false });
 
     if (users.length === 0) {
-      return res.status(404).json({ message: "No active users found with the given IDs" });
+      return res
+        .status(404)
+        .json({ message: "No active users found with the given IDs" });
     }
 
     // ✅ Soft delete users instead of removing them
@@ -437,8 +457,6 @@ const deleteMultipleUsers = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
   register,
   stats,
@@ -446,7 +464,5 @@ module.exports = {
   getAllUsers,
   getUserById,
   updateUser,
-  deleteMultipleUsers
-
+  deleteMultipleUsers,
 };
-
