@@ -14,5 +14,5 @@ router.put("/update/:id", updateJob);
 router.get("/get/:id", getJobById);
 router.get("/view", viewJobs);
 router.get("/live", liveJobs);
-router.post("/deleteAll", deleteAllJobs);
+router.delete("/deleteAll", deleteAllJobs);
 module.exports = router;
