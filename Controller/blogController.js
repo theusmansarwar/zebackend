@@ -295,6 +295,10 @@ if (categoryId && categoryId !== "all" && categoryId.trim() !== "") {
 
     // fetch blogs
     const blogslist = await Blogs.find(filter)
+      .populate({
+    path: "category",
+    select: "name",
+  })
       .select("-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -createdAt -views -__v ")
       .sort({ createdAt: -1 })
       .limit(limit)
