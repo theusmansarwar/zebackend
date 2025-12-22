@@ -3,7 +3,6 @@ const Comment = require("../Models/commentModel");
 const Category = require("../Models/categoryModel");
 const mongoose = require("mongoose");
 
-
 const createblog = async (req, res) => {
   try {
     const {
@@ -17,7 +16,7 @@ const createblog = async (req, res) => {
       thumbnail,
       faqSchema,
       featured,
-      publishedDate
+      publishedDate,
     } = req.body;
 
     const missingFields = [];
@@ -32,14 +31,35 @@ const createblog = async (req, res) => {
 
     // ✅ If published, check all other required fields
     if (isPublished) {
-      if (!description) missingFields.push({ name: "description", message: "Description is required" });
-      if (!detail) missingFields.push({ name: "detail", message: "Detail is required" });
-      if (!metaDescription) missingFields.push({ name: "metaDescription", message: "Meta description is required" });
-      if (!slug) missingFields.push({ name: "slug", message: "Slug is required" });
-      if (!thumbnail) missingFields.push({ name: "thumbnail", message: "Thumbnail is required" });
-      if (!category) missingFields.push({ name: "category", message: "Category is required" });
-      if (!publishedDate) missingFields.push({ name: "publishedDate", message: "Published Date is required" });
-    
+      if (!description)
+        missingFields.push({
+          name: "description",
+          message: "Description is required",
+        });
+      if (!detail)
+        missingFields.push({ name: "detail", message: "Detail is required" });
+      if (!metaDescription)
+        missingFields.push({
+          name: "metaDescription",
+          message: "Meta description is required",
+        });
+      if (!slug)
+        missingFields.push({ name: "slug", message: "Slug is required" });
+      if (!thumbnail)
+        missingFields.push({
+          name: "thumbnail",
+          message: "Thumbnail is required",
+        });
+      if (!category)
+        missingFields.push({
+          name: "category",
+          message: "Category is required",
+        });
+      if (!publishedDate)
+        missingFields.push({
+          name: "publishedDate",
+          message: "Published Date is required",
+        });
     }
 
     // ✅ Stop here if any fields missing
@@ -94,13 +114,12 @@ const createblog = async (req, res) => {
       featured: isFeatured,
       category: validCategory,
       faqSchema,
-      publishedDate
+      publishedDate: publishedDate ? new Date(publishedDate) : null,
     });
 
     res.status(201).json({
       status: 201,
       message: "Blog created successfully",
-   
     });
   } catch (error) {
     console.error("Error creating blog:", error);
@@ -112,25 +131,23 @@ const createblog = async (req, res) => {
   }
 };
 
-
 const updateblog = async (req, res) => {
- 
-    const { id } = req.params;
-    const {
-      title,
-      description,
-      detail,
-      metaDescription,
-      slug,
-      category,
-      published,
-      thumbnail,
-      faqSchema,
-      featured,
-      publishedDate
-    } = req.body;
-console.log("Data coming in request is ", req.body);
-try{
+  const { id } = req.params;
+  const {
+    title,
+    description,
+    detail,
+    metaDescription,
+    slug,
+    category,
+    published,
+    thumbnail,
+    faqSchema,
+    featured,
+    publishedDate,
+  } = req.body;
+  console.log("Data coming in request is ", req.body);
+  try {
     let blog = await Blogs.findById(id);
     if (!blog) {
       return res.status(404).json({ status: 404, message: "Blog not found" });
@@ -147,23 +164,42 @@ try{
 
     if (isPublished) {
       if (!(description || blog.description))
-        missingFields.push({ name: "description", message: "Description is required" });
+        missingFields.push({
+          name: "description",
+          message: "Description is required",
+        });
       if (!(detail || blog.detail))
         missingFields.push({ name: "detail", message: "Detail is required" });
       if (!(metaDescription || blog.metaDescription))
-        missingFields.push({ name: "metaDescription", message: "Meta description is required" });
+        missingFields.push({
+          name: "metaDescription",
+          message: "Meta description is required",
+        });
       if (!(slug || blog.slug))
         missingFields.push({ name: "slug", message: "Slug is required" });
       if (!(thumbnail || blog.thumbnail))
-        missingFields.push({ name: "thumbnail", message: "Thumbnail is required" });
+        missingFields.push({
+          name: "thumbnail",
+          message: "Thumbnail is required",
+        });
       if (!(category || blog.category))
-        missingFields.push({ name: "category", message: "Category is required" });
-         if (!(publishedDate || blog.publishedDate))
-        missingFields.push({ name: "publishedDate", message: "Published Date is required" });
+        missingFields.push({
+          name: "category",
+          message: "Category is required",
+        });
+      if (!(publishedDate || blog.publishedDate))
+        missingFields.push({
+          name: "publishedDate",
+          message: "Published Date is required",
+        });
     }
 
     if (missingFields.length > 0) {
-      return res.status(400).json({ status: 400, message: "Some fields are missing!", missingFields });
+      return res.status(400).json({
+        status: 400,
+        message: "Some fields are missing!",
+        missingFields,
+      });
     }
 
     // ✅ Duplicate checks when publishing
@@ -173,10 +209,14 @@ try{
         Blogs.findOne({ slug, _id: { $ne: id } }),
       ]);
       if (existingTitle) {
-        return res.status(400).json({ status: 400, message: "Blog Title already exists" });
+        return res
+          .status(400)
+          .json({ status: 400, message: "Blog Title already exists" });
       }
       if (existingSlug) {
-        return res.status(400).json({ status: 400, message: "Blog Slug already exists" });
+        return res
+          .status(400)
+          .json({ status: 400, message: "Blog Slug already exists" });
       }
     }
 
@@ -190,16 +230,23 @@ try{
     if (faqSchema !== undefined) blog.faqSchema = faqSchema;
     if (published !== undefined) blog.published = isPublished;
     if (featured !== undefined) blog.featured = isFeatured;
-    if (publishedDate !== undefined) blog.publishedDate = publishedDate;
+    if (publishedDate !== undefined) {
+      blog.publishedDate = new Date(publishedDate);
+    }
+
 
     // ✅ Category update
     if (category !== undefined) {
       if (!mongoose.Types.ObjectId.isValid(category)) {
-        return res.status(400).json({ status: 400, message: "Invalid category ID" });
+        return res
+          .status(400)
+          .json({ status: 400, message: "Invalid category ID" });
       }
       const categoryExists = await Category.findById(category);
       if (!categoryExists) {
-        return res.status(400).json({ status: 400, message: "Category not found" });
+        return res
+          .status(400)
+          .json({ status: 400, message: "Category not found" });
       }
       blog.category = categoryExists._id;
     }
@@ -212,11 +259,14 @@ try{
     res.status(200).json({
       status: 200,
       message: "Blog updated successfully",
-   
     });
   } catch (error) {
     console.error("Error updating blog:", error);
-    res.status(500).json({ status: 500, message: "Internal server error", error: error.message });
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
@@ -265,23 +315,20 @@ const deletemultiblog = async (req, res) => {
   }
 };
 
-
 const listblog = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; 
-    const limit = parseInt(req.query.limit) || 10; 
-  const { categoryId, search } = req.query; 
-
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const { categoryId, search } = req.query;
 
     // base filter
-    let filter = { 
-  published: true,  isDeleted: false // ✅ only include non-deleted items
-};
-;
-if (categoryId && categoryId !== "all" && categoryId.trim() !== "") {
-  filter["category._id"] = new mongoose.Types.ObjectId(categoryId);
-}
-
+    let filter = {
+      published: true,
+      isDeleted: false, // ✅ only include non-deleted items
+    };
+    if (categoryId && categoryId !== "all" && categoryId.trim() !== "") {
+      filter["category._id"] = new mongoose.Types.ObjectId(categoryId);
+    }
 
     // ✅ Search filter (applied only if non-empty)
     if (search && search.trim() !== "") {
@@ -289,18 +336,20 @@ if (categoryId && categoryId !== "all" && categoryId.trim() !== "") {
         { title: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
         { "category.name": { $regex: search, $options: "i" } }, // allows searching by category name
-        { author: { $regex: search, $options: "i" } }
+        { author: { $regex: search, $options: "i" } },
       ];
     }
 
     // fetch blogs
     const blogslist = await Blogs.find(filter)
       .populate({
-    path: "category",
-    select: "name",
-  })
-      .select("-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -createdAt -views -__v ")
-      .sort({ createdAt: -1 })
+        path: "category",
+        select: "name",
+      })
+      .select(
+        "-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -createdAt -views -__v "
+      )
+      .sort({ publishedDate: -1, createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
@@ -329,15 +378,15 @@ const getFeaturedblogs = async (req, res) => {
     const allFeaturedBlogs = await Blogs.find({
       published: true,
       featured: true,
-    }).select("-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -createdAt -views -__v  -category")
-    .populate(
-        "category",
-        "name "
+    })
+      .select(
+        "-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -createdAt -views -__v  -category"
       )
+      .populate("category", "name ");
 
     const shuffled = allFeaturedBlogs.sort(() => 0.5 - Math.random());
     const blogslist = shuffled.slice(0, 4);
-res.status(200).json({
+    res.status(200).json({
       blogs: blogslist,
     });
   } catch (error) {
@@ -403,7 +452,6 @@ const getFeaturedblogsadmin = async (req, res) => {
   }
 };
 
-
 const listblogAdmin = async (req, res) => {
   try {
     const { search } = req.query;
@@ -457,9 +505,6 @@ const listblogAdmin = async (req, res) => {
   }
 };
 
-
-
-
 const viewblog = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -468,12 +513,13 @@ const viewblog = async (req, res) => {
         path: "comments",
         match: { published: true },
         options: { sort: { createdAt: -1 } },
-      }).populate({
+      })
+      .populate({
         path: "category",
         model: "Category",
-        select:"name _id"
+        select: "name _id",
       })
-      .select("-_id -__v -published -isDeleted -updatedAt")
+      .select("-_id -__v -published -isDeleted -updatedAt");
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
@@ -504,14 +550,13 @@ const viewblog = async (req, res) => {
   }
 };
 
-
 const viewblogbyid = async (req, res) => {
   try {
     const { id } = req.params;
     let blog = await Blogs.findById(id).populate({
-        path: "category",
-        model: "Category",
-      });
+      path: "category",
+      model: "Category",
+    });
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
@@ -537,7 +582,10 @@ const getblogSlugs = async (req, res) => {
       .select("slug _id title")
       .sort({ publishedDate: -1 });
 
-    const totalBlogs = await Blogs.countDocuments({ published: true ,  isDeleted: false});
+    const totalBlogs = await Blogs.countDocuments({
+      published: true,
+      isDeleted: false,
+    });
 
     res.status(200).json({
       totalBlogs,
@@ -552,7 +600,6 @@ const getblogSlugs = async (req, res) => {
     });
   }
 };
-
 
 const changeblogauther = async (req, res) => {
   try {
@@ -574,14 +621,13 @@ const changeblogauther = async (req, res) => {
 
 const getPopularBlogs = async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 5; 
+    const limit = parseInt(req.query.limit) || 5;
 
     const blogs = await Blogs.find({ published: true, isDeleted: false })
-      .select("-comments -detail -viewedBy -faqSchema -createdAt -updatedAt -isDeleted -__v -featured -published -views ") 
-       .populate(
-        "category",
-        "name "
+      .select(
+        "-comments -detail -viewedBy -faqSchema -createdAt -updatedAt -isDeleted -__v -featured -published -views "
       )
+      .populate("category", "name ")
       .sort({ views: -1 }) // sort by views (highest first)
       .limit(limit);
 
@@ -600,7 +646,6 @@ const getPopularBlogs = async (req, res) => {
   }
 };
 
-
 module.exports = {
   createblog,
   updateblog,
@@ -613,6 +658,5 @@ module.exports = {
   getFeaturedblogs,
   getFeaturedblogsadmin,
   changeblogauther,
-  getPopularBlogs
-  
+  getPopularBlogs,
 };

@@ -4,7 +4,9 @@ const BlogsSchema = new mongoose.Schema(
   {
     title: { type: String },
     category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
-    publishedDate: { type: String },
+    publishedDate: {
+      type: Date,
+    },
     description: { type: String },
     metaDescription: { type: String, maxlength: 160, trim: true },
     slug: { type: String },
