@@ -382,6 +382,7 @@ const getFeaturedblogs = async (req, res) => {
       .select(
         "-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -createdAt -views -__v  -category"
       )
+      .sort({ publishedDate: -1, createdAt: -1 })
       .populate("category", "name ");
 
     const shuffled = allFeaturedBlogs.sort(() => 0.5 - Math.random());
@@ -429,7 +430,7 @@ const getFeaturedblogsadmin = async (req, res) => {
       .select(
         "-comments -detail -viewedBy -isDeleted -faqSchema -metaDescription -updatedAt -__v"
       )
-      .sort({ createdAt: -1 })
+      .sort({ publishedDate: -1, createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
@@ -482,7 +483,7 @@ const listblogAdmin = async (req, res) => {
       .select(
         "-comments -detail -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -__v"
       )
-      .sort({ createdAt: -1 })
+      .sort({ publishedDate: -1, createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit);
 
