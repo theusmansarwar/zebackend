@@ -234,7 +234,6 @@ const updateblog = async (req, res) => {
       blog.publishedDate = new Date(publishedDate);
     }
 
-
     // ✅ Category update
     if (category !== undefined) {
       if (!mongoose.Types.ObjectId.isValid(category)) {
@@ -319,7 +318,7 @@ const listblog = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const { categoryId, search } = req.query;
+    const { categoryId, search, sortOrder = "desc" } = req.query;
 
     // base filter
     let filter = {
@@ -341,6 +340,8 @@ const listblog = async (req, res) => {
     }
 
     // fetch blogs
+    const sortDirection = sortOrder === "asc" ? 1 : -1;
+
     const blogslist = await Blogs.find(filter)
       .populate({
         path: "category",
@@ -349,7 +350,10 @@ const listblog = async (req, res) => {
       .select(
         "-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -createdAt -views -__v "
       )
-      .sort({ publishedDate: -1, createdAt: -1 })
+      .sort({
+        publishedDate: sortDirection,
+        createdAt: sortDirection,
+      })
       .limit(limit)
       .skip((page - 1) * limit);
 
