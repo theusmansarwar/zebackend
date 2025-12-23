@@ -326,7 +326,8 @@ const listblog = async (req, res) => {
       isDeleted: false, // ✅ only include non-deleted items
     };
     if (categoryId && categoryId !== "all" && categoryId.trim() !== "") {
-      filter["category._id"] = new mongoose.Types.ObjectId(categoryId);
+      filter.category = new mongoose.Types.ObjectId(categoryId);
+
     }
 
     // ✅ Search filter (applied only if non-empty)
