@@ -327,7 +327,6 @@ const listblog = async (req, res) => {
     };
     if (categoryId && categoryId !== "all" && categoryId.trim() !== "") {
       filter.category = new mongoose.Types.ObjectId(categoryId);
-
     }
 
     // ✅ Search filter (applied only if non-empty)
@@ -353,8 +352,8 @@ const listblog = async (req, res) => {
       )
       .sort({
         publishedDate: sortDirection,
-        createdAt: sortDirection,
       })
+
       .limit(limit)
       .skip((page - 1) * limit);
 
