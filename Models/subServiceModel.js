@@ -3,14 +3,19 @@ const mongoose = require("mongoose");
 const ServiceSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
-     metatitle: { type: String, required: true },
+    metatitle: { type: String, required: true },
     description: { type: String },
     short_description: { type: String },
     metaDescription: { type: String, maxlength: 160, trim: true },
     slug: { type: String, unique: true },
-    icon: { type: String},
+    icon: { type: String },
+    parentService: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Services",
+      required: true,
+    },
 
-     introduction: {
+    introduction: {
       title: { type: String },
       description: { type: String },
       image: { type: String },
@@ -21,7 +26,7 @@ const ServiceSchema = new mongoose.Schema(
       items: [{ type: mongoose.Schema.Types.ObjectId, ref: "ProvenSteps" }],
       published: { type: Boolean, default: false },
     },
-      cta: {
+    cta: {
       title: { type: String },
       description: { type: String },
       published: { type: Boolean, default: false },
@@ -32,7 +37,7 @@ const ServiceSchema = new mongoose.Schema(
       image: { type: String },
       published: { type: Boolean, default: false },
     },
-     whySection: {
+    whySection: {
       title: { type: String },
       description: { type: String },
       published: { type: Boolean, default: false },
@@ -43,10 +48,9 @@ const ServiceSchema = new mongoose.Schema(
       items: [{ type: mongoose.Schema.Types.ObjectId, ref: "Faqs" }],
       published: { type: Boolean, default: false },
     },
-   
-   
+
     portfolio: {
-       title: { type: String },
+      title: { type: String },
       items: [{ type: mongoose.Schema.Types.ObjectId, ref: "Portfolio" }],
       published: { type: Boolean, default: false },
     },

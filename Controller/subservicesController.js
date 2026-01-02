@@ -539,26 +539,30 @@ const deleteAllservices = async (req, res) => {
   }
 };
 
-const getservicesSlugs = async (req, res) => {
+const getSubServicesSlugs = async (req, res) => {
   try {
-    const serviceslist = await SubServices.find({
+    const subservices = await SubServices.find({
       published: true,
       isDeleted: false,
     })
-      .select("slug _id title")
-      .sort({ publishedDate: -1 });
+      .populate("parentService", "slug")
+      .select("slug parentService")
+      .sort({ createdAt: -1 });
 
-    const totalServices = await SubServices.countDocuments({
+    const totalSubServices = await SubServices.countDocuments({
       published: true,
       isDeleted: false,
     });
 
     res.status(200).json({
-      totalServices,
-      slugs: serviceslist,
+      totalSubServices,
+      slugs: subservices.map((sub) => ({
+        slug: sub.slug,
+        parentServiceSlug: sub.parentService?.slug,
+      })),
     });
   } catch (error) {
-    console.error("Error fetching blog slugs:", error);
+    console.error("Error fetching subservice slugs:", error);
     res.status(500).json({
       status: 500,
       message: "Internal server error",
@@ -567,6 +571,7 @@ const getservicesSlugs = async (req, res) => {
   }
 };
 
+
 module.exports = {
   createSubService,
   updateSubService,
@@ -574,6 +579,6 @@ module.exports = {
   getServiceById,
   deleteAllservices,
   getServiceBySlug,
-  getservicesSlugs,
+  getSubServicesSlugs,
   listservice,
 };
