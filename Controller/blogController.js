@@ -379,30 +379,30 @@ const listblog = async (req, res) => {
 
 const getFeaturedblogs = async (req, res) => {
   try {
-    const allFeaturedBlogs = await Blogs.find({
+    const limit = Number(req.query.limit) || 4;
+
+    const blogslist = await Blogs.find({
       published: true,
       featured: true,
     })
       .select(
-        "-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -createdAt -views -__v  -category"
+        "-comments -detail -published -viewedBy -isDeleted -faqSchema -featured -metaDescription -updatedAt -createdAt -views -__v"
       )
       .sort({ publishedDate: -1, createdAt: -1 })
-      .populate("category", "name ");
+      .limit(limit)
+      .populate("category", "name");
 
-    const shuffled = allFeaturedBlogs.sort(() => 0.5 - Math.random());
-    const blogslist = shuffled.slice(0, 4);
     res.status(200).json({
       blogs: blogslist,
     });
   } catch (error) {
-    console.error("Error fetching blogs:", error);
+    console.error("Error fetching featured blogs:", error);
     res.status(500).json({
-      status: 500,
       message: "Internal server error",
-      error: error.message,
     });
   }
 };
+
 const getFeaturedblogsadmin = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
